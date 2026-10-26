@@ -156,12 +156,14 @@ test.describe('real PHP auth flow', () => {
         await page.getByLabel('Email or username').fill(email);
         await page.getByLabel('Password').fill(newPassword);
         await page.getByRole('button', { name: /Continue with email/ }).click();
-        await expect(page.getByText('Organizer online')).toBeVisible({
-            timeout: 5000
-        }).catch(async (error) => {
-            const alerts = await page.locator('[role=alert]').allTextContents();
-            throw new Error(`${error.message}\npost-reset alerts=${alerts.join('|')}`);
-        });
+        await expect(page.getByText('Organizer online'))
+            .toBeVisible({
+                timeout: 5000
+            })
+            .catch(async (error) => {
+                const alerts = await page.locator('[role=alert]').allTextContents();
+                throw new Error(`${error.message}\npost-reset alerts=${alerts.join('|')}`);
+            });
 
         // Restore the isolated runner fixture so the following independent
         // browser test does not inherit a changed password.

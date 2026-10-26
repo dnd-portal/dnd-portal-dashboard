@@ -23,12 +23,21 @@ test('real payment request, partial/full payment, reversal and private overview'
         return { request: (await response.json()).data.id };
     });
     const users = await page.evaluate(async () => (await fetch('/api/v1/users')).json());
-    const player = users.data.find((user: { username: string }) => user.username === process.env.PAYMENT_PLAYER_USERNAME);
-    const obligation = await page.evaluate(async ({ request, user }) => {
-        const csrf = await (await fetch('/api/v1/auth/csrf')).json();
-        const response = await fetch(`/api/v1/payment-requests/${request}/obligations`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf.data.token }, body: JSON.stringify({ user_id: user, amount_cents: 10000, currency: 'EUR' }) });
-        return (await response.json()).data.id;
-    }, { request: setup.request, user: player.id });
+    const player = users.data.find(
+        (user: { username: string }) => user.username === process.env.PAYMENT_PLAYER_USERNAME
+    );
+    const obligation = await page.evaluate(
+        async ({ request, user }) => {
+            const csrf = await (await fetch('/api/v1/auth/csrf')).json();
+            const response = await fetch(`/api/v1/payment-requests/${request}/obligations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf.data.token },
+                body: JSON.stringify({ user_id: user, amount_cents: 10000, currency: 'EUR' })
+            });
+            return (await response.json()).data.id;
+        },
+        { request: setup.request, user: player.id }
+    );
     await page.goto(`/admin/payments/${setup.request}`);
     console.log('payment: request and obligation created');
     await page.getByLabel('Obligation ID').fill(String(obligation));
@@ -37,7 +46,11 @@ test('real payment request, partial/full payment, reversal and private overview'
     await page.getByRole('button', { name: 'Record payment' }).click();
     await page.reload();
     await expect(page.getByText(/4000\/10000/)).toBeVisible();
-    const entry = await page.evaluate(async (id) => (await (await fetch(`/api/v1/payment-requests/${id}`)).json()).data.obligations[0].last_payment_entry_id, setup.request);
+    const entry = await page.evaluate(
+        async (id) =>
+            (await (await fetch(`/api/v1/payment-requests/${id}`)).json()).data.obligations[0].last_payment_entry_id,
+        setup.request
+    );
     await page.getByLabel('Obligation ID').fill(String(obligation));
     await page.getByLabel('Amount in cents').fill('6000');
     await page.getByLabel('External reference').fill('browser-pay-2');

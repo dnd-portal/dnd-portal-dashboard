@@ -42,8 +42,8 @@
             await api.post(`/api/v1/payment-obligations/${Number(obligationId)}/entries`, {
                 amount_cents: Number(entryAmount),
                 currency: item?.currency,
-                external_reference: reference || null
-                , correction_of_entry_id: correctionOf ? Number(correctionOf) : null
+                external_reference: reference || null,
+                correction_of_entry_id: correctionOf ? Number(correctionOf) : null
             });
             entryAmount = '';
             reference = '';

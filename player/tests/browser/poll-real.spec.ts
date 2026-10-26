@@ -69,9 +69,13 @@ test.describe('real poll player flows', () => {
         await playerPage.goto(`/polls/${pollId}`);
         await playerPage.locator('input[name="poll-option"]').nth(0).check();
         await playerPage.getByRole('button', { name: 'Save vote' }).click();
-        await expect(playerPage.getByText('Vote saved.', { exact: true })).toBeVisible().catch(async (error) => {
-            throw new Error(`${error.message}\nalerts=${(await playerPage.locator('[role=alert]').allTextContents()).join('|')}`);
-        });
+        await expect(playerPage.getByText('Vote saved.', { exact: true }))
+            .toBeVisible()
+            .catch(async (error) => {
+                throw new Error(
+                    `${error.message}\nalerts=${(await playerPage.locator('[role=alert]').allTextContents()).join('|')}`
+                );
+            });
         await playerPage.reload();
         await expect(playerPage.locator('input[name="poll-option"]').nth(0)).toBeChecked();
         await playerPage.locator('input[name="poll-option"]').nth(1).check();
