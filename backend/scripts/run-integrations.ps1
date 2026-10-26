@@ -85,6 +85,7 @@ try {
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_access_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/payment_validations.php'))
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/payment_concurrency.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_payment_browser_fixture.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/auth_matrix.php'))
@@ -97,7 +98,18 @@ try {
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
     $env:CI = '1'
     Push-Location $Player
-    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/auth-real.spec.ts','tests/browser/access-control.spec.ts','tests/browser/poll-real.spec.ts','tests/browser/payment-real.spec.ts')
+    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/auth-real.spec.ts','tests/browser/access-control.spec.ts')
+    Pop-Location
+    # Each browser group has an isolated rate-limit window in the testing DB.
+    # This preserves the production limiter while preventing one batch from
+    # contaminating the next batch's login fixture.
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
+    Push-Location $Player
+    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/poll-real.spec.ts')
+    Pop-Location
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_payment_browser_fixture.php'))
+    Push-Location $Player
+    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/payment-real.spec.ts','tests/browser/dashboard-real.spec.ts')
     Pop-Location
 } finally {
     if ($frontendProcess -and -not $frontendProcess.HasExited) { Stop-Process -Id $frontendProcess.Id -Force }

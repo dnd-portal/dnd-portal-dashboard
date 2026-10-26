@@ -112,3 +112,11 @@ Commando: `powershell -NoProfile -ExecutionPolicy Bypass -File .\backend\scripts
 - Gecombineerde browserrun: 8 tests geslaagd; één bestaande poll-browserfixture faalde vóór login. De afzonderlijke betaalbrowserflow slaagde.
 - Geen InfinityFree-validatie uitgevoerd.
 
+# Definitieve aanvulling betalingen/dashboard (2026-10-26)
+
+- Werkelijke overlappende payment-processen: duplicate reference, reversal race en payment/correction race gecontroleerd tegen MariaDB: geslaagd.
+- Browsergroepen: auth/access 6/6, polls 2/2, payment/dashboard 2/2: geslaagd.
+- De eerdere pollloginfout was testbatch-rate-limitvervuiling, niet een authenticatie- of fixture-rolfout. Browsergroepen zijn onafhankelijk gemaakt met testfixture-reset.
+- Frontendcheck, build en PHP-lint: geslaagd.
+- InfinityFree-validatie: niet uitgevoerd.
+

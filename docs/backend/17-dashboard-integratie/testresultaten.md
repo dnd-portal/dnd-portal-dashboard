@@ -13,6 +13,8 @@
 - Admin-dashboard: admin-totalen en beperkte auditactiviteit werden via de echte API ontvangen.
 - Duplicate payment reference: HTTP 409 en directe databasecontrole bevestigde één entry.
 - Gecombineerde runner: backendbetalings- en dashboardchecks geslaagd; browser eindigde op 8 geslaagde tests en één bestaande pollfixture-fout vóór poll-login. De betaalbrowserflow zelf slaagde.
+- Definitieve runner: auth/access 6/6, poll 2/2, payment/dashboard 2/2 browsertests; dashboard admin/speler reload- en privacychecks geslaagd.
+- Pollfixture-oorzaak: login-rate limiter per testserver-IP werd door één gecombineerde browserbatch gedeeld. De runner voert browsergroepen nu met fixture-reset ertussen uit; productie-rate-limiting blijft actief.
 - Frontend `pnpm check` en `pnpm build`: geslaagd.
 - PHP-lint van PaymentService, DashboardService en payment_validations: geslaagd.
 

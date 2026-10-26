@@ -10,6 +10,7 @@
 - Speler kan geen betaling registreren: geslaagd, 403.
 - Duplicate external reference: geslaagd, 409; database bevatte slechts één entry.
 - Database-uniciteit voor `(obligation_id, external_reference)`: migratie 007 toegepast en tweede run gaf SKIP.
+- Werkelijk overlappende concurrencyprocessen: duplicate reference maximaal één entry, twee reversals begrensd en payment/correction met geldig net saldo: geslaagd.
 - Echte browserflow inclusief herladen, restbetaling, correctie en eigen overzicht: geslaagd.
 - `pnpm check`: geslaagd, 0 errors en 0 warnings.
 - `pnpm build`: geslaagd.
