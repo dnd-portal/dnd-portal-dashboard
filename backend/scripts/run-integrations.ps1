@@ -82,6 +82,7 @@ try {
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/auth_flow.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/http_auth_flow.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/campaign_restore.php'))
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/session_availability_matrix.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_access_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/payment_validations.php'))
@@ -105,7 +106,7 @@ try {
     # contaminating the next batch's login fixture.
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
     Push-Location $Player
-    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/poll-real.spec.ts')
+    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/poll-real.spec.ts','tests/browser/sessions-availability-real.spec.ts')
     Pop-Location
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_payment_browser_fixture.php'))
     Push-Location $Player

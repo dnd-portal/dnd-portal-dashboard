@@ -20,20 +20,22 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 
 ## Nog lokaal open
 
-- [ ] Volledige sessierechtenmatrix opnieuw als afzonderlijke browserflow uitvoeren voor admin, eigen campagne-DM, speler en buitenstaander.
-- [ ] Tijdzoneconversie, zomer-/wintertijd en ambigue lokale tijden met echte sessieformulieren testen.
-- [ ] Beschikbaarheidsbrowserflow testen voor opslaan, herladen, wijzigen en verwijderen, inclusief jaarwisseling en schrikkeldag.
+- [x] Backend-sessiematrix: admin, deelnemer na membership, buitenstaander, historische deelnemer, RSVP en attendance afzonderlijk; uitgevoerd in `session_availability_matrix.php`.
+- [ ] Campagne-DM en speler als afzonderlijke browsercontext voor alle sessiemutaties; de backendmatrix test deelnemer/buitenstaander, maar niet de volledige browserrechtenmatrix.
+- [ ] Tijdzoneconversie, zomer-/wintertijd en ambigue/niet-bestaande lokale tijden. Het huidige contract bewaart `starts_at` als TIME en heeft geen expliciete lokale-timezonevalidatie.
+- [x] Beschikbaarheid via echte browsercontext opgeslagen, herladen via API gecontroleerd en verwijderd; jaarwisseling `2026-12-31` → `2027-01-01` en datumbehoud getest.
+- [ ] Schrikkeldag in de mutatieflow; `2028-02-29` is wel als grensrequest gecontroleerd, maar door het bestaande ±366-dagenbeleid niet als normale opslagflow bewezen.
 - [ ] Dashboardbrowser uitbreiden met expliciet gecontroleerde sessie/RSVP-totalen, open polls, lege toestand, API-uitval en afzonderlijke valuta.
 - [ ] Bestaande-data-migratie uitvoeren met synthetische representatieve brondata.
 - [ ] Databasebackup maken en herstellen naar een afzonderlijke testdatabase en daarna kernflows vergelijken.
 - [ ] Resterende mockgebonden productieroutes binnen de bestaande scope verwijderen of ondubbelzinnig als demo markeren.
 
-## Productbesluiten die nog ontbreken
+## Productbesluiten met aanbeveling
 
-- [ ] RSVP-deadlines en wijzigingen na de deadline.
-- [ ] Of `responded_without_option` nodig is; het huidige schema ondersteunt dit niet expliciet.
-- [ ] Financieel beleid voor negatieve correcties/verrekeningen.
-- [ ] Of dashboardactiviteit actorinformatie mag tonen; nu worden alleen eventtype en tijd geleverd.
+- [ ] RSVP-deadlines en wijzigingen na de deadline — aanbeveling: behoud de bestaande `rsvp_deadline_at`-controle en leg alleen vast of beheerders na de deadline mogen corrigeren.
+- [ ] `responded_without_option` — aanbeveling: houd de huidige semantiek (geen stemrij = niet gereageerd) totdat product expliciet een derde toestand nodig heeft.
+- [ ] Financieel beleid voor negatieve correcties/verrekeningen — aanbeveling: gebruik uitsluitend append-only reversals binnen dezelfde verplichting/valuta; voeg verrekening pas toe na expliciete keuze.
+- [ ] Dashboardactiviteit — aanbeveling: houd actorinformatie voorlopig weg; eventtype/tijd voldoen aan de bestaande privacy-inrichting.
 
 ## Uitsluitend InfinityFree-validatie
 
