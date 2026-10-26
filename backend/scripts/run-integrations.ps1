@@ -88,6 +88,9 @@ try {
     # The matrix owns and cleans up its own admins; it does not touch the
     # runner-admin or depend on the restoring fixture above.
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/admin_concurrency_matrix.php'))
+    # Browser tests run after auth/security tests; re-seed only the isolated poll
+    # fixture so their real login requests are not polluted by prior test rate limits.
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
     $env:CI = '1'
     Push-Location $Player
     Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/auth-real.spec.ts','tests/browser/access-control.spec.ts','tests/browser/poll-real.spec.ts')

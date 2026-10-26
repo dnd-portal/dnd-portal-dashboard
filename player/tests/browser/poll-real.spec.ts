@@ -13,6 +13,13 @@ async function login(page: import('@playwright/test').Page, identifier: string, 
     await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
 }
 
+async function newIsolatedPage(page: import('@playwright/test').Page) {
+    const browser = page.context().browser();
+    if (!browser) throw new Error('A real browser is required for the isolated player context.');
+    const context = await browser.newContext();
+    return { context, page: await context.newPage() };
+}
+
 async function createPoll(
     adminPage: import('@playwright/test').Page,
     choiceType: 'single' | 'multiple',
@@ -56,12 +63,15 @@ test.describe('real poll player flows', () => {
     test('single-choice vote, change, reload, results and close', async ({ page }) => {
         await login(page, process.env.POLL_ADMIN_USERNAME!, process.env.POLL_ADMIN_PASSWORD!);
         const pollId = await createPoll(page, 'single', `Browser single ${Date.now()}`);
-        const playerPage = await page.context().newPage();
+        const player = await newIsolatedPage(page);
+        const playerPage = player.page;
         await login(playerPage, process.env.POLL_PLAYER_USERNAME!, process.env.POLL_PLAYER_PASSWORD!);
         await playerPage.goto(`/polls/${pollId}`);
         await playerPage.locator('input[name="poll-option"]').nth(0).check();
         await playerPage.getByRole('button', { name: 'Save vote' }).click();
-        await expect(playerPage.getByRole('status', { name: 'Vote saved.' })).toBeVisible();
+        await expect(playerPage.getByText('Vote saved.', { exact: true })).toBeVisible().catch(async (error) => {
+            throw new Error(`${error.message}\nalerts=${(await playerPage.locator('[role=alert]').allTextContents()).join('|')}`);
+        });
         await playerPage.reload();
         await expect(playerPage.locator('input[name="poll-option"]').nth(0)).toBeChecked();
         await playerPage.locator('input[name="poll-option"]').nth(1).check();
@@ -73,17 +83,20 @@ test.describe('real poll player flows', () => {
         await playerPage.reload();
         await expect(playerPage.getByText('This poll is closed or expired.')).toBeVisible();
         await expect(playerPage.getByRole('button', { name: 'Save vote' })).toHaveCount(0);
+        await player.context.close();
     });
 
     test('multiple-choice vote, reload and answer change', async ({ page }) => {
         await login(page, process.env.POLL_ADMIN_USERNAME!, process.env.POLL_ADMIN_PASSWORD!);
         const pollId = await createPoll(page, 'multiple', `Browser multiple ${Date.now()}`);
-        const playerPage = await page.context().newPage();
+        const player = await newIsolatedPage(page);
+        const playerPage = player.page;
         await login(playerPage, process.env.POLL_PLAYER_USERNAME!, process.env.POLL_PLAYER_PASSWORD!);
         await playerPage.goto(`/polls/${pollId}`);
         await playerPage.locator('input[name="poll-option"]').nth(0).check();
         await playerPage.locator('input[name="poll-option"]').nth(1).check();
         await playerPage.getByRole('button', { name: 'Save vote' }).click();
+        await expect(playerPage.getByText('Vote saved.', { exact: true })).toBeVisible();
         await playerPage.reload();
         await expect(playerPage.locator('input[name="poll-option"]').nth(0)).toBeChecked();
         await expect(playerPage.locator('input[name="poll-option"]').nth(1)).toBeChecked();
@@ -92,5 +105,6 @@ test.describe('real poll player flows', () => {
         await playerPage.getByRole('button', { name: 'Save vote' }).click();
         await playerPage.getByRole('button', { name: 'View results' }).click();
         await expect(playerPage.getByText(/Third — 1/)).toBeVisible();
+        await player.context.close();
     });
 });

@@ -12,4 +12,8 @@
 - De centrale `PollDetail`-component is aangesloten op admin- en spelerpollroutes met echte API-aanroepen en zonder mockfallback.
 - Backendvalidaties voor verkeerde pollopties, niet-deelnemers en onbevoegde beheerders zijn toegevoegd aan de integratierun.
 - De browserfixture gebruikt een afzonderlijke polladmin/pollplayer-opzet; de browserflow is nog niet functioneel geslaagd en blijft openstaand.
+- Fixture-isolatie is idempotent gemaakt: rollen, actieve memberships, wachtwoorden en test-rate-limitrecords worden alleen in de expliciete testdatabase hersteld.
+- De admin-layout laat optionele dashboardcounts niet langer de geautoriseerde pagina verwijderen; autorisatie blijft uitsluitend gebaseerd op `/auth/me`.
+- Browserrollen gebruiken afzonderlijke browsercontexts; de spelersessie deelt geen admincookie.
+- De pollbrowserflow wacht op de concrete succesmelding en controleert daardoor ook dat de stemrequest werkelijk is verwerkt.
 

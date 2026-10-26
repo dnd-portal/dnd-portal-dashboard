@@ -8,6 +8,18 @@
 - Browserpollflows: niet geslaagd. De echte backend wordt gebruikt, maar de fixture-admin is niet als ingelogde UI-gebruiker beschikbaar; de test stopt vóór pollcreatie. Dit is geen geslaagde browservalidatie.
 - De gecombineerde browserrun bevat daarnaast een bestaande auth-reset-regressie waarbij de runner-admin na reset niet opnieuw zichtbaar ingelogd raakt. Dit is afzonderlijk van de backendpollvalidatie.
 
+## Definitieve hertest
+
+- Volledige `backend/scripts/run-integrations.ps1`: geslaagd op nieuwe database `dnd_portal_test_run_456820261026211754`.
+- Migraties vanaf nul en tweede ronde met uitsluitend `SKIP`: geslaagd, inclusief 006.
+- Auth-, CSRF-, autorisatie-, concurrency-, campagne- en membershiptests: geslaagd.
+- Browsertests: `8 passed` in 23,3 seconden. Single- en multiple-choice doorliepen echte login, stem, herladen, antwoordwijziging, resultaten en sluiten.
+- `pnpm check`: geslaagd, 0 errors en 0 warnings.
+- `pnpm build`: geslaagd.
+- PHP-lint voor gewijzigde pollbestanden: geslaagd.
+
+De eerdere negatieve bullets hierboven beschrijven de tussenliggende mislukte run en zijn door de definitieve hertest achterhaald.
+
 ## Statisch uitgevoerd
 
 - `php -l backend/src/Domain/PollService.php`: geslaagd.
