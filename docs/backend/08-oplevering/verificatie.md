@@ -86,3 +86,20 @@ Commando: `powershell -NoProfile -ExecutionPolicy Bypass -File .\backend\scripts
 - **Lokaal statisch gecontroleerd:** het loginformulier gebruikt één submitpad (`form` + `type=submit`) en de bestaande externe SCSS bevat expliciete inputstijlen; geen style-tag toegevoegd.
 - **Niet uitgevoerd:** InfinityFree-validatie van HTTPS, Secure cookies, PHP-extensies, routing en private bestandstoegang.
 - **Openstaand:** de echte poll-browserflows blijven openstaand zoals in `docs/backend/15-polls/README.md`; deze lokale-startverbetering claimt die niet als geslaagd.
+# Gerichte toegangscontrole adminroutes (2026-10-26)
+
+- **Oorzaak vastgesteld:** de statische admin-layout rendeerde de browserveilige mockdatabase direct tijdens route-navigatie, vóórdat `/api/v1/auth/me` was gecontroleerd. Dit maakte het admin-skelet en mockinhoud rechtstreeks zichtbaar; de PHP-API zelf bleef server-side autoriseren.
+- **Hersteld:** `player/src/routes/admin/+layout.svelte` toont eerst uitsluitend een neutrale laadstatus. Alleen een actuele sessie met `portal_admin` rendert de admin-childroute; zonder sessie of met onvoldoende rol wordt geen admininhoud gerenderd.
+- **Backend lokaal functioneel geslaagd:** zonder sessie geven `GET /api/v1/users`, `GET /api/v1/users/1` en `GET /api/v1/dashboard` HTTP 401.
+- **Backend lokaal functioneel geslaagd:** een geïsoleerde gewone speler krijgt HTTP 403 op gebruikerslijst en gebruikersdetail.
+- **Browser lokaal functioneel geslaagd:** nieuwe context zonder cookies/localStorage/sessionStorage gaf bij directe navigatie naar `/admin/users` en `/admin/users/1` alleen `Admin access required`; herladen gaf hetzelfde.
+- **Browser lokaal functioneel geslaagd:** hetzelfde browserregressiescenario controleerde `GET /api/v1/users` op HTTP 401 en `Cache-Control: no-store`.
+- **Gehele runner lokaal functioneel geslaagd:** migraties vanaf nul en tweede `SKIP`-ronde; backendregressies; `6 passed` browsertests.
+- **Niet uitgevoerd:** InfinityFree-validatie. Dit blijft afzonderlijk open voor HTTPS, cookies, private bestandstoegang en statische deployment.
+# Aanvulling betalingen
+
+- Lokale betaalbackend en browserflow: geslaagd op een verse geïsoleerde MariaDB-testdatabase.
+- Getest: verzoek, verplichting, deelbetaling, restbetaling, reversal, saldo, eigen spelerprivacy en geweigerde speler-mutatie.
+- `pnpm check`, build en PHP-lint: geslaagd.
+- InfinityFree-validatie: niet uitgevoerd.
+

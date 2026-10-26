@@ -77,12 +77,16 @@ try {
     $env:POLL_PLAYER_PASSWORD = 'PollPlayer2026!'
     $env:POLL_ADMIN_USERNAME = 'polladmin'
     $env:POLL_ADMIN_PASSWORD = 'PollAdmin2026!'
+    $env:PAYMENT_PLAYER_USERNAME = 'paybrowser'
+    $env:PAYMENT_PLAYER_PASSWORD = 'PayBrowser2026!'
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/auth_flow.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/http_auth_flow.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/campaign_restore.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_access_validations.php'))
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/payment_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_payment_browser_fixture.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/auth_matrix.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/admin_concurrency.php'))
     # The matrix owns and cleans up its own admins; it does not touch the
@@ -93,7 +97,7 @@ try {
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/prepare_poll_browser_fixture.php'))
     $env:CI = '1'
     Push-Location $Player
-    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/auth-real.spec.ts','tests/browser/access-control.spec.ts','tests/browser/poll-real.spec.ts')
+    Invoke-Native 'pnpm' @('exec','playwright','test','tests/browser/auth-real.spec.ts','tests/browser/access-control.spec.ts','tests/browser/poll-real.spec.ts','tests/browser/payment-real.spec.ts')
     Pop-Location
 } finally {
     if ($frontendProcess -and -not $frontendProcess.HasExited) { Stop-Process -Id $frontendProcess.Id -Force }
