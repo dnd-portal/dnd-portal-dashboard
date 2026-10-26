@@ -103,3 +103,12 @@ Commando: `powershell -NoProfile -ExecutionPolicy Bypass -File .\backend\scripts
 - `pnpm check`, build en PHP-lint: geslaagd.
 - InfinityFree-validatie: niet uitgevoerd.
 
+# Aanvulling betalingen en dashboard (2026-10-26)
+
+- Migraties 001–007 vanaf nul en een tweede ronde met uitsluitend `SKIP`: geslaagd.
+- Duplicate payment reference: HTTP 409 en directe databasecontrole: geslaagd.
+- Dashboardfixture met deelbetaling en reversal: speler zag uitsluitend 1000 cent eigen openstaand; admin zag beheertotalen en activiteit: geslaagd via API.
+- `pnpm check`, `pnpm build` en PHP-lint: geslaagd.
+- Gecombineerde browserrun: 8 tests geslaagd; één bestaande poll-browserfixture faalde vóór login. De afzonderlijke betaalbrowserflow slaagde.
+- Geen InfinityFree-validatie uitgevoerd.
+
