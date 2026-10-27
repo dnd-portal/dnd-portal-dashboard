@@ -28,7 +28,10 @@
     color: var(--p-heading);
 }
 .p-button:disabled {
-    opacity: 0.55;
+    border-color: var(--p-border);
+    background: var(--p-surface-raised);
+    color: var(--p-text-muted);
+    opacity: 1;
     cursor: not-allowed;
 }
 .p-button--full {
