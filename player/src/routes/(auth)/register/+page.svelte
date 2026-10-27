@@ -67,7 +67,7 @@
             ? 'Your account has been created. You can now sign in.'
             : inviteAccepted
               ? 'Your invite is valid. Choose the details you’ll use to sign in.'
-              : 'The D&D Portal is currently invite-only. Enter your code to continue.'}
+              : 'The D&D Portal Dashboard is currently invite-only. Enter your code to continue.'}
     </p>
     {#if accountCreated}
         <div class="success-mark">✓</div>
