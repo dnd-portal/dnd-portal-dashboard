@@ -232,6 +232,19 @@
                         <a href="/register">New here?</a> Ask your organizer for an invitation.
                     </p>
                 </section>
+            {:else if isPlayer && dashboardError}
+                <section class="login-screen" role="alert">
+                    <p class="eyebrow">D&amp;D PORTAL PLAYER DASHBOARD</p>
+                    <h1>Dashboard unavailable</h1>
+                    <p class="login-copy">
+                        The dashboard API could not be reached. Try again when the service is available.
+                    </p>
+                </section>
+            {:else if isPlayer && !dashboard}
+                <section class="login-screen" aria-live="polite">
+                    <p class="eyebrow">D&amp;D PORTAL PLAYER DASHBOARD</p>
+                    <h1>Loading dashboard…</h1>
+                </section>
             {:else if isPlayer}
                 <section class="welcome">
                     <div>
@@ -275,15 +288,23 @@
                         <div class="stat-top">
                             <span>UPCOMING SESSIONS</span><span class="stat-icon blue-icon">▣</span>
                         </div>
-                        <strong>03</strong>
-                        <p>Next one in 7 days</p>
+                        <strong>{dashboard?.next_session ? '01' : '00'}</strong>
+                        <p>{dashboard?.next_session ? dashboard.next_session.title : 'No upcoming sessions'}</p>
                     </div>
                     <div class="stat-card">
                         <div class="stat-top">
                             <span>SNACKS & DRINKS</span><span class="stat-icon green-icon">◈</span>
                         </div>
-                        <strong>Paid <span class="check">✓</span></strong>
-                        <p>You're all settled up</p>
+                        <strong
+                            >{dashboard?.open_contributions_cents
+                                ? `${(dashboard.open_contributions_cents / 100).toFixed(2)}`
+                                : 'Paid'} <span class="check">✓</span></strong
+                        >
+                        <p>
+                            {dashboard?.open_contributions_cents
+                                ? 'Open contribution balance'
+                                : "You're all settled up"}
+                        </p>
                     </div>
                     <div class="stat-card">
                         <div class="stat-top">

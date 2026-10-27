@@ -28,3 +28,24 @@ test('dashboard API is private, role-scoped and reload-stable', async ({ page, b
     expect(playerReload.data.admin).toBeUndefined();
     await playerContext.close();
 });
+
+test('dashboard renders an API-backed empty state and a visible API outage state', async ({ page }) => {
+    await login(page, process.env.POLL_ADMIN_USERNAME!, process.env.POLL_ADMIN_PASSWORD!);
+    await page.route('**/api/v1/dashboard', async (route) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ data: { next_session: null, open_polls: 0, open_contributions_cents: 0 } })
+        });
+    });
+    await page.route('**/api/v1/campaigns', async (route) => {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+    });
+    await page.reload();
+    await expect(page.getByText('No upcoming sessions')).toBeVisible();
+    await expect(page.getByText('00')).toBeVisible();
+
+    await page.route('**/api/v1/dashboard', async (route) => route.abort('failed'));
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Dashboard unavailable' })).toBeVisible();
+});

@@ -19,12 +19,14 @@ if (!preg_match('/^[a-zA-Z0-9_]+$/', $targetName)) {
 }
 $root = new PDO(
     sprintf('mysql:host=%s;port=%s;charset=utf8mb4', Config::env('DB_HOST'), Config::env('DB_PORT', '3306')),
-    Config::env('DB_USER'),
-    Config::env('DB_PASSWORD'),
+    'root',
+    Config::env('TEST_DB_ROOT_PASSWORD'),
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
 );
 $root->exec('DROP DATABASE IF EXISTS `' . $targetName . '`');
 $root->exec('CREATE DATABASE `' . $targetName . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+$root->exec("GRANT ALL PRIVILEGES ON `$targetName`.* TO 'dnd_test'@'%'");
+$root->exec('FLUSH PRIVILEGES');
 $restore = new PDO(
     sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', Config::env('DB_HOST'), Config::env('DB_PORT', '3306'), $targetName),
     Config::env('DB_USER'),

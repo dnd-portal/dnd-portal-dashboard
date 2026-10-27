@@ -39,3 +39,57 @@ test('real session reload and availability DATE flow', async ({ page }) => {
     });
     expect(result).toEqual({ save: 200, preserved: true, clear: 200 });
 });
+
+test('campaign DM and player use separate browser contexts with server-enforced rights', async ({ page, browser }) => {
+    await page.goto('/');
+    await page.getByLabel('Email or username').fill(process.env.POLL_ADMIN_USERNAME!);
+    await page.getByLabel('Password').fill(process.env.POLL_ADMIN_PASSWORD!);
+    await page.getByRole('button', { name: /Continue with email/ }).click();
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
+    const campaign = await page
+        .evaluate(async () => (await fetch('/api/v1/campaigns')).json())
+        .then((body) => body.data[0].id);
+    const csrf = await page
+        .evaluate(async () => (await fetch('/api/v1/auth/csrf')).json())
+        .then((body) => body.data.token);
+    const created = await page.evaluate(
+        async ({ campaign, csrf }) => {
+            const response = await fetch(`/api/v1/campaigns/${campaign}/sessions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+                body: JSON.stringify({ title: `DM browser ${Date.now()}`, session_date: '2028-02-29' })
+            });
+            return { status: response.status, body: await response.json() };
+        },
+        { campaign, csrf }
+    );
+    expect(created.status).toBe(201);
+    const sessionId = created.body.data.id;
+
+    const playerContext = await browser.newContext();
+    const player = await playerContext.newPage();
+    try {
+        await player.goto('/');
+        await player.getByLabel('Email or username').fill(process.env.POLL_PLAYER_USERNAME!);
+        await player.getByLabel('Password').fill(process.env.POLL_PLAYER_PASSWORD!);
+        await player.getByRole('button', { name: /Continue with email/ }).click();
+        await expect(player.getByRole('button', { name: 'Sign out' })).toBeVisible();
+        const playerCsrf = await player
+            .evaluate(async () => (await fetch('/api/v1/auth/csrf')).json())
+            .then((body) => body.data.token);
+        const denied = await player.evaluate(
+            async ({ sessionId, playerCsrf }) => {
+                const response = await fetch(`/api/v1/sessions/${sessionId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': playerCsrf },
+                    body: JSON.stringify({ title: 'unauthorized', version: 1 })
+                });
+                return response.status;
+            },
+            { sessionId, playerCsrf }
+        );
+        expect(denied).toBe(403);
+    } finally {
+        await playerContext.close();
+    }
+});

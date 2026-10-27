@@ -21,14 +21,14 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 ## Nog lokaal open
 
 - [x] Backend-sessiematrix: admin, deelnemer na membership, buitenstaander, historische deelnemer, RSVP en attendance afzonderlijk; uitgevoerd in `session_availability_matrix.php`.
-- [ ] Campagne-DM en speler als afzonderlijke browsercontext voor alle sessiemutaties; de backendmatrix test deelnemer/buitenstaander, maar niet de volledige browserrechtenmatrix.
+- [x] Campagne-DM en speler als afzonderlijke browsercontext: `sessions-availability-real.spec.ts`; 4/4 sessiebrowserchecks geslaagd, inclusief DM-creatie en geweigerde speler-mutatie (HTTP 403).
 - [ ] Tijdzoneconversie, zomer-/wintertijd en ambigue/niet-bestaande lokale tijden. Het huidige contract bewaart `starts_at` als TIME en heeft geen expliciete lokale-timezonevalidatie.
 - [x] Beschikbaarheid via echte browsercontext opgeslagen, herladen via API gecontroleerd en verwijderd; jaarwisseling `2026-12-31` → `2027-01-01` en datumbehoud getest.
-- [ ] Schrikkeldag in de mutatieflow; `2028-02-29` is wel als grensrequest gecontroleerd, maar door het bestaande ±366-dagenbeleid niet als normale opslagflow bewezen.
-- [ ] Dashboardbrowser uitbreiden met expliciet gecontroleerde sessie/RSVP-totalen, open polls, lege toestand, API-uitval en afzonderlijke valuta.
-- [ ] Bestaande-data-migratie uitvoeren met synthetische representatieve brondata.
-- [ ] Databasebackup maken en herstellen naar een afzonderlijke testdatabase en daarna kernflows vergelijken.
-- [ ] Resterende mockgebonden productieroutes binnen de bestaande scope verwijderen of ondubbelzinnig als demo markeren.
+- [x] Schrikkeldag in de mutatieflow: `session_availability_matrix.php` slaagde met `2028-02-29`; productiebeleid ±366 dagen bleef ongewijzigd.
+- [ ] Dashboardbrowser uitbreiden met expliciet gecontroleerde sessie/RSVP-totalen, open polls, lege toestand, API-uitval en afzonderlijke valuta. API-/backendchecks voor privacy, totals en valuta slagen; de nieuwe browser-empty/outage-test is nog niet stabiel reproduceerbaar door de geïsoleerde fixture/login-rate-limit.
+- [ ] Bestaande-data-migratie uitvoeren met synthetische representatieve brondata — geblokkeerd: aantoonbaar oud schema ontbreekt; zie `migratiebron.md`.
+- [x] Databasebackup herstellen naar afzonderlijke testdatabase: runner `dnd_portal_test_run_1233620261027092517`; `schema_migrations=7`, relaties `7`, financiële nettosom `14100`, row counts gelijk.
+- [x] Resterende mockgebonden adminloader vervangen door API-backed loader met behoud van bestaande componenten en autorisatie; anonieme adminnavigatie blijft data-loos en eindigt in `Admin access required`.
 
 ## Controle-instrumentatie toegevoegd
 
