@@ -100,6 +100,10 @@
     height: 56px;
     object-fit: contain;
 }
+.p-auth__brand {
+    display: inline-block;
+    margin-bottom: 24px;
+}
 .p-auth__panel {
     width: 100%;
     max-width: 480px;
@@ -109,11 +113,6 @@
     display: grid;
     gap: 12px;
     margin-bottom: 24px;
-}
-.p-auth__header h1,
-.auth-route-content h1 {
-    margin: 0;
-    line-height: 1.05;
 }
 .auth-route-content {
     display: grid;
@@ -134,7 +133,7 @@
     width: 100%;
     box-sizing: border-box;
 }
-.p-auth__header p,
+.p-auth__header > p:not(.p-eyebrow),
 .p-auth__footer {
     color: var(--p-secondary);
 }
