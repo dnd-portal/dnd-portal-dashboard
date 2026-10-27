@@ -14,7 +14,7 @@ if ($env === 'production') {
     fwrite(STDERR, "Refusing migrations in APP_ENV=production.\n");
     exit(1);
 }
-if ($env === 'testing' && !preg_match('/^(dnd_portal_test|dnd_portal_test_run_[0-9]+|test_[a-z0-9_]+)$/', $name)) {
+if ($env === 'testing' && !preg_match('/^(dnd_portal_test|dnd_portal_test_run_[0-9]+|dnd_portal_migration_test_[0-9]+|test_[a-z0-9_]+)$/', $name)) {
     fwrite(STDERR, "Refusing testing migrations outside an explicit test database.\n");
     exit(1);
 }

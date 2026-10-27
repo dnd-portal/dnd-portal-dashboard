@@ -7,15 +7,15 @@
 - `backend/database/migrations/001_initial_portal_schema.sql` t/m `008_approved_product_policies.sql` zijn het huidige schema en geen oud accountschema.
 - De export bevat geen usernameveld, geen expliciete identiteit→huidige-user-mapping en geen adminrechtenmapping.
 
-## Niet uitgevoerd
+## Eerdere dry-run
 
 Er is uitsluitend een dry-run uitgevoerd op `dnd_portal_test_run_20261027120001`; er zijn 0 bronrecords geïmporteerd. Resultaat: 7 records, 0 emailconflicten, 7 ontbrekende usernamebronnen, 6 bcrypt-hashes compatibel met de huidige verifier en alleen oud ID `1` waarvoor een wachtwoordreset nodig is. Geen persoonsgegevens, hashes of credentials zijn naar de repository-output gelogd.
 
 ## Voorstel voor beoordeling
 
-`C:\Users\toonv\Downloads\dnd-account-migration-proposal.local.json` bevat lokaal buiten Git het concrete voorstel voor alle 7 accounts. Het voorstel sorteert op oud ID, kent in de geïsoleerde dry-run deterministische nieuwe IDs 1–7 toe en maakt usernames met de vorm `<genormaliseerde-naam>-<oud-id>`. Daarmee blijven usernames uniek en herhaalbaar; de uiteindelijke productie-ID's worden niet vooraf geclaimd.
+`C:\Users\toonv\Downloads\dnd-account-migration-proposal.local.json` bevat lokaal buiten Git het concrete voorstel voor de 6 te behouden accounts. Het voorstel sorteert op oud ID, kent in de geïsoleerde proefimport deterministische nieuwe IDs 1–6 toe en maakt usernames met de vorm `<genormaliseerde-naam>-<oud-id>`. Daarmee blijven usernames uniek en herhaalbaar; oud ID 1 staat niet in de records.
 
-Het voorstel behoudt de 6 compatibele hashes ongewijzigd. Alleen oud ID `1` is gemarkeerd voor de bestaande veilige resetprocedure; er wordt geen standaardwachtwoord voorgesteld. Voor alle records blijven `admin_mapping` en `campaign_membership_mapping` leeg. De code weigert email- en usernameconflicten expliciet en een tweede planning levert exact hetzelfde voorstel op.
+Het definitieve voorstel behoudt de 6 compatibele hashes ongewijzigd en bevat geen resetaccount. Oud ID `1` wordt uitgesloten; er wordt geen standaardwachtwoord voorgesteld. Voor alle records blijven `admin_mapping` en `campaign_membership_mapping` leeg. De code weigert email- en usernameconflicten expliciet en een tweede planning levert exact hetzelfde voorstel op.
 
 ## Nodig om dit af te ronden
 
@@ -25,3 +25,26 @@ Het voorstel behoudt de 6 compatibele hashes ongewijzigd. Alleen oud ID `1` is g
 4. Een expliciete adminrechtenmapping; de oude `role`-kolom is niet voldoende autorisatiebewijs.
 
 Actieve sessies, resetcodes, invitetokens en adminrollen worden niet gemigreerd. Adminrechten moeten per huidige bron expliciet worden aangeleverd en mogen niet uit naam, e-mail of oude roltekst worden afgeleid.
+
+## Definitief voorstel en proefimport
+
+Oud ID 1 is uitgesloten. Het lokale voorstel buiten Git bevat exact zes
+records met deterministische usernames in de vorm
+`<genormaliseerde-naam>-<oud-id>` en een expliciete `legacy_id` naar
+`proposed_new_id`-mapping. Er worden geen rollen, campagnememberships,
+sessies, resetcodes of invitetokens toegekend.
+
+De proefimport draaide uitsluitend op
+`dnd_portal_migration_test_20261027153001` met het huidige schema. Resultaat:
+`IMPORT_OK excluded_legacy_id=1 inserted=6 reused=0 total_users=6 roles=0
+sessions=0 reset_tokens=0 invites=0`. De tweede run gaf
+`inserted=0 reused=6`; bestaande records en wachtwoordhashes worden exact
+gevalideerd en nooit stilzwijgend overschreven. De integratietest controleerde
+de zes overgenomen hashwaarden byte-voor-byte zonder ze te tonen of te loggen.
+
+Conflicten op email of username worden expliciet geweigerd. De synthetische
+planner-test controleert deterministische planning, beide conflictsoorten en
+een synthetisch bcrypt-wachtwoord via dezelfde `password_verify`-primitief als
+de huidige AuthService. Werkelijke oude wachtwoorden zijn niet getest omdat
+die niet bekend zijn. Het bijgewerkte voorstel staat lokaal buiten Git op
+`C:\Users\toonv\Downloads\dnd-account-migration-proposal.local.json`.

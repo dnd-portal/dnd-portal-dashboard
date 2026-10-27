@@ -26,6 +26,7 @@ foreach ($matches as $row) {
         'role' => str_replace("''", "'", $row[5]),
     ];
 }
+$source = array_values(array_filter($source, static fn(array $row): bool => $row['legacy_id'] !== 1));
 $plan = AccountMigrationPlanner::propose(array_map(static fn(array $row): array => [
     'legacy_id' => $row['legacy_id'], 'name' => $row['name'], 'email' => $row['email'],
 ], $source), 1);
@@ -42,13 +43,13 @@ foreach ($plan as &$item) {
 unset($item);
 $proposal = [
     'source' => basename($zipPath),
-    'target_database' => 'dnd_portal_test_run_20261027120001',
+    'target_database' => 'dnd_portal_migration_test_<run-id>',
     'dry_run_only' => true,
     'records' => $plan,
     'notes' => [
         'proposed_new_id values are isolated dry-run IDs and are not production IDs',
         'no sessions, reset codes, invite tokens, admin roles or campaign memberships are proposed',
-        'one incompatible password hash is marked for the existing reset procedure',
+        'legacy ID 1 is explicitly excluded and is not proposed for migration',
     ],
 ];
 if (file_put_contents($outputPath, json_encode($proposal, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) === false) throw new RuntimeException('proposal could not be written');
