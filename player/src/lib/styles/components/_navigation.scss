@@ -21,6 +21,12 @@
     text-decoration: none;
     font-size: 1rem;
 }
+.p-nav__link .admin-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    color: currentColor;
+}
 .p-nav__link:hover {
     background: var(--p-raised);
     color: var(--p-heading);

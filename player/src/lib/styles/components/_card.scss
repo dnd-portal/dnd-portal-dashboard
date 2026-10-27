@@ -5,6 +5,13 @@
     border-radius: var(--p-radius);
     background: var(--p-surface);
 }
+.p-card h2,
+.p-card h3 {
+    color: var(--p-heading);
+}
+.p-card h3 {
+    font-size: 1.25rem;
+}
 .p-card__header {
     display: flex;
     align-items: center;
@@ -35,6 +42,20 @@
     padding: 16px 0;
     min-height: 72px;
     border-top: 1px solid var(--p-divider);
+}
+.p-list__row:first-child {
+    border-top: 0;
+}
+a.p-list__row {
+    color: inherit;
+    text-decoration: none;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease;
+}
+a.p-list__row:hover {
+    border-radius: var(--p-control-radius);
+    background: var(--p-raised);
 }
 .p-list__body {
     flex: 1;

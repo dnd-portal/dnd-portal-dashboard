@@ -121,7 +121,7 @@
             </section>{:else if !campaigns.length}<section class="player-empty-state">
                 <h1>No campaign yet</h1>
                 <p class="login-copy">Your organizer has not added you to a campaign.</p>
-            </section>{:else}<section class="p-page-header welcome">
+            </section>{:else}<section class="p-page-header p-dashboard__welcome welcome">
                 <div>
                     <p class="p-eyebrow eyebrow">YOUR CAMPAIGN</p>
                     <h1>Welcome, {user.display_name} <span>✦</span></h1>
@@ -129,13 +129,15 @@
                 </div>
             </section>
             {#if nextSession}<section class="p-card p-dashboard__hero hero-card">
-                    <div class="hero-copy">
-                        <div class="session-status"><span class="live-dot"></span> NEXT SESSION</div>
+                    <div class="p-dashboard__hero-copy hero-copy">
+                        <div class="p-dashboard__session-status session-status">
+                            <span class="live-dot"></span> NEXT SESSION
+                        </div>
                         <h2>{nextSession.title}</h2>
                         <p class="p-card__description">{nextSession.location ?? 'Location to be announced.'}</p>
                         <div class="p-dashboard__hero-meta hero-meta">
-                            <span>◷ <b>{formatPortalDate(nextSession.session_date)}</b></span><span
-                                >◷ <b>{formatPortalTime(nextSession.starts_at)}</b></span
+                            <span><b>Date</b>{formatPortalDate(nextSession.session_date)}</span><span
+                                ><b>Time</b>{formatPortalTime(nextSession.starts_at)}</span
                             >
                         </div>
                         <a class="p-button p-button--secondary" href={`/sessions/${nextSession.id}`}
@@ -176,24 +178,26 @@
                             <p class="p-eyebrow eyebrow">THE ROAD AHEAD</p>
                             <h3>Upcoming sessions</h3>
                         </div>
-                        <a class="p-button p-button--secondary" href="/sessions">View calendar <span>→</span></a>
+                        <a class="p-button p-button--secondary" href="/sessions"
+                            >View calendar <span aria-hidden="true">→</span></a
+                        >
                     </div>
                     {#if sessions.length}<div class="p-list session-list">
                             {#each sessions as session}<a
                                     class="p-list__row session-row"
                                     href={`/sessions/${session.id}`}
-                                    ><div class="date-block">
+                                    ><div class="p-session-row__date date-block">
                                         <strong>{session.session_date.slice(8, 10)}</strong><span
                                             >{session.session_date.slice(5, 7)}</span
                                         >
                                     </div>
-                                    <div class="session-info">
+                                    <div class="p-session-row__body session-info">
                                         <strong class="p-list__title">{session.title}</strong><span class="p-list__meta"
                                             >{formatPortalTime(session.starts_at)} · {session.location ??
                                                 'Location to be announced'}</span
                                         >
                                     </div>
-                                    <span class="row-arrow">→</span></a
+                                    <span class="p-session-row__action row-arrow" aria-hidden="true">→</span></a
                                 >{/each}
                         </div>{:else}<p role="status">No sessions available.</p>{/if}
                 </section>

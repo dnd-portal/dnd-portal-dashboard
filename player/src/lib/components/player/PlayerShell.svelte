@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from '$app/state';
     import { api } from '#lib/api/index.js';
+    import AdminIcon from '#lib/components/admin/AdminIcon.svelte';
     import type { Snippet } from 'svelte';
 
     type User = { display_name: string; username: string | null; roles?: string[] };
@@ -47,42 +48,50 @@
             aria-controls="portal-navigation"
             onclick={() => (menuOpen = !menuOpen)}>Menu</button
         >
-        <div class="p-shell__header-actions"><span>{active}</span></div>
+        <div class="p-shell__header-actions">
+            <span class="p-shell__breadcrumb"
+                ><span class="p-shell__breadcrumb-section">Campaign /</span> <strong>{active}</strong></span
+            >
+        </div>
     </header>
     <button class="p-shell__backdrop" type="button" aria-label="Close navigation" onclick={closeMenu}></button>
     <aside id="portal-navigation" class="p-shell__sidebar">
-        <button class="p-campaign-picker" type="button"><strong>{campaignName}</strong><small>Player</small></button>
+        <button class="p-campaign-picker" type="button">
+            <span class="p-campaign-picker__mark">D&amp;D</span>
+            <span class="p-campaign-picker__copy"><strong>{campaignName}</strong><small>Player campaign</small></span>
+            <span class="p-campaign-picker__chevron" aria-hidden="true">⌄</span>
+        </button>
         <nav class="p-nav" aria-label="Campaign">
             <p class="p-nav__label">Campaign</p>
             <a
                 class="p-nav__link"
                 href="/"
                 aria-current={active === 'Overview' ? 'page' : undefined}
-                onclick={closeMenu}>⌗ Overview</a
+                onclick={closeMenu}><AdminIcon name="dashboard" size={20} /> <span>Overview</span></a
             >
             <a
                 class="p-nav__link"
                 href="/sessions"
                 aria-current={active === 'Sessions' ? 'page' : undefined}
-                onclick={closeMenu}>▣ Sessions</a
+                onclick={closeMenu}><AdminIcon name="sessions" size={20} /> <span>Sessions</span></a
             >
             <a
                 class="p-nav__link"
                 href="/party"
                 aria-current={active === 'The party' ? 'page' : undefined}
-                onclick={closeMenu}>♧ The party</a
+                onclick={closeMenu}><AdminIcon name="users" size={20} /> <span>The party</span></a
             >
             <a
                 class="p-nav__link"
                 href="/payments"
                 aria-current={active === 'Treasury' ? 'page' : undefined}
-                onclick={closeMenu}>◈ Treasury</a
+                onclick={closeMenu}><AdminIcon name="payments" size={20} /> <span>Treasury</span></a
             >
             <span class="p-nav__link" aria-disabled="true" title="Chronicle is not available in this portal build"
-                >▤ Chronicle</span
+                ><AdminIcon name="one-shots" size={20} /> <span>Chronicle</span></span
             >
             <span class="p-nav__link" aria-disabled="true" title="Map room is not available in this portal build"
-                >⌖ Map room</span
+                ><AdminIcon name="campaigns" size={20} /> <span>Map room</span></span
             >
         </nav>
         <div class="p-shell__sidebar-footer">
