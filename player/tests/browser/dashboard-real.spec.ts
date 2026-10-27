@@ -70,3 +70,17 @@ test('player navigation replaces the main content and stays within the viewport'
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('dashboard hero selects the same upcoming session as the campaign list', async ({ page }) => {
+    await login(page, process.env.PAYMENT_PLAYER_USERNAME!, process.env.PAYMENT_PLAYER_PASSWORD!);
+    const campaigns = await page.evaluate(async () => (await fetch('/api/v1/campaigns')).json());
+    test.skip(!campaigns.data?.[0], 'fixture has no campaign');
+    const sessions = await page.evaluate(
+        async (campaignId) => (await fetch(`/api/v1/campaigns/${campaignId}/sessions`)).json(),
+        campaigns.data[0].id
+    );
+    test.skip(!sessions.data?.length, 'fixture has no sessions');
+    const first = sessions.data[0];
+    await expect(page.getByRole('heading', { name: first.title })).toBeVisible();
+    await expect(page.locator(`a[href="/sessions/${first.id}"]`).first()).toBeVisible();
+});
