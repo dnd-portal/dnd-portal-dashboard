@@ -120,12 +120,7 @@
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
 }
-.p-auth__header {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-.p-auth__header .p-eyebrow {
+.p-auth__panel > .p-eyebrow {
     margin-bottom: -8px;
 }
 .auth-route-content {
@@ -147,7 +142,6 @@
     width: 100%;
     box-sizing: border-box;
 }
-.p-auth__header > p:not(.p-eyebrow),
 .p-auth__footer {
     color: var(--p-secondary);
 }
@@ -156,7 +150,7 @@
     font-size: 0.875rem;
 }
 .footer-note {
-    margin-top: 36px;
+    margin-top: 24px;
 }
 @media (max-width: 480px) {
     .p-auth__panel {

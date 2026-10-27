@@ -70,9 +70,7 @@
     </p>
     {#if accountCreated}
         <div class="success-mark">✓</div>
-        <button class="primary-button" onclick={() => (window.location.href = '/login')}
-            >Go to sign in <span>→</span></button
-        >
+        <button class="p-button" onclick={() => (window.location.href = '/login')}>Go to sign in <span>→</span></button>
     {:else if !inviteAccepted}
         <div class="p-field">
             <label class="p-field__label" for="invite-code">Invite code</label>
@@ -88,7 +86,7 @@
         </div>
         <p class="format-hint">Letters and numbers separated by hyphens</p>
         {#if inviteError}<p class="error-message">{inviteError}</p>{/if}
-        <button class="primary-button" onclick={checkInvite}>Continue <span>→</span></button>
+        <button class="p-button" onclick={checkInvite}>Continue <span>→</span></button>
     {:else}
         <div class="given-code">
             <span>Given invite code:</span><strong>{inviteCode}</strong><button
@@ -123,7 +121,7 @@
             />
         </div>
         <button
-            class="primary-button"
+            class="p-button"
             disabled={!email.trim() || !username.trim() || password.length < 8}
             onclick={createAccount}>Create account <span>→</span></button
         >

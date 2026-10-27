@@ -24,6 +24,10 @@
 </script>
 
 <svelte:head><title>D&amp;D Portal · Sign in</title></svelte:head>
+<section class="auth-route-content auth-login-heading">
+    <h1>Sign in</h1>
+    <p>Use your account to continue to your campaign dashboard.</p>
+</section>
 <form
     class="p-form auth-login-form"
     onsubmit={(event) => {
