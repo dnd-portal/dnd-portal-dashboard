@@ -9,7 +9,13 @@
 
 ## Niet uitgevoerd
 
-Er is uitsluitend een dry-run uitgevoerd op `dnd_portal_test_run_20261027120001`; er zijn 0 bronrecords geïmporteerd. Resultaat: 7 records, 0 emailconflicten, 7 ontbrekende usernamebronnen, 6 bcrypt-hashes compatibel met de huidige verifier en 1 hash waarvoor een wachtwoordreset nodig is. Geen persoonsgegevens, hashes of credentials zijn gelogd.
+Er is uitsluitend een dry-run uitgevoerd op `dnd_portal_test_run_20261027120001`; er zijn 0 bronrecords geïmporteerd. Resultaat: 7 records, 0 emailconflicten, 7 ontbrekende usernamebronnen, 6 bcrypt-hashes compatibel met de huidige verifier en alleen oud ID `1` waarvoor een wachtwoordreset nodig is. Geen persoonsgegevens, hashes of credentials zijn naar de repository-output gelogd.
+
+## Voorstel voor beoordeling
+
+`C:\Users\toonv\Downloads\dnd-account-migration-proposal.local.json` bevat lokaal buiten Git het concrete voorstel voor alle 7 accounts. Het voorstel sorteert op oud ID, kent in de geïsoleerde dry-run deterministische nieuwe IDs 1–7 toe en maakt usernames met de vorm `<genormaliseerde-naam>-<oud-id>`. Daarmee blijven usernames uniek en herhaalbaar; de uiteindelijke productie-ID's worden niet vooraf geclaimd.
+
+Het voorstel behoudt de 6 compatibele hashes ongewijzigd. Alleen oud ID `1` is gemarkeerd voor de bestaande veilige resetprocedure; er wordt geen standaardwachtwoord voorgesteld. Voor alle records blijven `admin_mapping` en `campaign_membership_mapping` leeg. De code weigert email- en usernameconflicten expliciet en een tweede planning levert exact hetzelfde voorstel op.
 
 ## Nodig om dit af te ronden
 
