@@ -7,26 +7,30 @@
     padding: 14px 16px;
     border: 1px solid var(--p-danger);
     border-radius: var(--p-control-radius);
-    background: var(--p-surface-raised);
+    background: #8f2638;
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--p-danger);
+    color: #fff5f6;
     box-shadow: 0 12px 32px rgb(0 0 0 / 36%);
     font-size: 1rem;
     line-height: 1.4;
     animation: p-notification-fade 5s ease forwards;
 }
 .p-notification--error {
-    border-color: var(--p-danger);
+    border-color: #ff9aa8;
+    background: #8f2638;
+    color: #fff5f6;
 }
 .p-notification--success {
-    border-color: var(--p-success);
-    color: var(--p-success);
+    border-color: #9be3b5;
+    background: #21633d;
+    color: #f1fff5;
 }
 .p-notification--warning {
-    border-color: var(--p-warning);
-    color: var(--p-warning);
+    border-color: #f2d58a;
+    background: #8a5a16;
+    color: #fff8e8;
 }
 @keyframes p-notification-fade {
     0%,
