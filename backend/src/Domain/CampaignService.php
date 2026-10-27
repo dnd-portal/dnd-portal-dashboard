@@ -23,7 +23,8 @@ final class CampaignService {
         }$isAdmin = $this->isAdmin($uid);
         if ($row['membership_role'] === null && !$isAdmin) {
             Response::error('forbidden', 'Campaign access required.', 403);
-        }Response::json(['data' => $row]);
+        }
+        Response::json(['data' => $row]);
     }
     public function create(int $uid, array $in): never {
         $this->validateCampaign($in);
@@ -46,33 +47,39 @@ final class CampaignService {
             } catch (\Throwable) {
                 Response::error('validation_failed', 'Invalid archive timestamp.', 422);
             }
-        }$q = $this->db->prepare('UPDATE campaigns SET name=COALESCE(?,name),slug=COALESCE(?,slug),location=?,timezone=COALESCE(?,timezone),archived_at=?,version=version+1 WHERE id=? AND version=?');
+        }
+        $q = $this->db->prepare('UPDATE campaigns SET name=COALESCE(?,name),slug=COALESCE(?,slug),location=?,timezone=COALESCE(?,timezone),archived_at=?,version=version+1 WHERE id=? AND version=?');
         $q->execute([$in['name'] ?? null,$in['slug'] ?? null,$in['location'] ?? null,$in['timezone'] ?? null,$archived,$id,(int)($in['version'] ?? 0)]);
         if ($q->rowCount() !== 1) {
             Response::error('conflict', 'Campaign was changed or no longer exists.', 409);
-        }Response::json(['data' => $this->campaign($id)]);
+        }
+        Response::json(['data' => $this->campaign($id)]);
     }
     public function addMember(int $uid, int $campaign, int $member, array $in): never {
         $this->assertManage($uid, $campaign);
         $role = $in['membership_role'] ?? 'member';
         if (!in_array($role, ['member','dm'], true)) {
             Response::error('validation_failed', 'Invalid membership role.', 422);
-        }$q = $this->db->prepare('SELECT 1 FROM campaigns WHERE id=?');
+        }
+        $q = $this->db->prepare('SELECT 1 FROM campaigns WHERE id=?');
         $q->execute([$campaign]);
         if (!$q->fetchColumn()) {
             Response::error('not_found', 'Campaign not found.', 404);
-        }$q = $this->db->prepare('SELECT 1 FROM users WHERE id=?');
+        }
+        $q = $this->db->prepare('SELECT 1 FROM users WHERE id=?');
         $q->execute([$member]);
         if (!$q->fetchColumn()) {
             Response::error('not_found', 'User not found.', 404);
-        }$q = $this->db->prepare('INSERT INTO campaign_memberships(campaign_id,user_id,membership_role,left_at) VALUES(?,?,?,NULL) ON DUPLICATE KEY UPDATE membership_role=VALUES(membership_role),left_at=NULL');
+        }
+        $q = $this->db->prepare('INSERT INTO campaign_memberships(campaign_id,user_id,membership_role,left_at) VALUES(?,?,?,NULL) ON DUPLICATE KEY UPDATE membership_role=VALUES(membership_role),left_at=NULL');
         $q->execute([$campaign,$member,$role]);
         $q = $this->db->prepare('SELECT cm.campaign_id,cm.user_id,cm.membership_role,cm.joined_at,cm.left_at,u.display_name,u.email,u.username FROM campaign_memberships cm JOIN users u ON u.id=cm.user_id WHERE cm.campaign_id=? AND cm.user_id=?');
         $q->execute([$campaign,$member]);
         $row = $q->fetch();
         if (!$row) {
             Response::error('conflict', 'Membership was not stored.', 409);
-        }Response::json(['data' => $row], 201);
+        }
+        Response::json(['data' => $row], 201);
     }
     public function members(int $uid, int $campaign): never {
         $this->assertView($uid, $campaign);
@@ -134,11 +141,13 @@ final class CampaignService {
         $allowed = ['title','session_date','starts_at','ends_at','rsvp_deadline_at','location','status','version'];
         if (array_diff(array_keys($in), $allowed)) {
             Response::error('validation_failed', 'Unsupported fields.', 422);
-        }$q = $this->db->prepare('UPDATE game_sessions SET title=COALESCE(?,title),session_date=COALESCE(?,session_date),starts_at=?,ends_at=?,rsvp_deadline_at=?,location=?,status=COALESCE(?,status),version=version+1 WHERE id=? AND version=?');
+        }
+        $q = $this->db->prepare('UPDATE game_sessions SET title=COALESCE(?,title),session_date=COALESCE(?,session_date),starts_at=?,ends_at=?,rsvp_deadline_at=?,location=?,status=COALESCE(?,status),version=version+1 WHERE id=? AND version=?');
         $q->execute([$in['title'] ?? null,$in['session_date'] ?? null,$in['starts_at'] ?? null,$in['ends_at'] ?? null,$in['rsvp_deadline_at'] ?? null,$in['location'] ?? null,$in['status'] ?? null,$id,(int)($in['version'] ?? 0)]);
         if (!$q->rowCount()) {
             Response::error('conflict', 'Session was changed or no longer exists.', 409);
-        }Response::json(['data' => $this->session($id)]);
+        }
+        Response::json(['data' => $this->session($id)]);
     }
     public function participant(int $uid, int $session, int $member, array $in): never {
         $campaign = $this->sessionCampaign($session);
@@ -149,7 +158,8 @@ final class CampaignService {
         }$allowed = $isManager ? ['rsvp_status','attendance_status'] : ['rsvp_status'];
         if (array_diff(array_keys($in), $allowed)) {
             Response::error('validation_failed', 'Unsupported participant fields.', 422);
-        }if (!$isManager && isset($in['rsvp_status']) && $this->deadlinePassed($session)) {
+        }
+        if (!$isManager && isset($in['rsvp_status']) && $this->deadlinePassed($session)) {
             Response::error('conflict', 'The RSVP deadline has passed.', 409);
         }$existing = $this->db->prepare('SELECT rsvp_status,attendance_status FROM session_participants WHERE session_id=? AND user_id=?');
         $existing->execute([$session,$member]);
@@ -160,9 +170,11 @@ final class CampaignService {
         $q->execute([$session,$member,$r,$a,$in['rsvp_status'] ?? null,$in['attendance_status'] ?? null,$in['rsvp_status'] ?? null,$in['attendance_status'] ?? null]);
         if ($isManager && ($in['rsvp_status'] ?? null) !== null) {
             $this->audit($uid, 'session_rsvp_corrected', ['session_id' => $session,'user_id' => $member,'rsvp_status' => $r]);
-        }if ($isManager && ($in['attendance_status'] ?? null) !== null) {
+        }
+        if ($isManager && ($in['attendance_status'] ?? null) !== null) {
             $this->audit($uid, 'session_attendance_corrected', ['session_id' => $session,'user_id' => $member,'attendance_status' => $a]);
-        }Response::json(['data' => null]);
+        }
+        Response::json(['data' => null]);
     }
     public function availability(int $uid, ?int $forUser, array $in): never {
         $target = $forUser ?? $uid;
@@ -172,7 +184,8 @@ final class CampaignService {
         if ($forUser === null && $isAdmin) {
             $q = $this->db->query('SELECT a.user_id,a.availability_date,a.status,a.note,a.updated_at,u.display_name FROM user_availability a JOIN users u ON u.id=a.user_id WHERE a.availability_date BETWEEN UTC_DATE()-INTERVAL 366 DAY AND UTC_DATE()+INTERVAL 366 DAY ORDER BY a.availability_date,u.display_name');
             Response::json(['data' => $q->fetchAll()]);
-        }$q = $this->db->prepare('SELECT availability_date,status,note,updated_at FROM user_availability WHERE user_id=? ORDER BY availability_date');
+        }
+        $q = $this->db->prepare('SELECT availability_date,status,note,updated_at FROM user_availability WHERE user_id=? ORDER BY availability_date');
         $q->execute([$target]);
         Response::json(['data' => $q->fetchAll()]);
     }
@@ -182,14 +195,16 @@ final class CampaignService {
         }$status = $in['status'] ?? null;
         if (!in_array($status, ['available','unavailable'], true)) {
             Response::error('validation_failed', 'Invalid availability status.', 422);
-        }$q = $this->db->prepare('INSERT INTO user_availability(user_id,availability_date,status,note) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),note=VALUES(note),updated_at=UTC_TIMESTAMP(6)');
+        }
+        $q = $this->db->prepare('INSERT INTO user_availability(user_id,availability_date,status,note) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),note=VALUES(note),updated_at=UTC_TIMESTAMP(6)');
         $q->execute([$uid,$date,$status,$in['note'] ?? null]);
         Response::json(['data' => null]);
     }
     public function clearAvailability(int $uid, string $date): never {
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             Response::error('validation_failed', 'Invalid calendar date.', 422);
-        }$q = $this->db->prepare('DELETE FROM user_availability WHERE user_id=? AND availability_date=?');
+        }
+        $q = $this->db->prepare('DELETE FROM user_availability WHERE user_id=? AND availability_date=?');
         $q->execute([$uid,$date]);
         Response::json(['data' => null]);
     }
@@ -209,7 +224,8 @@ final class CampaignService {
         $v = $q->fetchColumn();
         if (!$v) {
             Response::error('not_found', 'Session not found.', 404);
-        }return(int)$v;
+        }
+        return (int) $v;
     }
     private function canManage(int $uid, int $campaign): bool {
         $q = $this->db->prepare("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin') OR EXISTS(SELECT 1 FROM campaign_memberships WHERE user_id=? AND campaign_id=? AND membership_role='dm' AND left_at IS NULL)");
@@ -299,6 +315,7 @@ final class CampaignService {
             Response::error('validation_failed', count($candidates) === 0 ? 'This local time does not exist in Europe/Amsterdam.' : 'This local time is ambiguous; choose a timezone offset.', 422);
         } else {
             $chosen = array_values($candidates)[0];
-        }return$chosen->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
+        }
+        return $chosen->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
     }
 }

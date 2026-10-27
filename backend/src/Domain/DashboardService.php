@@ -24,7 +24,8 @@ final class DashboardService {
         }$data = ['next_session' => $next,'open_polls' => $openPolls,'open_contributions_cents' => $balances['EUR'] ?? 0,'open_contributions_by_currency' => $balances];
         if ($this->isAdmin($uid)) {
             $data['admin'] = $this->adminTotals();
-        }Response::json(['data' => $data]);
+        }
+        Response::json(['data' => $data]);
     }
     private function isAdmin(int $uid): bool {
         $q = $this->db->prepare("SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin'");

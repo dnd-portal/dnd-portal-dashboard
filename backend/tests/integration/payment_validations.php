@@ -18,16 +18,19 @@ $req = function (string $m, string $p, ?array $body = null) use (&$cookie, &$csr
     $h = ['Accept: application/json','Origin: http://127.0.0.1:5173'];
     if ($cookie) {
         $h[] = 'Cookie: dnd_session='.$cookie;
-    }if ($body !== null) {
+    }
+    if ($body !== null) {
         $h[] = 'Content-Type: application/json';
         $h[] = 'X-CSRF-Token: '.$csrf;
-    }$raw = file_get_contents($base.$p, false, stream_context_create(['http' => ['method' => $m,'ignore_errors' => true,'header' => implode("\r\n", $h),'content' => $body === null ? '' : json_encode($body)]]));
+    }
+    $raw = file_get_contents($base . $p, false, stream_context_create(['http' => ['method' => $m, 'ignore_errors' => true, 'header' => implode("\r\n", $h), 'content' => $body === null ? '' : json_encode($body)]]));
     $s = (int)preg_replace('/^HTTP\/[^ ]+ ([0-9]+).*$/', '$1', $http_response_header[0] ?? '0');
     foreach ($http_response_header ?? [] as $v) {
         if (stripos($v, 'Set-Cookie: dnd_session=') === 0) {
             $cookie = explode('=', explode(';', trim(substr($v, 11)), 2)[0], 2)[1];
         }
-    }return[$s,json_decode($raw ?: '{}', true) ?: []];
+    }
+    return [$s, json_decode($raw ?: '{}', true) ?: []];
 };
 $ok = function (bool $v, string $n): void {
     if (!$v) {

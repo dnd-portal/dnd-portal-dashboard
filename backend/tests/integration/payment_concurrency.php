@@ -27,7 +27,8 @@ if (($argv[1] ?? '') === 'worker') {
         $net = (int)$q->fetchColumn();
         if ($kind === 'reversal' && $amount > $net) {
             throw new RuntimeException('reversal-bound');
-        }$q = $db->prepare('INSERT INTO payment_entries(obligation_id,amount_cents,currency,status,entry_kind,external_reference) VALUES(?,? ,"EUR","confirmed",?,?)');
+        }
+        $q = $db->prepare('INSERT INTO payment_entries(obligation_id,amount_cents,currency,status,entry_kind,external_reference) VALUES(?,? ,"EUR","confirmed",?,?)');
         $q->execute([(int)$oid,(int)$amount,$kind,$ref]);
         $db->commit();
         echo "success\n";
@@ -63,7 +64,8 @@ $run = function (string $kind, int $amount, string $ref) use ($oid): array {
     proc_close($b);
     foreach (glob($barrier.'.ready.*') as $f) {
         @unlink($f);
-    }return[$oa,$ob];
+    }
+    return [$oa, $ob];
 };
 $runMixed = function () use ($oid): array {
     $barrier = tempnam(sys_get_temp_dir(), 'pay-mixed-');
@@ -74,7 +76,8 @@ $runMixed = function () use ($oid): array {
         $process = proc_open($cmd, [1 => ['pipe','w'],2 => ['pipe','w']], $pipes);
         if (!is_resource($process)) {
             throw new RuntimeException('Could not start mixed concurrency worker');
-        }return[$process,$pipes];
+        }
+        return [$process, $pipes];
     };
     [$a,$ap] = $make('payment', 1000, 'mixed-payment');
     [$b,$bp] = $make('reversal', 5000, 'mixed-reversal');
@@ -88,7 +91,8 @@ $runMixed = function () use ($oid): array {
     proc_close($b);
     foreach (glob($barrier.'.ready.*') as $f) {
         @unlink($f);
-    }return[$oa,$ob];
+    }
+    return [$oa, $ob];
 };
 [$a,$b] = $run('payment', 100, 'same-ref');
 $q = $db->prepare('SELECT COUNT(*) FROM payment_entries WHERE obligation_id=? AND external_reference=?');
