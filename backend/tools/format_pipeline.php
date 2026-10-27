@@ -75,13 +75,7 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
     }
 
     try {
-        $formatted = PhpMyAdmin\SqlParser\Utils\Formatter::format($sql, [
-            'type' => 'text',
-            'remove_comments' => false,
-            'clause_newline' => true,
-            'parts_newline' => true,
-            'indentation' => '    ',
-        ]);
+        $formatted = formatWithSqlFormatter($sql);
         if (sqlTokenSignature($sql) !== sqlTokenSignature($formatted)) {
             fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL token preservation failed; literal unchanged\n", $file, $line));
             return $literal;
@@ -97,7 +91,7 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
         }
 
         $body = implode("\n", array_map(
-            static fn (string $line): string => $indent . ltrim($line),
+            static fn (string $line): string => $indent . $line,
             explode("\n", trim($formatted)),
         ));
         return "<<<'SQL'\n" . $body . "\n" . $indent . 'SQL';
@@ -105,6 +99,30 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
         fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL parser skipped query (%s)\n", $file, $line, $exception->getMessage()));
         return $literal;
     }
+}
+
+function formatWithSqlFormatter(string $sql): string
+{
+    $command = PHP_OS_FAMILY === 'Windows' ? 'node tools/format_sql.mjs' : 'node tools/format_sql.mjs';
+    $process = proc_open($command, [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ], $pipes, dirname(__DIR__));
+    if (!is_resource($process)) {
+        throw new RuntimeException('SQL formatter process could not be started');
+    }
+    fwrite($pipes[0], json_encode($sql, JSON_THROW_ON_ERROR));
+    fclose($pipes[0]);
+    $result = json_decode(stream_get_contents($pipes[1]), true, 512, JSON_THROW_ON_ERROR);
+    fclose($pipes[1]);
+    $error = stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+    $exitCode = proc_close($process);
+    if ($exitCode !== 0 || isset($result['error'])) {
+        throw new RuntimeException($result['error'] ?? trim($error) ?: 'SQL formatter failed');
+    }
+    return (string) $result['sql'];
 }
 
 function sqlTokenSignature(string $sql): array
@@ -115,7 +133,11 @@ function sqlTokenSignature(string $sql): array
         if ($token->type === PhpMyAdmin\SqlParser\Token::TYPE_WHITESPACE) {
             continue;
         }
-        $signature[] = [$token->type, $token->value];
+        $value = in_array($token->type, [
+            PhpMyAdmin\SqlParser\Token::TYPE_KEYWORD,
+            PhpMyAdmin\SqlParser\Token::TYPE_BOOL,
+        ], true) ? strtolower($token->value) : $token->value;
+        $signature[] = [$token->type, $value];
     }
 
     return $signature;

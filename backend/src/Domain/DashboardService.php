@@ -162,11 +162,30 @@ final class DashboardService {
         );
         $campaigns = (int) $q->fetchColumn();
         $q = $this->db->query(
-            'SELECT COUNT(*) FROM game_sessions WHERE status="planned" AND session_date>=UTC_DATE()',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM game_sessions
+            WHERE
+            status = "planned"
+            AND session_date >= UTC_DATE()
+            SQL
+            ,
         );
         $sessions = (int) $q->fetchColumn();
         $q = $this->db->query(
-            'SELECT COUNT(*) FROM polls WHERE status="open" AND (closes_at IS NULL OR closes_at>UTC_TIMESTAMP())',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM polls
+            WHERE
+            status = "open"
+            AND (
+            closes_at IS NULL
+            OR closes_at > UTC_TIMESTAMP()
+            )
+            SQL
+            ,
         );
         $polls = (int) $q->fetchColumn();
         $q = $this->db->query(

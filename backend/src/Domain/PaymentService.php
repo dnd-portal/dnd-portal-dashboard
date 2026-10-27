@@ -13,7 +13,26 @@ final class PaymentService {
     public function list(int $uid, int $campaign): never {
         $this->manage($uid, $campaign);
         $q = $this->db->prepare(
-            'SELECT id,title,description,amount_cents,currency,status,due_date,external_url,created_at,updated_at,version FROM payment_requests WHERE campaign_id=? ORDER BY created_at DESC',
+            <<<'SQL'
+            SELECT
+            id,
+            title,
+            description,
+            amount_cents,
+            currency,
+            status,
+            due_date,
+            external_url,
+            created_at,
+            updated_at,
+            version
+            FROM payment_requests
+            WHERE
+            campaign_id = ?
+            ORDER BY
+            created_at DESC
+            SQL
+            ,
         );
         $q->execute([$campaign]);
         Response::json(['data' => $q->fetchAll()]);
@@ -211,7 +230,24 @@ final class PaymentService {
                 Response::error('validation_failed', 'Amount and currency are invalid.', 422);
             }
             $q = $this->db->prepare(
-                'SELECT COALESCE(SUM(CASE WHEN entry_kind="payment" THEN amount_cents WHEN entry_kind="reversal" THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE obligation_id=? AND status="confirmed"',
+                <<<'SQL'
+                SELECT
+                COALESCE(
+                SUM(
+                CASE
+                WHEN entry_kind = "payment" THEN amount_cents
+                WHEN entry_kind = "reversal" THEN - amount_cents
+                ELSE 0
+                END
+                ),
+                0
+                )
+                FROM payment_entries
+                WHERE
+                obligation_id = ?
+                AND status = "confirmed"
+                SQL
+                ,
             );
             $q->execute([$obligation]);
             $net = (int) $q->fetchColumn();
@@ -261,7 +297,21 @@ final class PaymentService {
             }
             try {
                 $q = $this->db->prepare(
-                    'INSERT INTO payment_entries(obligation_id,amount_cents,currency,status,entry_kind,external_reference,entered_by,correction_of_entry_id) VALUES(?,?,?,?,?,?,?,?)',
+                    <<<'SQL'
+                    INSERT INTO payment_entries (
+                    obligation_id,
+                    amount_cents,
+                    currency,
+                    status,
+                    entry_kind,
+                    external_reference,
+                    entered_by,
+                    correction_of_entry_id
+                    )
+                    VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?)
+                    SQL
+                    ,
                 );
                 $q->execute([
                     $obligation,
@@ -283,7 +333,16 @@ final class PaymentService {
             $newNet = $kind === 'payment' ? $net + $amount : $net - $amount;
             $status = $newNet >= (int) $o['amount_cents'] ? 'settled' : 'open';
             $this->db
-                ->prepare('UPDATE payment_obligations SET status=? WHERE id=?')
+                ->prepare(
+                    <<<'SQL'
+                    UPDATE payment_obligations
+                    SET
+                    status = ?
+                    WHERE
+                    id = ?
+                    SQL
+                    ,
+                )
                 ->execute([$status, $obligation]);
             $this->db->commit();
             Response::json(

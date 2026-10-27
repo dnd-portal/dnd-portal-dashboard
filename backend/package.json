@@ -17,6 +17,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@prettier/plugin-php": "^0.26.0",
-    "prettier": "^3.9.10"
+    "prettier": "^3.9.10",
+    "sql-formatter": "^15.9.0"
   }
 }

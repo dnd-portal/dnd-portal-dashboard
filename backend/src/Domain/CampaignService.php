@@ -86,7 +86,12 @@ final class CampaignService {
     public function create(int $uid, array $in): never {
         $this->validateCampaign($in);
         $q = $this->db->prepare(
-            'INSERT INTO campaigns(name,slug,type,location,timezone,created_by) VALUES(?,?,?,?,?,?)',
+            <<<'SQL'
+            INSERT INTO campaigns (name, slug, type, location, timezone, created_by)
+            VALUES
+            (?, ?, ?, ?, ?, ?)
+            SQL
+            ,
         );
         $q->execute([
             trim($in['name']),
@@ -279,7 +284,25 @@ final class CampaignService {
     public function sessions(int $uid, int $campaign): never {
         $this->assertView($uid, $campaign);
         $q = $this->db->prepare(
-            'SELECT id,campaign_id,title,session_date,starts_at,ends_at,rsvp_deadline_at,location,status,version FROM game_sessions WHERE campaign_id=? ORDER BY session_date',
+            <<<'SQL'
+            SELECT
+            id,
+            campaign_id,
+            title,
+            session_date,
+            starts_at,
+            ends_at,
+            rsvp_deadline_at,
+            location,
+            status,
+            version
+            FROM game_sessions
+            WHERE
+            campaign_id = ?
+            ORDER BY
+            session_date
+            SQL
+            ,
         );
         $q->execute([$campaign]);
         Response::json(['data' => $q->fetchAll()]);
@@ -524,7 +547,19 @@ final class CampaignService {
             Response::json(['data' => $q->fetchAll()]);
         }
         $q = $this->db->prepare(
-            'SELECT availability_date,status,note,updated_at FROM user_availability WHERE user_id=? ORDER BY availability_date',
+            <<<'SQL'
+            SELECT
+            availability_date,
+            status,
+            note,
+            updated_at
+            FROM user_availability
+            WHERE
+            user_id = ?
+            ORDER BY
+            availability_date
+            SQL
+            ,
         );
         $q->execute([$target]);
         Response::json(['data' => $q->fetchAll()]);
@@ -543,7 +578,16 @@ final class CampaignService {
             Response::error('validation_failed', 'Invalid availability status.', 422);
         }
         $q = $this->db->prepare(
-            'INSERT INTO user_availability(user_id,availability_date,status,note) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),note=VALUES(note),updated_at=UTC_TIMESTAMP(6)',
+            <<<'SQL'
+            INSERT INTO user_availability (user_id, availability_date, status, note)
+            VALUES
+            (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            status = VALUES(status),
+            note = VALUES(note),
+            updated_at = UTC_TIMESTAMP(6)
+            SQL
+            ,
         );
         $q->execute([$uid, $date, $status, $in['note'] ?? null]);
         Response::json(['data' => null]);
@@ -569,7 +613,21 @@ final class CampaignService {
 
     private function campaign(int $id): array {
         $q = $this->db->prepare(
-            'SELECT id,name,slug,type,location,timezone,archived_at,version FROM campaigns WHERE id=?',
+            <<<'SQL'
+            SELECT
+            id,
+            name,
+            slug,
+            type,
+            location,
+            timezone,
+            archived_at,
+            version
+            FROM campaigns
+            WHERE
+            id = ?
+            SQL
+            ,
         );
         $q->execute([$id]);
         return $q->fetch() ?: [];
@@ -577,7 +635,23 @@ final class CampaignService {
 
     private function session(int $id): array {
         $q = $this->db->prepare(
-            'SELECT id,campaign_id,title,session_date,starts_at,ends_at,rsvp_deadline_at,location,status,version FROM game_sessions WHERE id=?',
+            <<<'SQL'
+            SELECT
+            id,
+            campaign_id,
+            title,
+            session_date,
+            starts_at,
+            ends_at,
+            rsvp_deadline_at,
+            location,
+            status,
+            version
+            FROM game_sessions
+            WHERE
+            id = ?
+            SQL
+            ,
         );
         $q->execute([$id]);
         return $q->fetch() ?: [];

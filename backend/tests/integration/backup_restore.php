@@ -110,8 +110,23 @@ $checks = [
     u.id = m.user_id
     SQL
     ,
-    'financial_sums' =>
-        "SELECT COALESCE(SUM(CASE WHEN entry_kind='payment' THEN amount_cents WHEN entry_kind='reversal' THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE status='confirmed'",
+    'financial_sums' => <<<'SQL'
+    SELECT
+    COALESCE(
+    SUM(
+    CASE
+    WHEN entry_kind = 'payment' THEN amount_cents
+    WHEN entry_kind = 'reversal' THEN - amount_cents
+    ELSE 0
+    END
+    ),
+    0
+    )
+    FROM payment_entries
+    WHERE
+    status = 'confirmed'
+    SQL
+,
 ];
 foreach ($checks as $label => $sql) {
     $left = (string) $source->query($sql)->fetchColumn();

@@ -43,7 +43,16 @@ foreach ($files as $file) {
         throw new RuntimeException('Cannot read ' . $file);
     }
     $checksum = hash('sha256', $sql);
-    $q = $db->prepare('SELECT checksum FROM schema_migrations WHERE version=?');
+    $q = $db->prepare(
+        <<<'SQL'
+        SELECT
+        checksum
+        FROM schema_migrations
+        WHERE
+        version = ?
+        SQL
+        ,
+    );
     $q->execute([$version]);
     $old = $q->fetchColumn();
     if ($old !== false) {
@@ -57,7 +66,12 @@ foreach ($files as $file) {
     try {
         $db->exec($sql);
         $q = $db->prepare(
-            'INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(?,?,?)',
+            <<<'SQL'
+            INSERT INTO schema_migrations (version, checksum, applied_at)
+            VALUES
+            (?, ?, ?)
+            SQL
+            ,
         );
         $q->execute([$version, $checksum, gmdate('Y-m-d H:i:s.u')]);
         if ($db->inTransaction()) {

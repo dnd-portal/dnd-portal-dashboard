@@ -36,7 +36,23 @@ if (($argv[1] ?? '') === 'worker') {
         $q->execute([(int) $oid]);
         $ob = $q->fetch();
         $q = $db->prepare(
-            'SELECT COALESCE(SUM(CASE WHEN entry_kind="payment" THEN amount_cents ELSE -amount_cents END),0) FROM payment_entries WHERE obligation_id=? AND status="confirmed"',
+            <<<'SQL'
+            SELECT
+            COALESCE(
+            SUM(
+            CASE
+            WHEN entry_kind = "payment" THEN amount_cents
+            ELSE - amount_cents
+            END
+            ),
+            0
+            )
+            FROM payment_entries
+            WHERE
+            obligation_id = ?
+            AND status = "confirmed"
+            SQL
+            ,
         );
         $q->execute([(int) $oid]);
         $net = (int) $q->fetchColumn();
@@ -44,7 +60,19 @@ if (($argv[1] ?? '') === 'worker') {
             throw new RuntimeException('reversal-bound');
         }
         $q = $db->prepare(
-            'INSERT INTO payment_entries(obligation_id,amount_cents,currency,status,entry_kind,external_reference) VALUES(?,? ,"EUR","confirmed",?,?)',
+            <<<'SQL'
+            INSERT INTO payment_entries (
+            obligation_id,
+            amount_cents,
+            currency,
+            status,
+            entry_kind,
+            external_reference
+            )
+            VALUES
+            (?, ?, "EUR", "confirmed", ?, ?)
+            SQL
+            ,
         );
         $q->execute([(int) $oid, (int) $amount, $kind, $ref]);
         $db->commit();
@@ -58,7 +86,12 @@ if (($argv[1] ?? '') === 'worker') {
     exit();
 }
 $q = $db->prepare(
-    "INSERT INTO campaigns(name,slug,type,created_by) VALUES('Concurrency payment',?,'campaign',1)",
+    <<<'SQL'
+    INSERT INTO campaigns (name, slug, type, created_by)
+    VALUES
+    ('Concurrency payment', ?, 'campaign', 1)
+    SQL
+    ,
 );
 $q->execute(['concurrency-' . bin2hex(random_bytes(3))]);
 $campaign = (int) $db->lastInsertId();
@@ -92,7 +125,19 @@ $q = $db->prepare(
 $q->execute([$rid]);
 $oid = (int) $db->lastInsertId();
 $db->prepare(
-    'INSERT INTO payment_entries(obligation_id,amount_cents,currency,status,entry_kind,external_reference) VALUES(?,10000,"EUR","confirmed","payment","seed")',
+    <<<'SQL'
+    INSERT INTO payment_entries (
+    obligation_id,
+    amount_cents,
+    currency,
+    status,
+    entry_kind,
+    external_reference
+    )
+    VALUES
+    (?, 10000, "EUR", "confirmed", "payment", "seed")
+    SQL
+    ,
 )->execute([$oid]);
 $run = function (string $kind, int $amount, string $ref) use ($oid): array {
     $barrier = tempnam(sys_get_temp_dir(), 'pay-race-');
@@ -204,7 +249,24 @@ if ((int) $q->fetchColumn() > 10000) {
 echo "PASS: concurrent reversals bounded [$a|$b]\n";
 [$a, $b] = $runMixed();
 $q = $db->prepare(
-    'SELECT COALESCE(SUM(CASE WHEN entry_kind="payment" THEN amount_cents WHEN entry_kind="reversal" THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE obligation_id=? AND status="confirmed"',
+    <<<'SQL'
+    SELECT
+    COALESCE(
+    SUM(
+    CASE
+    WHEN entry_kind = "payment" THEN amount_cents
+    WHEN entry_kind = "reversal" THEN - amount_cents
+    ELSE 0
+    END
+    ),
+    0
+    )
+    FROM payment_entries
+    WHERE
+    obligation_id = ?
+    AND status = "confirmed"
+    SQL
+    ,
 );
 $q->execute([$oid]);
 $net = (int) $q->fetchColumn();

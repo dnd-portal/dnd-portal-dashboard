@@ -13,7 +13,24 @@ final class PollService {
     public function list(int $uid, int $campaign): never {
         $this->manage($uid, $campaign);
         $q = $this->db->prepare(
-            'SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE campaign_id=? ORDER BY created_at DESC',
+            <<<'SQL'
+            SELECT
+            id,
+            campaign_id,
+            title,
+            choice_type,
+            status,
+            closes_at,
+            created_at,
+            updated_at,
+            version
+            FROM polls
+            WHERE
+            campaign_id = ?
+            ORDER BY
+            created_at DESC
+            SQL
+            ,
         );
         $q->execute([$campaign]);
         Response::json(['data' => $q->fetchAll()]);
@@ -91,12 +108,29 @@ final class PollService {
         $this->db->beginTransaction();
         try {
             $q = $this->db->prepare(
-                'INSERT INTO polls(campaign_id,title,choice_type,status,closes_at,created_by) VALUES(?,?,?,?,?,?)',
+                <<<'SQL'
+                INSERT INTO polls (
+                campaign_id,
+                title,
+                choice_type,
+                status,
+                closes_at,
+                created_by
+                )
+                VALUES
+                (?, ?, ?, ?, ?, ?)
+                SQL
+                ,
             );
             $q->execute([$campaign, $title, $type, 'open', $in['closes_at'] ?? null, $uid]);
             $id = (int) $this->db->lastInsertId();
             $o = $this->db->prepare(
-                'INSERT INTO poll_options(poll_id,label,position) VALUES(?,?,?)',
+                <<<'SQL'
+                INSERT INTO poll_options (poll_id, label, position)
+                VALUES
+                (?, ?, ?)
+                SQL
+                ,
             );
             foreach ($labels as $i => $label) {
                 $o->execute([$id, $label, $i + 1]);
@@ -484,7 +518,22 @@ final class PollService {
 
     private function find(int $id): ?array {
         $q = $this->db->prepare(
-            'SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE id=?',
+            <<<'SQL'
+            SELECT
+            id,
+            campaign_id,
+            title,
+            choice_type,
+            status,
+            closes_at,
+            created_at,
+            updated_at,
+            version
+            FROM polls
+            WHERE
+            id = ?
+            SQL
+            ,
         );
         $q->execute([$id]);
         return $q->fetch() ?: null;
