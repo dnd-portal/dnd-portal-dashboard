@@ -2,6 +2,7 @@
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
     import { api, ApiRequestError } from '#lib/api/index.js';
+    import Notification from '#lib/components/shared/Notification.svelte';
     let identifier = $state('');
     let password = $state('');
     let loginError = $state('');
@@ -51,7 +52,7 @@
                 required
             />
         </div>
-        {#if loginError}<p class="error-message" role="alert">{loginError}</p>{/if}
+        {#if loginError}<Notification message={loginError} onDismiss={() => (loginError = '')} />{/if}
         <button class="p-button" type="submit" disabled={busy || !identifier.trim() || !password}
             >{busy ? 'Signing in…' : 'Continue with email'} <span aria-hidden="true">→</span></button
         >

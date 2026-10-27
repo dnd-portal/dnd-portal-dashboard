@@ -1,0 +1,28 @@
+.p-notification {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    max-width: min(420px, calc(100vw - 40px));
+    padding: 14px 16px;
+    border: 1px solid var(--p-danger);
+    border-radius: var(--p-control-radius);
+    background: var(--p-surface-raised);
+    color: var(--p-text);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 36%);
+    font-size: 1rem;
+    line-height: 1.4;
+    animation: p-notification-fade 5s ease forwards;
+}
+.p-notification--error {
+    border-color: var(--p-danger);
+}
+@keyframes p-notification-fade {
+    0%,
+    82% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
