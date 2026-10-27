@@ -1,6 +1,13 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import type { Snippet } from 'svelte';
     let { title, description, children }: { title: string; description: string; children: Snippet } = $props();
+
+    onMount(() => {
+        document.body.classList.add('auth-page');
+
+        return () => document.body.classList.remove('auth-page');
+    });
 </script>
 
 <main class="p-auth">

@@ -6,6 +6,11 @@
     gap: 24px;
     padding: 32px 20px;
 }
+.auth-page {
+    background:
+        linear-gradient(rgb(11 12 15 / 64%), rgb(11 12 15 / 78%)),
+        url('/Moonlit-Gothic-City-in-the-Mist.webp') center / cover fixed;
+}
 .p-public-layout {
     min-height: 100svh;
     padding: 24px clamp(20px, 5vw, 72px) 48px;
