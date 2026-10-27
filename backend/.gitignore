@@ -1,4 +1,6 @@
 .env
 .env.*
 !.env.example
+!.env.preview.example
+!.env.infinityfree.example
 

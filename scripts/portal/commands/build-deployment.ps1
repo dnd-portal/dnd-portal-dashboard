@@ -3,7 +3,7 @@ param([switch]$Preview)
 $ErrorActionPreference='Stop'
 $release=Join-Path $script:V4Root 'release'; $stage=Join-Path $script:V4Root 'runtime\package-stage'
 if(Test-Path $release){Remove-Item -LiteralPath $release -Recurse -Force}; New-Item -ItemType Directory -Force $release,$stage | Out-Null
-if(!$Preview){$prodKeys='DEPLOY_DB_HOST','DEPLOY_DB_PORT','DEPLOY_DB_NAME','DEPLOY_DB_USER','DEPLOY_DB_PASSWORD';foreach($key in $prodKeys){if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($key))){throw "Missing $key. Refusing to create a production package without explicit deployment configuration."}}}
+if(!$Preview){$prodEnv=Join-Path $script:Backend '.env.infinityfree';if(!(Test-Path -LiteralPath $prodEnv)){throw 'Missing backend/.env.infinityfree. Refusing production package build.'};if((git ls-files --error-unmatch -- backend/.env.infinityfree 2>$null)){throw 'backend/.env.infinityfree is tracked; refusing production package build.'};$values=@{};foreach($line in Get-Content -LiteralPath $prodEnv){if($line -match '^\s*([^#=]+)=(.*)$'){$values[$matches[1].Trim()]=$matches[2].Trim().Trim('"',"'")}};foreach($key in 'APP_ENV','APP_ALLOWED_ORIGIN','DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD'){if([string]::IsNullOrWhiteSpace($values[$key])){throw "Missing required production configuration: $key"}};if($values.APP_ENV -ne 'production' -or $values.APP_ALLOWED_ORIGIN -ne 'https://player.dnd-portal.com'){throw 'Production configuration has an invalid environment or origin.'};$prod=$values}else{$prod=@{}}
 Push-Location $script:Player; pnpm build | Out-Host; Pop-Location
 Copy-Item (Join-Path $script:Player 'build\*') $stage -Recurse -Force
 New-Item -ItemType Directory -Force (Join-Path $stage 'server\public'),(Join-Path $stage 'server\src') | Out-Null
@@ -11,12 +11,12 @@ Copy-Item (Join-Path $script:Backend 'public\index.php') (Join-Path $stage 'serv
 Copy-Item (Join-Path $script:Backend 'src\*') (Join-Path $stage 'server\src') -Recurse -Force
 @"
 APP_ENV=production
-APP_ALLOWED_ORIGIN=$(if($Preview){'preview-injected'}else{$env:DEPLOY_APP_ALLOWED_ORIGIN})
-DB_HOST=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_HOST})
-DB_PORT=$(if($Preview){'3306'}else{$env:DEPLOY_DB_PORT})
-DB_NAME=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_NAME})
-DB_USER=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_USER})
-DB_PASSWORD=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_PASSWORD})
+APP_ALLOWED_ORIGIN=$(if($Preview){'preview-injected'}else{$prod.APP_ALLOWED_ORIGIN})
+DB_HOST=$(if($Preview){'preview-injected'}else{$prod.DB_HOST})
+DB_PORT=$(if($Preview){'3306'}else{$prod.DB_PORT})
+DB_NAME=$(if($Preview){'preview-injected'}else{$prod.DB_NAME})
+DB_USER=$(if($Preview){'preview-injected'}else{$prod.DB_USER})
+DB_PASSWORD=$(if($Preview){'preview-injected'}else{$prod.DB_PASSWORD})
 "@ | Set-Content (Join-Path $stage 'server\.env') -NoNewline
 @'
 Options -Indexes
@@ -37,7 +37,7 @@ Require all granted
   Require all denied
 </FilesMatch>
 '@ | Set-Content (Join-Path $stage 'server\.htaccess')
-$forbidden='localhost','127.0.0.1','dnd_portal_v4_development','dnd_portal_v4_preview','node_modules','V4-TYPE-A-INVITE','V4-TYPE-B-INVITE','v4-player','v4-admin','TESTUSER_','TESTADMIN_','TESTDM_','C:\\Users\\','C:/Users/'
+$forbidden='localhost','127.0.0.1','dnd.toonvb.com','dnd.lovestoblog.com','dnd_portal_v4_development','dnd_portal_v4_preview','node_modules','V4-TYPE-A-INVITE','V4-TYPE-B-INVITE','v4-player','v4-admin','TESTUSER_','TESTADMIN_','TESTDM_','C:\\Users\\','C:/Users/'
 $files=Get-ChildItem $stage -Recurse -File; $textFiles=$files|Where-Object Extension -in '.js','.css','.html','.php','.env','.htaccess','.json','.txt','.svg'; $hits=@(); foreach($file in $textFiles){$text=Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue;foreach($needle in $forbidden){if($text -match [regex]::Escape($needle)){$hits+="$($file.FullName): $needle"}}}
 if($hits){$hits|Write-Error;throw 'Deployment package audit failed.'}
 $sql=Join-Path $release 'dnd-portal-v4-database.sql'; Get-ChildItem (Join-Path $script:Backend 'database\migrations\*.sql')|Sort-Object Name|Get-Content|Set-Content $sql

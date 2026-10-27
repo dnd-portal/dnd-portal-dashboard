@@ -2,6 +2,7 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 !backend/.env.preview.example
+!backend/.env.infinityfree.example
 runtime/
 logs/
 release/
