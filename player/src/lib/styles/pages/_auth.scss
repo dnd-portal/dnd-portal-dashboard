@@ -46,10 +46,6 @@
     text-align: center;
     padding: clamp(32px, 8vw, 96px) 0;
 }
-.p-public-error h1 {
-    margin: 0 0 12px;
-    line-height: 1.05;
-}
 .p-public-error__status--404 {
     color: var(--p-danger);
 }
@@ -79,14 +75,14 @@
 }
 .p-public-home__description {
     max-width: 680px;
-    margin: 16px auto 32px;
+    margin: 16px 0 32px;
     color: var(--p-secondary);
     font-size: 1.125rem;
     line-height: 1.55;
 }
 .p-public-home__actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 12px;
     flex-wrap: wrap;
 }
