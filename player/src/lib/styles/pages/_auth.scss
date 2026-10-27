@@ -114,9 +114,11 @@
     width: 100%;
     max-width: 480px;
     padding: 32px;
-    border-color: rgb(217 220 223 / 22%);
-    background: rgb(17 19 24 / 68%);
+    border-color: rgb(217 220 223 / 34%);
+    background: rgb(17 19 24 / 42%);
+    box-shadow: 0 18px 60px rgb(0 0 0 / 28%);
     backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 .p-auth__header {
     display: grid;
