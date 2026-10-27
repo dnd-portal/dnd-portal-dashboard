@@ -1,9 +1,9 @@
+param([switch]$Preview)
 . (Join-Path $PSScriptRoot '..\lib\environment.ps1')
 $ErrorActionPreference='Stop'
 $release=Join-Path $script:V4Root 'release'; $stage=Join-Path $script:V4Root 'runtime\package-stage'
 if(Test-Path $release){Remove-Item -LiteralPath $release -Recurse -Force}; New-Item -ItemType Directory -Force $release,$stage | Out-Null
-$prodKeys='DEPLOY_DB_HOST','DEPLOY_DB_PORT','DEPLOY_DB_NAME','DEPLOY_DB_USER','DEPLOY_DB_PASSWORD'
-foreach($key in $prodKeys){if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($key))){throw "Missing $key. Refusing to create a production package without explicit deployment configuration."}}
+if(!$Preview){$prodKeys='DEPLOY_DB_HOST','DEPLOY_DB_PORT','DEPLOY_DB_NAME','DEPLOY_DB_USER','DEPLOY_DB_PASSWORD';foreach($key in $prodKeys){if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($key))){throw "Missing $key. Refusing to create a production package without explicit deployment configuration."}}}
 Push-Location $script:Player; pnpm build | Out-Host; Pop-Location
 Copy-Item (Join-Path $script:Player 'build\*') $stage -Recurse -Force
 New-Item -ItemType Directory -Force (Join-Path $stage 'server\public'),(Join-Path $stage 'server\src') | Out-Null
@@ -11,18 +11,20 @@ Copy-Item (Join-Path $script:Backend 'public\index.php') (Join-Path $stage 'serv
 Copy-Item (Join-Path $script:Backend 'src\*') (Join-Path $stage 'server\src') -Recurse -Force
 @"
 APP_ENV=production
-APP_ALLOWED_ORIGIN=$($env:DEPLOY_APP_ALLOWED_ORIGIN)
-DB_HOST=$($env:DEPLOY_DB_HOST)
-DB_PORT=$($env:DEPLOY_DB_PORT)
-DB_NAME=$($env:DEPLOY_DB_NAME)
-DB_USER=$($env:DEPLOY_DB_USER)
-DB_PASSWORD=$($env:DEPLOY_DB_PASSWORD)
+APP_ALLOWED_ORIGIN=$(if($Preview){'preview-injected'}else{$env:DEPLOY_APP_ALLOWED_ORIGIN})
+DB_HOST=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_HOST})
+DB_PORT=$(if($Preview){'3306'}else{$env:DEPLOY_DB_PORT})
+DB_NAME=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_NAME})
+DB_USER=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_USER})
+DB_PASSWORD=$(if($Preview){'preview-injected'}else{$env:DEPLOY_DB_PASSWORD})
 "@ | Set-Content (Join-Path $stage 'server\.env') -NoNewline
 @'
 Options -Indexes
 RewriteEngine On
+RewriteRule ^(?:\.env|server(?:/|$)|backend(?:/|$)|scripts(?:/|$)|development(?:/|$)|release(?:/|$)|runtime(?:/|$)|node(?:\x5f)modules(?:/|$)|tests?(?:/|$)|.*\.(?:sql|log|bak|zip|ps1|sh|md)$) - [R=404,L,NC]
+RewriteCond %{THE_REQUEST} \s/+server(?:[/?\s]) [NC]
 RewriteRule ^server(?:/|$) - [R=404,L]
-RewriteRule ^api(?:/.*)?$ server/public/index.php [L,QSA]
+RewriteRule ^api(?:/.*)?$ server/public/index.php [END,QSA]
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]

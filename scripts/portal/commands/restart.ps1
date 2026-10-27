@@ -1,2 +1,2 @@
 . (Join-Path $PSScriptRoot '..\lib\environment.ps1')
-& (Join-Path $PSScriptRoot 'stop.ps1'); & (Join-Path $PSScriptRoot 'run-development-server.ps1')
+$mode=if(Test-Path (Join-Path $script:V4Root 'runtime\active-mode')){(Get-Content (Join-Path $script:V4Root 'runtime\active-mode') -Raw).Trim()}else{''};if($mode -eq 'deployment-preview'){& (Join-Path $PSScriptRoot 'stop.ps1');& (Join-Path $PSScriptRoot 'run-deployment-server.ps1')}elseif($mode -eq 'development'){& (Join-Path $PSScriptRoot 'stop.ps1');& (Join-Path $PSScriptRoot 'run-development-server.ps1')}else{throw 'No active V4 mode recorded; refusing to guess restart mode.'}

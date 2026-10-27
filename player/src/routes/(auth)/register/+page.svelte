@@ -47,6 +47,7 @@
                 password,
                 password_confirmation: password
             });
+            api.invalidateCsrf();
             accountCreated = true;
             await goto('/dashboard/polls/current');
         } catch (error) {

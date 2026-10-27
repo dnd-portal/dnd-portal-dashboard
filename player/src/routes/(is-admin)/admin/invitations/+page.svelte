@@ -1,5 +1,41 @@
 <script lang="ts">
- import {api,ApiRequestError} from '#lib/api/index.js'; let email=$state('');let userId=$state('');let result=$state('');let error=$state('');
- async function create(){try{const r=await api.post<{code:string}>('/api/v1/admin/invites',{...(userId?{user_id:Number(userId)}:{email})});result=`Invite code: ${r.code}`;error='';}catch(e){error=e instanceof ApiRequestError?e.message:'Could not create invite.';}}
+    import { api, ApiRequestError } from '#lib/api/index.js';
+    let email = $state('');
+    let userId = $state('');
+    let result = $state('');
+    let error = $state('');
+    async function create() {
+        try {
+            const r = await api.post<{ code: string }>('/api/v1/admin/invites', {
+                ...(userId ? { user_id: Number(userId) } : { email })
+            });
+            result = `Invite code: ${r.code}`;
+            error = '';
+        } catch (e) {
+            error = e instanceof ApiRequestError ? e.message : 'Could not create invite.';
+        }
+    }
 </script>
-<svelte:head><title>Invitations · D&amp;D Portal</title></svelte:head><section class="p-page-header"><h1>Invitations</h1><p>Create a one-time Type A invite with a pending user ID or a blank Type B invite.</p></section><section class="p-card"><label class="p-field__label" for="pending">Pending user ID (Type A)</label><input class="p-input" id="pending" bind:value={userId} inputmode="numeric"/><label class="p-field__label" for="email">Email (optional Type B)</label><input class="p-input" id="email" bind:value={email} type="email"/><button class="p-button" onclick={()=>void create()}>Create invite</button>{#if result}<p class="success-message">{result}</p>{/if}{#if error}<p class="error-message">{error}</p>{/if}</section>
+
+<svelte:head><title>Invitations · D&amp;D Portal</title></svelte:head>
+<section class="p-page-header">
+    <h1>Invitations</h1>
+    <p>Create a one-time Type A invite with a pending user ID or a blank Type B invite.</p>
+</section>
+<section class="p-card">
+    <label class="p-field__label" for="pending">Pending user ID (Type A)</label><input
+        class="p-input"
+        id="pending"
+        bind:value={userId}
+        inputmode="numeric"
+    /><label class="p-field__label" for="email">Email (optional Type B)</label><input
+        class="p-input"
+        id="email"
+        bind:value={email}
+        type="email"
+    /><button class="p-button" onclick={() => void create()}>Create invite</button>{#if result}<p
+            class="success-message"
+        >
+            {result}
+        </p>{/if}{#if error}<p class="error-message">{error}</p>{/if}
+</section>

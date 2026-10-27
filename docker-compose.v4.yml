@@ -35,6 +35,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
+  deployment-preview:
+    build:
+      context: ./development/deployment-preview
+    container_name: dnd-portal-v4-deployment-preview
+    depends_on:
+      database-preview:
+        condition: service_healthy
+    ports: ["127.0.0.1:8184:80"]
+    volumes:
+      - ./runtime/package-stage:/var/www/html:ro
+      - ./backend/.env.preview:/var/www/html/server/.env:ro
+      - ./runtime/apache-logs:/var/log/apache2
 volumes:
   dnd-portal-v4-db: {name: dnd-portal-v4-db}
   dnd-portal-v4-preview-db: {name: dnd-portal-v4-preview-db}

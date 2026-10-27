@@ -1,3 +1,4 @@
 . (Join-Path $PSScriptRoot '..\lib\environment.ps1')
 docker compose -f $script:ComposeFile ps
-Write-Portal 'Development URL: http://127.0.0.1:5174; phpMyAdmin: http://127.0.0.1:8096'
+$mode=if(Test-Path (Join-Path $script:V4Root 'runtime\active-mode')){(Get-Content (Join-Path $script:V4Root 'runtime\active-mode') -Raw).Trim()}else{'none'};Write-Portal "Mode: $mode"
+if($mode -eq 'deployment-preview'){try{$h=Invoke-WebRequest http://127.0.0.1:8184/ -UseBasicParsing -TimeoutSec 3;Write-Portal "Apache/frontend: $($h.StatusCode) http://127.0.0.1:8184"}catch{Write-Portal 'Apache/frontend: unavailable'};try{$a=Invoke-WebRequest http://127.0.0.1:8184/api/v1/health -UseBasicParsing -TimeoutSec 3;Write-Portal "API health: $($a.StatusCode)"}catch{Write-Portal 'API health: unavailable'};Write-Portal 'Database: dnd_portal_v4_preview';Write-Portal 'phpMyAdmin: http://127.0.0.1:8096';Write-Portal "ZIP SHA256: $((Get-FileHash (Join-Path $script:V4Root 'release\dnd-portal-v4-htdocs.zip')).Hash)"}else{Write-Portal 'Development URL: http://127.0.0.1:5174; phpMyAdmin: http://127.0.0.1:8096'}
