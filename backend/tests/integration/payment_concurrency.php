@@ -62,13 +62,13 @@ if (($argv[1] ?? '') === 'worker') {
         $q = $db->prepare(
             <<<'SQL'
             INSERT INTO payment_entries (
-                    obligation_id,
-                    amount_cents,
-                    currency,
-                    status,
-                    entry_kind,
-                    external_reference
-                )
+                obligation_id,
+                amount_cents,
+                currency,
+                status,
+                entry_kind,
+                external_reference
+            )
             VALUES
                 (?, ?, "EUR", "confirmed", ?, ?)
             SQL
@@ -98,12 +98,12 @@ $campaign = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
     INSERT INTO payment_requests (
-            campaign_id,
-            created_by,
-            title,
-            amount_cents,
-            currency
-        )
+        campaign_id,
+        created_by,
+        title,
+        amount_cents,
+        currency
+    )
     VALUES
         (?, 1, "Concurrency", 10000, "EUR")
     SQL
@@ -114,11 +114,11 @@ $rid = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
     INSERT INTO payment_obligations (
-            payment_request_id,
-            user_id,
-            amount_cents,
-            currency
-        )
+        payment_request_id,
+        user_id,
+        amount_cents,
+        currency
+    )
     VALUES
         (?, 1, 10000, "EUR")
     SQL
@@ -129,13 +129,13 @@ $oid = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
     INSERT INTO payment_entries (
-            obligation_id,
-            amount_cents,
-            currency,
-            status,
-            entry_kind,
-            external_reference
-        )
+        obligation_id,
+        amount_cents,
+        currency,
+        status,
+        entry_kind,
+        external_reference
+    )
     VALUES
         (?, 10000, "EUR", "confirmed", "payment", "seed")
     SQL

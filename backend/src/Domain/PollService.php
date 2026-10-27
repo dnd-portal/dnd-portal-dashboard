@@ -110,13 +110,13 @@ final class PollService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO polls (
-                        campaign_id,
-                        title,
-                        choice_type,
-                        status,
-                        closes_at,
-                        created_by
-                    )
+                    campaign_id,
+                    title,
+                    choice_type,
+                    status,
+                    closes_at,
+                    created_by
+                )
                 VALUES
                     (?, ?, ?, ?, ?, ?)
                 SQL

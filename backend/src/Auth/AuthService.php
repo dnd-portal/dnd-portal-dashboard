@@ -207,12 +207,12 @@ final class AuthService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO registration_invites (
-                        invited_user_id,
-                        invited_email,
-                        code_hash,
-                        created_by,
-                        expires_at
-                    )
+                    invited_user_id,
+                    invited_email,
+                    code_hash,
+                    created_by,
+                    expires_at
+                )
                 VALUES
                     (?, ?, ?, ?, ?)
                 SQL

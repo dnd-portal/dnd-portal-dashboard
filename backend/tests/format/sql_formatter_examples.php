@@ -17,12 +17,12 @@ WHERE
 SQL;
 $upsert = <<<'SQL'
 INSERT INTO rate_limit_buckets (
-        bucket_key_hash,
-        bucket_type,
-        window_started_at,
-        request_count,
-        blocked_until
-    )
+    bucket_key_hash,
+    bucket_type,
+    window_started_at,
+    request_count,
+    blocked_until
+)
 VALUES
     (?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE

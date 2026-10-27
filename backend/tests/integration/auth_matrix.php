@@ -69,12 +69,12 @@ $q->execute([$admin, $role, $second, $role]);
 $q = $db->prepare(
     <<<'SQL'
     INSERT INTO registration_invites (
-            invited_user_id,
-            invited_email,
-            code_hash,
-            created_by,
-            expires_at
-        )
+        invited_user_id,
+        invited_email,
+        code_hash,
+        created_by,
+        expires_at
+    )
     VALUES
         (?, ?, ?, ?, ?)
     SQL
@@ -197,13 +197,13 @@ try {
 $q = $db->prepare(
     <<<'SQL'
     INSERT INTO auth_sessions (
-            session_id_hash,
-            user_id,
-            session_data,
-            created_at,
-            last_seen_at,
-            expires_at
-        )
+        session_id_hash,
+        user_id,
+        session_data,
+        created_at,
+        last_seen_at,
+        expires_at
+    )
     VALUES
         (?, ?, ?, ?, ?, ?)
     SQL

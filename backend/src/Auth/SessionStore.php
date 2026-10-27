@@ -21,13 +21,13 @@ final class SessionStore {
         $stmt = $this->db->prepare(
             <<<'SQL'
             INSERT INTO auth_sessions (
-                    session_id_hash,
-                    user_id,
-                    session_data,
-                    created_at,
-                    last_seen_at,
-                    expires_at
-                )
+                session_id_hash,
+                user_id,
+                session_data,
+                created_at,
+                last_seen_at,
+                expires_at
+            )
             VALUES
                 (?, ?, ?, ?, ?, ?)
             SQL

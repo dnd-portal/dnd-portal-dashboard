@@ -339,15 +339,15 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             INSERT INTO game_sessions (
-                    campaign_id,
-                    title,
-                    session_date,
-                    starts_at,
-                    ends_at,
-                    rsvp_deadline_at,
-                    location,
-                    created_by
-                )
+                campaign_id,
+                title,
+                session_date,
+                starts_at,
+                ends_at,
+                rsvp_deadline_at,
+                location,
+                created_by
+            )
             VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?)
             SQL
@@ -439,13 +439,13 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             INSERT INTO session_participants (
-                    session_id,
-                    user_id,
-                    rsvp_status,
-                    attendance_status,
-                    responded_at,
-                    attendance_recorded_at
-                )
+                session_id,
+                user_id,
+                rsvp_status,
+                attendance_status,
+                responded_at,
+                attendance_recorded_at
+            )
             VALUES
                 (
                     ?,

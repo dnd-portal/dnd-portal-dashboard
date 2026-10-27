@@ -126,15 +126,15 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             INSERT INTO payment_requests (
-                    campaign_id,
-                    created_by,
-                    title,
-                    description,
-                    amount_cents,
-                    currency,
-                    external_url,
-                    due_date
-                )
+                campaign_id,
+                created_by,
+                title,
+                description,
+                amount_cents,
+                currency,
+                external_url,
+                due_date
+            )
             VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?)
             SQL
@@ -184,11 +184,11 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             INSERT INTO payment_obligations (
-                    payment_request_id,
-                    user_id,
-                    amount_cents,
-                    currency
-                )
+                payment_request_id,
+                user_id,
+                amount_cents,
+                currency
+            )
             VALUES
                 (?, ?, ?, ?)
             SQL
@@ -304,15 +304,15 @@ final class PaymentService {
                 $q = $this->db->prepare(
                     <<<'SQL'
                     INSERT INTO payment_entries (
-                            obligation_id,
-                            amount_cents,
-                            currency,
-                            status,
-                            entry_kind,
-                            external_reference,
-                            entered_by,
-                            correction_of_entry_id
-                        )
+                        obligation_id,
+                        amount_cents,
+                        currency,
+                        status,
+                        entry_kind,
+                        external_reference,
+                        entered_by,
+                        correction_of_entry_id
+                    )
                     VALUES
                         (?, ?, ?, ?, ?, ?, ?, ?)
                     SQL

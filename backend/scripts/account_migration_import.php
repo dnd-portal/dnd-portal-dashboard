@@ -153,13 +153,13 @@ try {
         $q = $db->prepare(
             <<<'SQL'
             INSERT INTO users (
-                    id,
-                    display_name,
-                    email,
-                    username,
-                    account_status,
-                    timezone
-                )
+                id,
+                display_name,
+                email,
+                username,
+                account_status,
+                timezone
+            )
             VALUES
                 (?, ?, ?, ?, "active", "UTC")
             SQL

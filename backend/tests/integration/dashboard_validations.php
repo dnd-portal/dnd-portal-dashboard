@@ -93,12 +93,12 @@ $db->prepare(
 $db->prepare(
     <<<'SQL'
     INSERT INTO game_sessions (
-            campaign_id,
-            title,
-            session_date,
-            starts_at,
-            created_by
-        )
+        campaign_id,
+        title,
+        session_date,
+        starts_at,
+        created_by
+    )
     VALUES
         (?, ?, "2026-10-27", "2026-10-27 00:00:00", ?)
     SQL
