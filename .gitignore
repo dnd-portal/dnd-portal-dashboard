@@ -1,0 +1,14 @@
+# Dependencies at the repository root and in project subdirectories
+node_modules/
+vendor/
+
+# Runtime and local diagnostic logs
+*.log
+logs/
+**/logs/
+
+# Formatter and tool caches
+*.cache
+.php-cs-fixer.cache
+
+# Preserve package manifests and lockfiles; these rules only cover generated data.
