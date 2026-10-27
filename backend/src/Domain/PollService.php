@@ -246,7 +246,7 @@ final class PollService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 UPDATE polls
-                SET
+                SET 
                 SQL
                 .
                     implode(',', $fields) .

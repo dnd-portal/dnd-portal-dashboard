@@ -69,7 +69,15 @@ function formatSqlLiterals(string $source, string $file): string {
                 is_array($endToken) &&
                 $endToken[0] === T_END_HEREDOC
             ) {
-                $concatenated = ($tokens[$index + 3] ?? null) === '.';
+                $next = $index + 3;
+                while (
+                    isset($tokens[$next]) &&
+                    is_array($tokens[$next]) &&
+                    $tokens[$next][0] === T_WHITESPACE
+                ) {
+                    $next++;
+                }
+                $concatenated = ($tokens[$next] ?? null) === '.';
                 $output .= $token[1];
                 $output .= formatSqlNowdocBody($bodyToken[1], $file, $token[2], $concatenated);
                 $output .= $endToken[1];
