@@ -1,6 +1,0 @@
-body { margin: 0; background: #0c1110; color: #edf2fb; font: 16px/1.55 'Atkinson Hyperlegible', system-ui, sans-serif; }
-main { max-width: 620px; margin: 12vh auto; padding: 32px; }
-img { display: block; width: 150px; height: auto; margin-bottom: 28px; }
-h1 { font-size: 36px; line-height: 1.1; }
-a { display: inline-block; margin-top: 16px; padding: 12px 16px; border: 1px solid #86b98a; border-radius: 8px; color: #d1ecd0; }
-@media (max-width: 680px) { main { margin: 8vh 16px; padding: 24px 0; } }
