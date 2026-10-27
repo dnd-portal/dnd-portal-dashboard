@@ -40,7 +40,7 @@ De proefimport draaide uitsluitend op
 sessions=0 reset_tokens=0 invites=0`. De tweede run gaf
 `inserted=0 reused=4`; bestaande records en wachtwoordhashes worden exact
 gevalideerd en nooit stilzwijgend overschreven. De integratietest controleerde
-de zes overgenomen hashwaarden byte-voor-byte zonder ze te tonen of te loggen.
+de vier overgenomen hashwaarden byte-voor-byte zonder ze te tonen of te loggen.
 
 Conflicten op email of username worden expliciet geweigerd. De synthetische
 planner-test controleert deterministische planning, beide conflictsoorten en
@@ -48,3 +48,17 @@ een synthetisch bcrypt-wachtwoord via dezelfde `password_verify`-primitief als
 de huidige AuthService. Werkelijke oude wachtwoorden zijn niet getest omdat
 die niet bekend zijn. Het bijgewerkte voorstel staat lokaal buiten Git op
 `C:\Users\toonv\Downloads\dnd-account-migration-proposal.local.json`.
+
+## PHP-formattering
+
+PHP-CS-Fixer is uitsluitend als Composer-devdependency toegevoegd. Gebruik
+vanuit `backend/`:
+
+```text
+composer install
+composer format
+composer format:check
+```
+
+De formatter draait op PHP 8.4 of hoger en wordt niet op InfinityFree
+geïnstalleerd. De configuratie staat in `backend/.php-cs-fixer.php`.
