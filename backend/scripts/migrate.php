@@ -25,8 +25,8 @@ if (
     fwrite(STDERR, "Refusing testing migrations outside an explicit test database.\n");
     exit(1);
 }
-if ($env === 'local' && $name !== 'dnd_portal_development') {
-    fwrite(STDERR, "Refusing local migrations outside dnd_portal_development.\n");
+if ($env === 'local' && $name !== 'dnd_portal_v4_development') {
+    fwrite(STDERR, "Refusing local migrations outside dnd_portal_v4_development.\n");
     exit(1);
 }
 

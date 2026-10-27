@@ -19,6 +19,7 @@ require dirname(__DIR__) . '/src/Domain/CampaignService.php';
 require dirname(__DIR__) . '/src/Domain/PollService.php';
 require dirname(__DIR__) . '/src/Domain/PaymentService.php';
 require dirname(__DIR__) . '/src/Domain/DashboardService.php';
+require dirname(__DIR__) . '/src/Domain/GlobalPollService.php';
 
 use DndPortal\HealthService;
 use DndPortal\Http\Request;
@@ -32,6 +33,7 @@ use DndPortal\Domain\CampaignService;
 use DndPortal\Domain\PollService;
 use DndPortal\Domain\PaymentService;
 use DndPortal\Domain\DashboardService;
+use DndPortal\Domain\GlobalPollService;
 use DndPortal\Auth\RateLimiter;
 use DndPortal\Auth\RateLimitAdminService;
 
@@ -162,6 +164,24 @@ $router->post('/api/v1/admin/rate-limits/reset-all', static function ($r) {
     $a = new AuthService($db, new SessionStore($db));
     $admin = $a->requireRole('portal_admin');
     new RateLimitAdminService($db)->resetAll($admin);
+});
+$router->get('/api/v1/global-polls/current', static function () {
+    $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); new GlobalPollService($db)->current($a->currentId());
+});
+$router->put('/api/v1/global-polls/{id}/response', static function ($r) {
+    Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->answer($a->currentId(),(int)($parts[3]??0),$r->json());
+});
+$router->get('/api/v1/admin/global-polls', static function () {
+    $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); new GlobalPollService($db)->listAdmin($a->requireRole('portal_admin'));
+});
+$router->post('/api/v1/admin/global-polls', static function ($r) {
+    Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); new GlobalPollService($db)->create($a->requireRole('portal_admin'),$r->json());
+});
+$router->patch('/api/v1/admin/global-polls/{id}', static function ($r) {
+    Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->update($a->requireRole('portal_admin'),(int)($parts[3]??0),$r->json());
+});
+$router->get('/api/v1/admin/global-polls/{id}/results', static function ($r) {
+    $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->results($a->requireRole('portal_admin'),(int)($parts[4]??0));
 });
 $router->get('/api/v1/users/{id}', static function ($r) {
     $db = Connection::make();

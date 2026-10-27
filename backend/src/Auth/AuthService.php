@@ -368,7 +368,7 @@ final class AuthService {
         }
         $this->sessions->revokeUser($uid);
         Security::cookie($this->sessions->create($uid), (int) Config::env('AUTH_ABSOLUTE_TTL', '2592000'));
-        Response::json(['data' => $this->profile($uid), 'redirect' => $this->hasCampaigns($uid) ? '/dashboard' : '/dashboard/one-shots'], 201);
+        Response::json(['data' => $this->profile($uid), 'redirect' => '/dashboard/polls/current'], 201);
     }
 
     public function validateInvite(array $in): never {
@@ -376,7 +376,8 @@ final class AuthService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-                id
+                id,
+                invited_user_id
             FROM registration_invites
             WHERE
                 code_hash = ?
@@ -387,10 +388,10 @@ final class AuthService {
             ,
         );
         $q->execute([hash('sha256', $code, true), gmdate('Y-m-d H:i:s.u')]);
-        if (!$q->fetchColumn()) {
+        $invite = $q->fetch();
+        if (!$invite) {
             Response::error('invalid_invite', 'Invite is invalid or expired.', 422);
         }
-        $invite = $q->fetch();
         Response::json(['data' => ['valid' => true, 'has_pending_user' => $invite['invited_user_id'] !== null]]);
     }
 
