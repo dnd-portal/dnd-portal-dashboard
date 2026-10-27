@@ -1,0 +1,107 @@
+@use '../../variables' as *;
+.admin-calendar {
+    min-width: 0;
+    border: 1px solid $color-border;
+    border-radius: $radius-panel;
+    background: $color-surface;
+    &__heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px;
+    }
+    &__eyebrow {
+        margin: 0 0 8px;
+        color: $color-text-subtle;
+        font: 10px $font-mono;
+        letter-spacing: 0.1em;
+    }
+    &__month {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        button {
+            width: 34px;
+            height: 34px;
+            border: 1px solid $color-border;
+            border-radius: $radius-control;
+            color: $color-link;
+            background: $color-selected;
+        }
+    }
+    &__legend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: $color-text-subtle;
+        font-size: 11px;
+        span {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+    }
+    &__weekdays,
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    &__weekdays span {
+        padding: 12px;
+        color: $color-text-subtle;
+        font: 10px $font-mono;
+    }
+    &__day,
+    &__empty {
+        min-width: 0;
+        min-height: clamp(72px, 9vw, 104px);
+        border-top: 1px solid $color-border-muted;
+        border-right: 1px solid $color-border-muted;
+        &:nth-child(7n) {
+            border-right: 0;
+        }
+    }
+    &__day {
+        padding: 12px;
+        background: rgba(143, 52, 63, calc(var(--unavailable, 0) * 0.018));
+        &--unavailable {
+            background: rgba(143, 52, 63, calc(0.08 + var(--unavailable, 0) * 0.022));
+        }
+        strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .popover__trigger {
+            font-size: 11px;
+        }
+    }
+    @media (max-width: 700px) {
+        &__heading {
+            align-items: start;
+            flex-direction: column;
+        }
+        &__weekdays span {
+            padding: 10px 4px;
+        }
+        &__day {
+            padding: 6px;
+            .popover__trigger {
+                text-align: left;
+                font-size: 10px;
+                overflow-wrap: anywhere;
+            }
+        }
+    }
+    &__swatch--low {
+        background: rgba(143, 52, 63, 0.2);
+    }
+    &__swatch--high {
+        background: rgba(143, 52, 63, 0.8);
+    }
+}

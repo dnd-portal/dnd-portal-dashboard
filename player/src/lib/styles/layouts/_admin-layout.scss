@@ -1,0 +1,165 @@
+@use '../variables' as *;
+
+.admin-app {
+    color-scheme: dark;
+    min-height: 100svh;
+    color: $color-text;
+    background: $color-background;
+}
+.admin-topbar {
+    position: fixed;
+    z-index: 30;
+    inset: 0 0 auto;
+    height: $admin-topbar-height;
+    border-bottom: 1px solid $color-border;
+    background: $color-background;
+    &__inner {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 0 24px;
+        min-width: 0;
+    }
+    &__action {
+        margin-left: auto;
+        flex-shrink: 0;
+        color: $color-link;
+        font-size: 12px;
+        text-decoration: none;
+        &:hover {
+            color: $color-link-hover;
+        }
+    }
+}
+.admin-brand {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    img {
+        display: block;
+        width: 110px;
+        height: 48px;
+        object-fit: contain;
+    }
+}
+.admin-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid $color-border;
+    border-radius: $radius-control;
+    background: $color-surface;
+    color: $color-text;
+}
+.admin-sidebar {
+    position: fixed;
+    z-index: 20;
+    inset: $admin-topbar-height auto 0 0;
+    width: $admin-sidebar-width;
+    overflow-y: auto;
+    padding: 20px 12px;
+    border-right: 1px solid $color-border;
+    background: $color-sidebar;
+    &__group + &__group {
+        margin-top: 20px;
+    }
+    &__label {
+        margin: 0 10px 6px;
+        color: $color-text-subtle;
+        font: 500 10px $font-mono;
+        letter-spacing: 0.1em;
+    }
+    &__link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        padding: 10px;
+        margin: 2px 0;
+        color: $color-text-muted;
+        text-decoration: none;
+        border-radius: $radius-control;
+        font-size: 13px;
+        &:hover {
+            background: $color-hover;
+            color: $color-text;
+        }
+        &--active {
+            background: $color-selected;
+            color: $color-text;
+        }
+    }
+    &__icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 18px;
+        color: $color-link;
+    }
+    &__text {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+    &__count {
+        margin-left: auto;
+        flex: 0 0 auto;
+        color: $color-text-muted;
+        font-size: 11px;
+    }
+    &__backdrop {
+        position: fixed;
+        z-index: 19;
+        inset: $admin-topbar-height 0 0;
+        border: 0;
+        background: $color-overlay;
+    }
+}
+.admin-content {
+    min-width: 0;
+    min-height: 100svh;
+    margin-left: $admin-sidebar-width;
+    padding: 96px 32px 48px;
+    > .admin-shell {
+        width: 100%;
+        max-width: $content-width;
+        margin-inline: auto;
+        min-width: 0;
+    }
+}
+@media (max-width: $breakpoint-mobile) {
+    .admin-topbar {
+        &__inner {
+            gap: 12px;
+            padding: 0 12px;
+        }
+        &__action {
+            display: none;
+        }
+    }
+    .admin-brand img {
+        width: 84px;
+    }
+    .admin-menu-toggle {
+        display: flex;
+        flex-shrink: 0;
+    }
+    .admin-sidebar {
+        width: min(280px, 85vw);
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+        &--open {
+            transform: translateX(0);
+        }
+    }
+    .admin-content {
+        margin-left: 0;
+        padding: 88px 16px 32px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .admin-sidebar {
+        transition: none;
+    }
+}

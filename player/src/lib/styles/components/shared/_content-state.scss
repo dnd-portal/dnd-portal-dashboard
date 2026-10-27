@@ -1,0 +1,14 @@
+@use '../../variables' as *;
+
+.content-state {
+    padding: 24px 0;
+    color: $color-text-muted;
+    &__title {
+        margin: 0;
+        font-size: 14px;
+    }
+    &__description {
+        margin: 8px 0 0;
+        font-size: 13px;
+    }
+}
