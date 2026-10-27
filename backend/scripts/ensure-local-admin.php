@@ -11,10 +11,10 @@ if (PHP_SAPI !== 'cli' || \DndPortal\Config::env('APP_ENV') !== 'local') {
     fwrite(STDERR, "Refused: local CLI environment required.\n");
     exit(2);
 }
-$email = strtolower(trim((string) ($argv[1] ?? '')));
-$username = strtolower(trim((string) ($argv[2] ?? '')));
-$name = trim((string) ($argv[3] ?? ''));
-$password = getenv('INITIAL_ADMIN_PASSWORD') ?: '';
+$email = strtolower(trim((string) ($argv[1] ?? getenv('LOCAL_ADMIN_EMAIL') ?: '')));
+$username = strtolower(trim((string) ($argv[2] ?? getenv('LOCAL_ADMIN_USERNAME') ?: '')));
+$name = trim((string) ($argv[3] ?? getenv('LOCAL_ADMIN_DISPLAY_NAME') ?: ''));
+$password = getenv('LOCAL_ADMIN_PASSWORD') ?: (getenv('INITIAL_ADMIN_PASSWORD') ?: '');
 if ($email === '' || $username === '' || $name === '') {
     fwrite(STDERR, "Usage: php ensure-local-admin.php email username display-name\n");
     exit(2);
@@ -55,7 +55,14 @@ if ($rows) {
         fwrite(STDERR, "Refused: existing identifier is not an active portal admin.\n");
         exit(1);
     }
-    echo "EXISTS $email\n";
+    $q = $db->prepare('SELECT password_hash FROM user_credentials WHERE user_id = ?');
+    $q->execute([(int) $row['id']]);
+    if ($q->fetchColumn() === false) {
+        $db->prepare('INSERT INTO user_credentials (user_id, password_hash, password_algo) VALUES (?, ?, ?)')->execute([(int) $row['id'], password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
+    } elseif ($password !== '') {
+        $db->prepare('UPDATE user_credentials SET password_hash = ?, password_algo = ? WHERE user_id = ?')->execute([password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT, (int) $row['id']]);
+    }
+    echo "EXISTS\n";
     exit(0);
 }
 if ($password === '') {

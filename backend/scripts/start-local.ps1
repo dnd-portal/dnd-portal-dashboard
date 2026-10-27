@@ -30,44 +30,41 @@ function Wait-DatabaseHealthy([int]$Seconds = 45) {
     }
     throw 'The Docker MariaDB test database did not become healthy.'
 }
+function Load-LocalEnv([string]$Path) {
+    if (-not (Test-Path $Path)) { throw "Missing local environment file: $Path" }
+    foreach ($line in Get-Content -LiteralPath $Path) {
+        if ($line -match '^\s*#' -or $line -match '^\s*$') { continue }
+        if ($line -notmatch '^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$') { throw "Invalid local env line in $Path" }
+        $name = $Matches[1]; $value = $Matches[2].Trim()
+        if ($value.Length -ge 2 -and (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'")))) { $value = $value.Substring(1, $value.Length - 2) }
+        [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+    }
+}
 try {
     Push-Location $repo
+    Load-LocalEnv $envFile
+    $required = 'LOCAL_ADMIN_EMAIL','LOCAL_ADMIN_USERNAME','LOCAL_ADMIN_DISPLAY_NAME','LOCAL_ADMIN_PASSWORD'
+    $missing = @($required | Where-Object { [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_, 'Process')) })
+    if ($missing.Count -gt 0) { throw "Missing required local env variables: $($missing -join ', ')" }
     docker compose -f backend/database/compose.test.yml up -d
     if ($LASTEXITCODE -ne 0) { throw 'Docker Compose failed.' }
     Wait-Port '127.0.0.1' 3307
     Wait-DatabaseHealthy
     $env:APP_ENV='local'; $env:HOSTING_CHECK_ENABLED='0'; $env:APP_ALLOWED_ORIGIN=$frontendOrigin
     $env:AUTH_COOKIE_SAMESITE='Lax'; $env:VITE_BACKEND_URL=$backendOrigin; $env:DB_HOST='127.0.0.1'; $env:DB_PORT='3307'; $env:DB_NAME='dnd_portal_development'; $env:DB_USER='dnd_test'; $env:DB_PASSWORD='local-test-only'; $env:LOCAL_DB_ROOT_PASSWORD='local-root-only'
-    if (-not (Test-Path $envFile)) {
-        @(
-            'APP_ENV=local'
-            "APP_ALLOWED_ORIGIN=$frontendOrigin"
-            'AUTH_COOKIE_SAMESITE=Lax'
-            'DB_HOST=127.0.0.1'
-            'DB_PORT=3307'
-            'DB_NAME=dnd_portal_development'
-            'DB_USER=dnd_test'
-            'DB_PASSWORD=local-test-only'
-            'LOCAL_DB_ROOT_PASSWORD=local-root-only'
-        ) | Set-Content -Path $envFile -Encoding utf8
-    }
     Invoke-Native 'php' @('backend/scripts/ensure-development-database.php')
     Invoke-Native 'php' @('backend/scripts/migrate.php')
-    if ($SeedDemo) {
+    if ($SeedDemo -or $env:LOCAL_SEED_DEMO -eq 'true') {
         Invoke-Native 'php' @('backend/scripts/seed-local-demo.php')
     }
-    $email = Read-Host 'Local admin email (existing active portal admin is reused)'
-    $username = Read-Host 'Local admin username'
-    $displayName = Read-Host 'Local admin display name'
-    $env:INITIAL_ADMIN_PASSWORD=''
-    & php backend/scripts/ensure-local-admin.php $email $username $displayName
-    if ($LASTEXITCODE -eq 3) { $secure = Read-Host 'New local admin password (hidden)' -AsSecureString; $ptr=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure); try { $env:INITIAL_ADMIN_PASSWORD=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr); & php backend/scripts/ensure-local-admin.php $email $username $displayName; if ($LASTEXITCODE -ne 0) { throw 'Local admin creation failed.' } } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr); $env:INITIAL_ADMIN_PASSWORD='' } } elseif ($LASTEXITCODE -ne 0) { throw 'Local admin check failed.' }
+    Invoke-Native 'php' @('backend/scripts/ensure-local-admin.php')
     Assert-PortFree 8099; Assert-PortFree 5173
     $phpProcess = Start-Process php -ArgumentList '-S','127.0.0.1:8099','-t',(Join-Path $backend 'public'),(Join-Path $backend 'router.php') -WorkingDirectory $repo -PassThru -RedirectStandardOutput (Join-Path $repo 'backend-local.log') -RedirectStandardError (Join-Path $repo 'backend-local-error.log')
     $viteProcess = Start-Process pnpm -ArgumentList 'dev','--host','127.0.0.1','--port','5173' -WorkingDirectory $player -PassThru -RedirectStandardOutput (Join-Path $repo 'frontend-local.log') -RedirectStandardError (Join-Path $repo 'frontend-local-error.log')
     Wait-Port '127.0.0.1' 8099; Wait-Port '127.0.0.1' 5173
     Write-Host "Open $frontendOrigin/ (do not use localhost)."
-    Write-Host "Login identifier: $email or $username"
+    Write-Host "Login identifier: $env:LOCAL_ADMIN_EMAIL or $env:LOCAL_ADMIN_USERNAME"
+    Write-Host 'Password: loaded from local env.'
     Write-Host 'Press Ctrl+C to stop only the processes started by this script.'
     while ($true) { Start-Sleep 2 }
 } finally {
