@@ -2,13 +2,16 @@
     position: fixed;
     top: 20px;
     left: 20px;
-    z-index: 10;
+    z-index: 1000;
     max-width: min(420px, calc(100vw - 40px));
     padding: 14px 16px;
     border: 1px solid var(--p-danger);
     border-radius: var(--p-control-radius);
     background: var(--p-surface-raised);
-    color: var(--p-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--p-danger);
     box-shadow: 0 12px 32px rgb(0 0 0 / 36%);
     font-size: 1rem;
     line-height: 1.4;
@@ -16,6 +19,14 @@
 }
 .p-notification--error {
     border-color: var(--p-danger);
+}
+.p-notification--success {
+    border-color: var(--p-success);
+    color: var(--p-success);
+}
+.p-notification--warning {
+    border-color: var(--p-warning);
+    color: var(--p-warning);
 }
 @keyframes p-notification-fade {
     0%,

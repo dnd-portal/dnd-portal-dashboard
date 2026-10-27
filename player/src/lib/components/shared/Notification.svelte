@@ -1,7 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import Icon from './Icon.svelte';
 
-    let { message, onDismiss }: { message: string; onDismiss: () => void } = $props();
+    type NotificationVariant = 'error' | 'success' | 'warning';
+    let {
+        message,
+        variant = 'error',
+        onDismiss
+    }: { message: string; variant?: NotificationVariant; onDismiss: () => void } = $props();
 
     onMount(() => {
         const timeout = window.setTimeout(onDismiss, 5000);
@@ -9,6 +15,7 @@
     });
 </script>
 
-<div class="p-notification p-notification--error" role="alert" aria-live="assertive">
+<div class={`p-notification p-notification--${variant}`} role="alert" aria-live="assertive">
+    <Icon name={variant === 'error' ? 'error' : variant === 'success' ? 'success' : 'warning'} size={20} />
     {message}
 </div>
