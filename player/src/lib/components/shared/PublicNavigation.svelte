@@ -6,6 +6,6 @@
     <a class="public-navigation__brand" href="/" aria-label="D&D Portal home">
         <img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="176" height="48" />
     </a>
-    <a href="https://dnd-portal.com/">D&amp;D Portal Wiki</a>
+    <a href="https://dnd-portal.com/" target="_blank" rel="noreferrer">D&amp;D Portal Wiki</a>
     <a class="p-button" href="/dashboard">{signedIn ? 'Open dashboard' : 'Dashboard'}</a>
 </nav>
