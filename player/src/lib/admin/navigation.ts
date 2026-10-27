@@ -10,7 +10,8 @@ export const adminLinks: { id: AdminPageKey; group: string; href: string; label:
     ['attendance', 'Campaign'],
     ['one-shots', 'Campaign'],
     ['payments', 'Finance'],
-    ['activity', 'System']
+    ['activity', 'System'],
+    ['rate-limits', 'System']
 ].map(([id, group]) => ({
     id: id as AdminPageKey,
     group,

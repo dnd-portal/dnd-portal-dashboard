@@ -13,6 +13,7 @@ require dirname(__DIR__) . '/src/Database/Connection.php';
 require dirname(__DIR__) . '/src/Auth/SessionStore.php';
 require dirname(__DIR__) . '/src/Auth/Security.php';
 require dirname(__DIR__) . '/src/Auth/RateLimiter.php';
+require dirname(__DIR__) . '/src/Auth/RateLimitAdminService.php';
 require dirname(__DIR__) . '/src/Auth/AuthService.php';
 require dirname(__DIR__) . '/src/Domain/CampaignService.php';
 require dirname(__DIR__) . '/src/Domain/PollService.php';
@@ -32,6 +33,7 @@ use DndPortal\Domain\PollService;
 use DndPortal\Domain\PaymentService;
 use DndPortal\Domain\DashboardService;
 use DndPortal\Auth\RateLimiter;
+use DndPortal\Auth\RateLimitAdminService;
 
 $request = new Request();
 $origin = $request->header('Origin');
@@ -139,6 +141,27 @@ $router->post('/api/v1/admin/password-reset-codes/revoke', static function ($r) 
     );
     $q->execute([gmdate('Y-m-d H:i:s.u'), (int) ($r->json()['id'] ?? 0)]);
     Response::json(['data' => null]);
+});
+$router->get('/api/v1/admin/rate-limits', static function () {
+    $db = Connection::make();
+    $a = new AuthService($db, new SessionStore($db));
+    $a->requireRole('portal_admin');
+    new RateLimitAdminService($db)->listActive();
+});
+$router->post('/api/v1/admin/rate-limits/reset', static function ($r) {
+    Security::csrf($r, true);
+    $db = Connection::make();
+    $a = new AuthService($db, new SessionStore($db));
+    $admin = $a->requireRole('portal_admin');
+    $body = $r->json();
+    new RateLimitAdminService($db)->reset((string) ($body['bucket_type'] ?? ''), (string) ($body['key'] ?? ''), $admin);
+});
+$router->post('/api/v1/admin/rate-limits/reset-all', static function ($r) {
+    Security::csrf($r, true);
+    $db = Connection::make();
+    $a = new AuthService($db, new SessionStore($db));
+    $admin = $a->requireRole('portal_admin');
+    new RateLimitAdminService($db)->resetAll($admin);
 });
 $router->get('/api/v1/users/{id}', static function ($r) {
     $db = Connection::make();

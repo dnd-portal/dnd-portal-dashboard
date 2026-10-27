@@ -9,7 +9,8 @@ export type AdminPageKey =
     | 'memberships'
     | 'invite-codes'
     | 'payments'
-    | 'activity';
+    | 'activity'
+    | 'rate-limits';
 
 export const adminPageMeta: Record<AdminPageKey, { eyebrow: string; title: string; description: string }> = {
     overview: {
@@ -77,5 +78,10 @@ export const adminPageMeta: Record<AdminPageKey, { eyebrow: string; title: strin
         title: 'Activity',
         description:
             'Review recent actions and changes across the portal. See who performed each recorded action and when it happened.'
+    },
+    'rate-limits': {
+        eyebrow: 'Security - Admin - D&D Portal Player Dashboard',
+        title: 'Login attempts',
+        description: 'Review active temporary login blocks and reset a specific IP-based block when needed.'
     }
 };

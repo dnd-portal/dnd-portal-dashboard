@@ -10,8 +10,12 @@ use DndPortal\Http\Response;
 final class RateLimiter {
     public function __construct(private PDO $db) {}
 
+    public static function hashKey(string $type, string $key): string {
+        return hash('sha256', $type . '|' . $key, true);
+    }
+
     public function check(string $type, string $key, int $limit, int $window = 900): void {
-        $hash = hash('sha256', $type . '|' . $key, true);
+        $hash = self::hashKey($type, $key);
         $now = time();
         $q = $this->db->prepare(
             <<<'SQL'

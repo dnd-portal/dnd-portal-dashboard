@@ -1,7 +1,7 @@
 import type { AdminPageKey } from '#lib/adminPageMeta.js';
 import type { Cell, Column, Database, EntityRow, Filter, Tone } from './types.js';
 
-export type EntityKey = Exclude<AdminPageKey, 'overview' | 'attendance'>;
+export type EntityKey = Exclude<AdminPageKey, 'overview' | 'attendance' | 'rate-limits'>;
 type Definition = { columns: Column[]; rows: (database: Database) => EntityRow[]; filterKeys?: string[] };
 const text = (value: unknown, href?: string): Cell => ({ text: String(value ?? '—'), value, href });
 const status = (value: string, tone: Tone = 'neutral', rawValue?: unknown): Cell => ({
