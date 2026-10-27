@@ -1,6 +1,8 @@
-import type { getDatabase } from '#lib/database/index.js';
+import type { getAdminData } from '#lib/admin/loadAdminData.js';
 
-export type Database = Awaited<ReturnType<typeof getDatabase>>;
+export type AdminData = Awaited<ReturnType<typeof getAdminData>>;
+/** @deprecated Use AdminData in new code. */
+export type Database = AdminData;
 import type { Action, Tone } from '../ui/types.js';
 export type { Action, Tone } from '../ui/types.js';
 export type Cell = {

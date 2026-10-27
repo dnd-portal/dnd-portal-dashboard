@@ -35,15 +35,7 @@ async function get<T>(fetcher: ApiFetch, path: string): Promise<T> {
     return payload.data;
 }
 
-async function getOptional<T>(fetcher: ApiFetch, path: string, empty: T): Promise<T> {
-    try {
-        return await get(fetcher, path);
-    } catch {
-        return empty;
-    }
-}
-
-export async function getDatabase(fetcher: ApiFetch = globalThis.fetch) {
+export async function getAdminData(fetcher: ApiFetch = globalThis.fetch) {
     const [current, users, campaigns] = await Promise.all([
         get<ApiUser>(fetcher, '/api/v1/auth/me'),
         get<ApiUser[]>(fetcher, '/api/v1/users'),
@@ -60,17 +52,17 @@ export async function getDatabase(fetcher: ApiFetch = globalThis.fetch) {
     const campaignData = await Promise.all(
         campaigns.map(async (campaign) => {
             const [members, sessions, polls, payments] = await Promise.all([
-                getOptional(fetcher, `/api/v1/campaigns/${campaign.id}/members`, [] as ApiMember[]),
-                getOptional(fetcher, `/api/v1/campaigns/${campaign.id}/sessions`, [] as ApiSession[]),
-                getOptional(fetcher, `/api/v1/campaigns/${campaign.id}/polls`, [] as ApiPoll[]),
-                getOptional(fetcher, `/api/v1/campaigns/${campaign.id}/payment-requests`, [] as ApiPayment[])
+                get<ApiMember[]>(fetcher, `/api/v1/campaigns/${campaign.id}/members`),
+                get<ApiSession[]>(fetcher, `/api/v1/campaigns/${campaign.id}/sessions`),
+                get<ApiPoll[]>(fetcher, `/api/v1/campaigns/${campaign.id}/polls`),
+                get<ApiPayment[]>(fetcher, `/api/v1/campaigns/${campaign.id}/payment-requests`)
             ]);
             return { campaign, members, sessions, polls, payments };
         })
     );
-    const dashboard = await getOptional<{
+    const dashboard = await get<{
         admin?: { activity?: Array<{ id: number; event_type: string; occurred_at: string }> };
-    }>(fetcher, '/api/v1/dashboard', {});
+    }>(fetcher, '/api/v1/dashboard');
     const sessions = campaignData.flatMap(({ sessions: rows }) => rows);
     const memberships = campaignData.flatMap(({ members }) =>
         members.map((member) => ({ userId: member.user_id, campaignId: member.campaign_id }))
