@@ -178,7 +178,7 @@ $router->post('/api/v1/admin/global-polls', static function ($r) {
     Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); new GlobalPollService($db)->create($a->requireRole('portal_admin'),$r->json());
 });
 $router->patch('/api/v1/admin/global-polls/{id}', static function ($r) {
-    Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->update($a->requireRole('portal_admin'),(int)($parts[3]??0),$r->json());
+    Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->update($a->requireRole('portal_admin'),(int)($parts[4]??0),$r->json());
 });
 $router->get('/api/v1/admin/global-polls/{id}/results', static function ($r) {
     $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->results($a->requireRole('portal_admin'),(int)($parts[4]??0));
