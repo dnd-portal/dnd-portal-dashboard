@@ -26,6 +26,12 @@ return (new PhpCsFixer\Config())
     ->setRiskyAllowed(false)
     ->setRules([
         '@PSR12' => true,
+        'braces_position' => [
+            'classes_opening_brace' => 'same_line',
+            'functions_opening_brace' => 'same_line',
+            'anonymous_functions_opening_brace' => 'same_line',
+            'anonymous_classes_opening_brace' => 'same_line',
+        ],
         'array_syntax' => ['syntax' => 'short'],
         'single_line_empty_body' => true,
         'no_multiple_statements_per_line' => true,
@@ -34,6 +40,7 @@ return (new PhpCsFixer\Config())
         'method_argument_space' => ['on_multiline' => 'ensure_fully_multiline'],
         'function_declaration' => ['trailing_comma_single_line' => false],
         'method_chaining_indentation' => true,
+        'operator_linebreak' => ['only_booleans' => true, 'position' => 'beginning'],
         'trailing_comma_in_multiline' => ['elements' => ['arrays', 'arguments', 'parameters']],
     ])
     ->setFinder($finder);

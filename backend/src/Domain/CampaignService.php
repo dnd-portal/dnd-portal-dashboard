@@ -7,17 +7,14 @@ namespace DndPortal\Domain;
 use DndPortal\Http\Response;
 use PDO;
 
-final class CampaignService
-{
+final class CampaignService {
     public function __construct(private PDO $db) {}
-    public function list(int $uid): never
-    {
+    public function list(int $uid): never {
         $q = $this->db->prepare("SELECT c.id,c.name,c.slug,c.type,c.location,c.timezone,c.archived_at,c.version,cm.membership_role FROM campaigns c LEFT JOIN campaign_memberships cm ON cm.campaign_id=c.id AND cm.user_id=? AND cm.left_at IS NULL WHERE (c.archived_at IS NULL) AND (cm.user_id IS NOT NULL OR EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin')) ORDER BY c.name");
         $q->execute([$uid,$uid]);
         Response::json(['data' => $q->fetchAll()]);
     }
-    public function get(int $uid, int $id): never
-    {
+    public function get(int $uid, int $id): never {
         $q = $this->db->prepare('SELECT c.id,c.name,c.slug,c.type,c.location,c.timezone,c.archived_at,c.version,cm.membership_role FROM campaigns c LEFT JOIN campaign_memberships cm ON cm.campaign_id=c.id AND cm.user_id=? AND cm.left_at IS NULL WHERE c.id=?');
         $q->execute([$uid,$id]);
         $row = $q->fetch();
@@ -28,8 +25,7 @@ final class CampaignService
             Response::error('forbidden', 'Campaign access required.', 403);
         }Response::json(['data' => $row]);
     }
-    public function create(int $uid, array $in): never
-    {
+    public function create(int $uid, array $in): never {
         $this->validateCampaign($in);
         $q = $this->db->prepare('INSERT INTO campaigns(name,slug,type,location,timezone,created_by) VALUES(?,?,?,?,?,?)');
         $q->execute([trim($in['name']),$in['slug'],($in['type'] ?? 'campaign'),$in['location'] ?? null,$in['timezone'] ?? 'UTC',$uid]);
@@ -38,8 +34,7 @@ final class CampaignService
         $q->execute([$id,$uid]);
         Response::json(['data' => $this->campaign($id)], 201);
     }
-    public function update(int $uid, int $id, array $in): never
-    {
+    public function update(int $uid, int $id, array $in): never {
         $this->assertManage($uid, $id);
         $allowed = ['name','slug','location','timezone','archived_at','version'];
         if (array_diff(array_keys($in), $allowed)) {
@@ -57,8 +52,7 @@ final class CampaignService
             Response::error('conflict', 'Campaign was changed or no longer exists.', 409);
         }Response::json(['data' => $this->campaign($id)]);
     }
-    public function addMember(int $uid, int $campaign, int $member, array $in): never
-    {
+    public function addMember(int $uid, int $campaign, int $member, array $in): never {
         $this->assertManage($uid, $campaign);
         $role = $in['membership_role'] ?? 'member';
         if (!in_array($role, ['member','dm'], true)) {
@@ -80,8 +74,7 @@ final class CampaignService
             Response::error('conflict', 'Membership was not stored.', 409);
         }Response::json(['data' => $row], 201);
     }
-    public function members(int $uid, int $campaign): never
-    {
+    public function members(int $uid, int $campaign): never {
         $this->assertView($uid, $campaign);
         $manager = $this->canManage($uid, $campaign);
         $sql = 'SELECT cm.campaign_id,cm.user_id,cm.membership_role,cm.joined_at,cm.left_at,u.display_name,u.email,u.username FROM campaign_memberships cm JOIN users u ON u.id=cm.user_id WHERE cm.campaign_id=?';
@@ -95,28 +88,24 @@ final class CampaignService
         $rows = $q->fetchAll();
         Response::json(['data' => $rows]);
     }
-    public function leave(int $uid, int $campaign, int $member): never
-    {
+    public function leave(int $uid, int $campaign, int $member): never {
         $this->assertManage($uid, $campaign);
         $q = $this->db->prepare('UPDATE campaign_memberships SET left_at=? WHERE campaign_id=? AND user_id=? AND left_at IS NULL');
         $q->execute([gmdate('Y-m-d H:i:s.u'),$campaign,$member]);
         Response::json(['data' => null]);
     }
-    public function sessions(int $uid, int $campaign): never
-    {
+    public function sessions(int $uid, int $campaign): never {
         $this->assertView($uid, $campaign);
         $q = $this->db->prepare('SELECT id,campaign_id,title,session_date,starts_at,ends_at,rsvp_deadline_at,location,status,version FROM game_sessions WHERE campaign_id=? ORDER BY session_date');
         $q->execute([$campaign]);
         Response::json(['data' => $q->fetchAll()]);
     }
-    public function getSession(int $uid, int $id): never
-    {
+    public function getSession(int $uid, int $id): never {
         $campaign = $this->sessionCampaign($id);
         $this->assertView($uid, $campaign);
         Response::json(['data' => $this->session($id)]);
     }
-    public function participants(int $uid, int $session): never
-    {
+    public function participants(int $uid, int $session): never {
         $campaign = $this->sessionCampaign($session);
         $this->assertView($uid, $campaign);
         $manager = $this->canManage($uid, $campaign);
@@ -130,8 +119,7 @@ final class CampaignService
         $q->execute($params);
         Response::json(['data' => $q->fetchAll()]);
     }
-    public function createSession(int $uid, int $campaign, array $in): never
-    {
+    public function createSession(int $uid, int $campaign, array $in): never {
         $this->assertManage($uid, $campaign);
         $in = $this->normaliseSessionInput($in);
         $this->validateSession($in);
@@ -139,8 +127,7 @@ final class CampaignService
         $q->execute([$campaign,$in['title'],$in['session_date'],$in['starts_at'] ?? null,$in['ends_at'] ?? null,$in['rsvp_deadline_at'] ?? null,$in['location'] ?? null,$uid]);
         Response::json(['data' => $this->session((int)$this->db->lastInsertId())], 201);
     }
-    public function updateSession(int $uid, int $id, array $in): never
-    {
+    public function updateSession(int $uid, int $id, array $in): never {
         $campaign = $this->sessionCampaign($id);
         $this->assertManage($uid, $campaign);
         $in = $this->normaliseSessionInput($in);
@@ -153,8 +140,7 @@ final class CampaignService
             Response::error('conflict', 'Session was changed or no longer exists.', 409);
         }Response::json(['data' => $this->session($id)]);
     }
-    public function participant(int $uid, int $session, int $member, array $in): never
-    {
+    public function participant(int $uid, int $session, int $member, array $in): never {
         $campaign = $this->sessionCampaign($session);
         $this->assertView($uid, $campaign);
         $isManager = $this->canManage($uid, $campaign);
@@ -178,8 +164,7 @@ final class CampaignService
             $this->audit($uid, 'session_attendance_corrected', ['session_id' => $session,'user_id' => $member,'attendance_status' => $a]);
         }Response::json(['data' => null]);
     }
-    public function availability(int $uid, ?int $forUser, array $in): never
-    {
+    public function availability(int $uid, ?int $forUser, array $in): never {
         $target = $forUser ?? $uid;
         if ($target !== $uid) {
             $this->requireAdmin($uid);
@@ -191,8 +176,7 @@ final class CampaignService
         $q->execute([$target]);
         Response::json(['data' => $q->fetchAll()]);
     }
-    public function setAvailability(int $uid, string $date, array $in): never
-    {
+    public function setAvailability(int $uid, string $date, array $in): never {
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || strtotime($date.' 00:00:00 UTC') === false || abs(strtotime($date.' 00:00:00 UTC') - time()) > 366 * 86400) {
             Response::error('validation_failed', 'Date is outside the allowed range.', 422);
         }$status = $in['status'] ?? null;
@@ -202,28 +186,24 @@ final class CampaignService
         $q->execute([$uid,$date,$status,$in['note'] ?? null]);
         Response::json(['data' => null]);
     }
-    public function clearAvailability(int $uid, string $date): never
-    {
+    public function clearAvailability(int $uid, string $date): never {
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             Response::error('validation_failed', 'Invalid calendar date.', 422);
         }$q = $this->db->prepare('DELETE FROM user_availability WHERE user_id=? AND availability_date=?');
         $q->execute([$uid,$date]);
         Response::json(['data' => null]);
     }
-    private function campaign(int $id): array
-    {
+    private function campaign(int $id): array {
         $q = $this->db->prepare('SELECT id,name,slug,type,location,timezone,archived_at,version FROM campaigns WHERE id=?');
         $q->execute([$id]);
         return $q->fetch() ?: [];
     }
-    private function session(int $id): array
-    {
+    private function session(int $id): array {
         $q = $this->db->prepare('SELECT id,campaign_id,title,session_date,starts_at,ends_at,rsvp_deadline_at,location,status,version FROM game_sessions WHERE id=?');
         $q->execute([$id]);
         return $q->fetch() ?: [];
     }
-    private function sessionCampaign(int $id): int
-    {
+    private function sessionCampaign(int $id): int {
         $q = $this->db->prepare('SELECT campaign_id FROM game_sessions WHERE id=?');
         $q->execute([$id]);
         $v = $q->fetchColumn();
@@ -231,61 +211,52 @@ final class CampaignService
             Response::error('not_found', 'Session not found.', 404);
         }return(int)$v;
     }
-    private function canManage(int $uid, int $campaign): bool
-    {
+    private function canManage(int $uid, int $campaign): bool {
         $q = $this->db->prepare("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin') OR EXISTS(SELECT 1 FROM campaign_memberships WHERE user_id=? AND campaign_id=? AND membership_role='dm' AND left_at IS NULL)");
         $q->execute([$uid,$uid,$campaign]);
         return(bool)$q->fetchColumn();
     }
-    private function isAdmin(int $uid): bool
-    {
+    private function isAdmin(int $uid): bool {
         $q = $this->db->prepare("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin')");
         $q->execute([$uid]);
         return(bool)$q->fetchColumn();
     }
-    private function requireAdmin(int $uid): void
-    {
+    private function requireAdmin(int $uid): void {
         $q = $this->db->prepare("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin')");
         $q->execute([$uid]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Administrator access required.', 403);
         }
     }
-    private function assertView(int $uid, int $campaign): void
-    {
+    private function assertView(int $uid, int $campaign): void {
         $q = $this->db->prepare('SELECT 1 FROM campaign_memberships WHERE user_id=? AND campaign_id=? AND left_at IS NULL');
         $q->execute([$uid,$campaign]);
         if (!$q->fetchColumn()) {
             $this->requireAdmin($uid);
         }
     }
-    private function assertManage(int $uid, int $campaign): void
-    {
+    private function assertManage(int $uid, int $campaign): void {
         if (!$this->canManage($uid, $campaign)) {
             Response::error('forbidden', 'You do not manage this campaign.', 403);
         }
     }
-    private function deadlinePassed(int $session): bool
-    {
+    private function deadlinePassed(int $session): bool {
         $q = $this->db->prepare('SELECT rsvp_deadline_at FROM game_sessions WHERE id=?');
         $q->execute([$session]);
         $v = $q->fetchColumn();
         return $v !== null && strtotime($v) <= time();
     }
-    private function validateCampaign(array $in): void
-    {
+    private function validateCampaign(array $in): void {
         if (trim((string)($in['name'] ?? '')) === '' || !preg_match('/^[a-z0-9-]+$/', (string)($in['slug'] ?? ''))) {
             Response::error('validation_failed', 'Invalid campaign fields.', 422);
         }
     }
-    private function validateSession(array $in): void
-    {
+    private function validateSession(array $in): void {
         if (trim((string)($in['title'] ?? '')) === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['session_date'] ?? '')) || !checkdate((int)substr((string)($in['session_date'] ?? ''), 5, 2), (int)substr((string)($in['session_date'] ?? ''), 8, 2), (int)substr((string)($in['session_date'] ?? ''), 0, 4))) {
             Response::error('validation_failed', 'Invalid session fields.', 422);
         }
     }
-    private function normaliseSessionInput(array $in): array
-    {
+    private function normaliseSessionInput(array $in): array {
         foreach (['starts_at','ends_at','rsvp_deadline_at'] as $field) {
             if (array_key_exists($field, $in) && $in[$field] !== null && $in[$field] !== '') {
                 $in[$field] = $this->localAmsterdamToUtc((string)$in[$field], isset($in['timezone_offset']) ? (string)$in['timezone_offset'] : null);
@@ -293,13 +264,11 @@ final class CampaignService
         }unset($in['timezone_offset']);
         return$in;
     }
-    private function audit(int $uid, string $event, array $payload): void
-    {
+    private function audit(int $uid, string $event, array $payload): void {
         $q = $this->db->prepare('INSERT INTO audit_events(actor_user_id,event_type,payload_json) VALUES(?,?,?)');
         $q->execute([$uid,$event,json_encode($payload, JSON_THROW_ON_ERROR)]);
     }
-    private function localAmsterdamToUtc(string $value, ?string $selectedOffset): string
-    {
+    private function localAmsterdamToUtc(string $value, ?string $selectedOffset): string {
         $value = str_replace('T', ' ', trim($value));
         if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $value)) {
             $value .= ':00';

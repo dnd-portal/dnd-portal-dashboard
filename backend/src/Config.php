@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace DndPortal;
 
-final class Config
-{
+final class Config {
     /** @var array<string, bool> */
     private static array $loaded = [];
 
-    public static function loadDotEnv(string $path): void
-    {
+    public static function loadDotEnv(string $path): void {
         if (isset(self::$loaded[$path]) || !is_readable($path)) {
             return;
         }
@@ -40,14 +38,12 @@ final class Config
         }
     }
 
-    public static function env(string $name, string $default = ''): string
-    {
+    public static function env(string $name, string $default = ''): string {
         $value = getenv($name);
         return $value === false ? $default : trim($value);
     }
 
-    public static function isProduction(): bool
-    {
+    public static function isProduction(): bool {
         return self::env('APP_ENV', 'development') === 'production';
     }
 }

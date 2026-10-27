@@ -7,18 +7,15 @@ namespace DndPortal\Domain;
 use DndPortal\Http\Response;
 use PDO;
 
-final class PollService
-{
+final class PollService {
     public function __construct(private PDO $db) {}
-    public function list(int $uid, int $campaign): never
-    {
+    public function list(int $uid, int $campaign): never {
         $this->manage($uid, $campaign);
         $q = $this->db->prepare('SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE campaign_id=? ORDER BY created_at DESC');
         $q->execute([$campaign]);
         Response::json(['data' => $q->fetchAll()]);
     }
-    public function get(int $uid, int $id): never
-    {
+    public function get(int $uid, int $id): never {
         $p = $this->find($id);
         if (!$p) {
             Response::error('not_found', 'Poll not found.', 404);
@@ -32,8 +29,7 @@ final class PollService
         $poll['response_state'] = $q->fetchColumn() ?: 'pending';
         Response::json(['data' => $poll]);
     }
-    public function create(int $uid, int $campaign, array $in): never
-    {
+    public function create(int $uid, int $campaign, array $in): never {
         $this->manage($uid, $campaign);
         $title = trim((string)($in['title'] ?? ''));
         $type = $in['choice_type'] ?? 'single';
@@ -58,8 +54,7 @@ final class PollService
             }Response::error('validation_failed', 'Poll could not be created.', 422);
         } Response::json(['data' => $this->poll($id)], 201);
     }
-    public function update(int $uid, int $id, array $in): never
-    {
+    public function update(int $uid, int $id, array $in): never {
         $p = $this->find($id);
         if (!$p) {
             Response::error('not_found', 'Poll not found.', 404);
@@ -129,8 +124,7 @@ final class PollService
             }Response::error('server_error', 'Poll could not be updated.', 500);
         }Response::json(['data' => $this->poll($id)]);
     }
-    public function vote(int $uid, int $poll, array $in): never
-    {
+    public function vote(int $uid, int $poll, array $in): never {
         $ids = $in['option_ids'] ?? [];
         if (!is_array($ids) || count($ids) < 1 || count($ids) !== count(array_unique($ids))) {
             Response::error('validation_failed', 'Invalid choices.', 422);
@@ -173,8 +167,7 @@ final class PollService
             }Response::error('server_error', 'Vote could not be saved.', 500);
         }Response::json(['data' => null]);
     }
-    public function respondWithoutOption(int $uid, int $poll): never
-    {
+    public function respondWithoutOption(int $uid, int $poll): never {
         $p = $this->find($poll);
         if (!$p) {
             Response::error('not_found', 'Poll not found.', 404);
@@ -189,8 +182,7 @@ final class PollService
         $this->db->prepare('UPDATE poll_participants SET response_state="responded_without_option" WHERE poll_id=? AND user_id=?')->execute([$poll,$uid]);
         Response::json(['data' => ['poll_id' => $poll,'response_state' => 'responded_without_option']]);
     }
-    public function results(int $uid, int $id): never
-    {
+    public function results(int $uid, int $id): never {
         $p = $this->find($id);
         if (!$p) {
             Response::error('not_found', 'Poll not found.', 404);
@@ -199,8 +191,7 @@ final class PollService
         $q->execute([$id]);
         Response::json(['data' => ['poll_id' => $id,'options' => $q->fetchAll()]]);
     }
-    public function setParticipant(int $uid, int $id, int $target, array $in): never
-    {
+    public function setParticipant(int $uid, int $id, int $target, array $in): never {
         $p = $this->find($id);
         if (!$p) {
             Response::error('not_found', 'Poll not found.', 404);
@@ -218,30 +209,26 @@ final class PollService
             $q->execute([$id,$target]);
         }Response::json(['data' => ['poll_id' => $id,'user_id' => $target,'active' => $add]]);
     }
-    private function find(int $id): ?array
-    {
+    private function find(int $id): ?array {
         $q = $this->db->prepare('SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE id=?');
         $q->execute([$id]);
         return $q->fetch() ?: null;
     }
-    private function poll(int $id): array
-    {
+    private function poll(int $id): array {
         $p = $this->find($id);
         $q = $this->db->prepare('SELECT id,label,position FROM poll_options WHERE poll_id=? ORDER BY position');
         $q->execute([$id]);
         $p['options'] = $q->fetchAll();
         return $p;
     }
-    private function member(int $uid, int $campaign): void
-    {
+    private function member(int $uid, int $campaign): void {
         $q = $this->db->prepare('SELECT 1 FROM campaign_memberships WHERE user_id=? AND campaign_id=? AND left_at IS NULL');
         $q->execute([$uid,$campaign]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Campaign membership required.', 403);
         }
     }
-    private function manage(int $uid, int $campaign): void
-    {
+    private function manage(int $uid, int $campaign): void {
         $q = $this->db->prepare("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin') OR EXISTS(SELECT 1 FROM campaign_memberships WHERE user_id=? AND campaign_id=? AND membership_role='dm' AND left_at IS NULL)");
         $q->execute([$uid,$uid,$campaign]);
         if (!$q->fetchColumn()) {
