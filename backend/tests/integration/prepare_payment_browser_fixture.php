@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require dirname(__DIR__, 2) . '/src/Config.php';
@@ -8,7 +9,9 @@ use DndPortal\Config;
 use DndPortal\Database\Connection;
 
 Config::loadDotEnv(dirname(__DIR__, 2) . '/.env');
-if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', (string) Config::env('DB_NAME'))) exit("REFUSED\n");
+if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', (string) Config::env('DB_NAME'))) {
+    exit("REFUSED\n");
+}
 $d = Connection::make();
 // The production limiter keys login attempts by type and remote address.
 // Clear only the isolated test database before this browser group.

@@ -52,12 +52,12 @@ die niet bekend zijn. Het bijgewerkte voorstel staat lokaal buiten Git op
 ## PHP-formattering
 
 PHP-CS-Fixer is uitsluitend als Composer-devdependency toegevoegd. Gebruik
-vanuit `backend/`:
+vanuit de repositoryroot:
 
 ```text
-composer install
-composer format
-composer format:check
+composer --working-dir=backend install
+composer --working-dir=backend format
+composer --working-dir=backend format:check
 ```
 
 De formatter draait op PHP 8.4 of hoger en wordt niet op InfinityFree

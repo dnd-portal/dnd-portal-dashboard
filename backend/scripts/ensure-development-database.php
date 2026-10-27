@@ -1,16 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 require dirname(__DIR__) . '/src/Config.php';
 \DndPortal\Config::loadDotEnv(dirname(__DIR__) . '/.env');
 
 if (PHP_SAPI !== 'cli' || \DndPortal\Config::env('APP_ENV') !== 'local') {
-    fwrite(STDERR, "Refused: local CLI environment required.\n"); exit(2);
+    fwrite(STDERR, "Refused: local CLI environment required.\n");
+    exit(2);
 }
 $name = \DndPortal\Config::env('DB_NAME');
 $rootPassword = \DndPortal\Config::env('LOCAL_DB_ROOT_PASSWORD');
 if ($name !== 'dnd_portal_development' || $rootPassword === '') {
-    fwrite(STDERR, "Refused: explicit development database and local root password required.\n"); exit(2);
+    fwrite(STDERR, "Refused: explicit development database and local root password required.\n");
+    exit(2);
 }
 $host = \DndPortal\Config::env('DB_HOST', '127.0.0.1');
 $port = \DndPortal\Config::env('DB_PORT', '3307');

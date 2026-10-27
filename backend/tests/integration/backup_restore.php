@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require dirname(__DIR__, 2) . '/src/Config.php';
@@ -21,7 +22,7 @@ $root = new PDO(
     sprintf('mysql:host=%s;port=%s;charset=utf8mb4', Config::env('DB_HOST'), Config::env('DB_PORT', '3306')),
     'root',
     Config::env('TEST_DB_ROOT_PASSWORD'),
-    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
 );
 $root->exec('DROP DATABASE IF EXISTS `' . $targetName . '`');
 $root->exec('CREATE DATABASE `' . $targetName . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
@@ -31,7 +32,7 @@ $restore = new PDO(
     sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', Config::env('DB_HOST'), Config::env('DB_PORT', '3306'), $targetName),
     Config::env('DB_USER'),
     Config::env('DB_PASSWORD'),
-    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
 );
 
 $restore->exec('SET FOREIGN_KEY_CHECKS=0');
@@ -48,7 +49,9 @@ $restore->exec('SET FOREIGN_KEY_CHECKS=1');
 foreach ($tables as $table) {
     $sourceCount = (int) $source->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
     $restoreCount = (int) $restore->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
-    if ($sourceCount !== $restoreCount) throw new RuntimeException("Row count mismatch for $table.");
+    if ($sourceCount !== $restoreCount) {
+        throw new RuntimeException("Row count mismatch for $table.");
+    }
 }
 $checks = [
     'schema_migrations' => 'SELECT COUNT(*) FROM schema_migrations',
@@ -58,7 +61,9 @@ $checks = [
 foreach ($checks as $label => $sql) {
     $left = (string) $source->query($sql)->fetchColumn();
     $right = (string) $restore->query($sql)->fetchColumn();
-    if ($left !== $right) throw new RuntimeException("Restore check failed: $label ($left != $right).");
+    if ($left !== $right) {
+        throw new RuntimeException("Restore check failed: $label ($left != $right).");
+    }
     echo "PASS: $label = $left\n";
 }
 echo "PASS: backup restored to $targetName with matching rows, relations and financial sum\n";

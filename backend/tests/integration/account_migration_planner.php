@@ -1,8 +1,14 @@
 <?php
+
 declare(strict_types=1);
 require dirname(__DIR__, 2) . '/src/Migration/AccountMigrationPlanner.php';
 use DndPortal\Migration\AccountMigrationPlanner;
-$ok = static function (bool $condition, string $label): void { if (!$condition) throw new RuntimeException('FAIL: ' . $label); echo "PASS: $label\n"; };
+
+$ok = static function (bool $condition, string $label): void {
+    if (!$condition) {
+        throw new RuntimeException('FAIL: ' . $label);
+    } echo "PASS: $label\n";
+};
 $rows = [
     ['legacy_id' => 7, 'name' => 'Zoë van Dijk', 'email' => 'z@example.test'],
     ['legacy_id' => 2, 'name' => 'Alex Example', 'email' => 'a@example.test'],

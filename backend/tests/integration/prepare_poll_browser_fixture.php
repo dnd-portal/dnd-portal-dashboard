@@ -1,11 +1,16 @@
 <?php
+
 declare(strict_types=1);
 require dirname(__DIR__, 2) . '/src/Config.php';
 require dirname(__DIR__, 2) . '/src/Database/Connection.php';
 use DndPortal\Config;
 use DndPortal\Database\Connection;
+
 Config::loadDotEnv(dirname(__DIR__, 2) . '/.env');
-if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', (string) Config::env('DB_NAME'))) { fwrite(STDERR, "REFUSED: dedicated test-run database required.\n"); exit(2); }
+if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', (string) Config::env('DB_NAME'))) {
+    fwrite(STDERR, "REFUSED: dedicated test-run database required.\n");
+    exit(2);
+}
 $db = Connection::make();
 // This is fixture setup in the isolated test database only; production rate limiting is untouched.
 $db->exec('DELETE FROM rate_limit_buckets');
@@ -26,7 +31,9 @@ if ($admin === false) {
 }
 $db->prepare('INSERT IGNORE INTO user_roles(user_id,role_id) SELECT ?,id FROM roles WHERE role_key=?')->execute([$admin, 'portal_admin']);
 $campaign = (int) $db->query('SELECT id FROM campaigns ORDER BY id DESC LIMIT 1')->fetchColumn();
-if (!$campaign) throw new RuntimeException('Poll browser fixture requires a campaign.');
+if (!$campaign) {
+    throw new RuntimeException('Poll browser fixture requires a campaign.');
+}
 $db->prepare('INSERT INTO campaign_memberships(campaign_id,user_id,membership_role) VALUES(?, ?, "dm") ON DUPLICATE KEY UPDATE membership_role="dm",left_at=NULL')->execute([$campaign, $admin]);
 $q = $db->prepare('SELECT id FROM users WHERE username="pollplayer"');
 $q->execute();
