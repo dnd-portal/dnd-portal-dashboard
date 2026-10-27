@@ -1,9 +1,20 @@
 import { format } from 'sql-formatter';
 
-let input = '';
 process.stdin.setEncoding('utf8');
-process.stdin.on('data', (chunk) => input += chunk);
+let pending = '';
+process.stdin.on('data', (chunk) => {
+    pending += chunk;
+    const lines = pending.split('\n');
+    pending = lines.pop();
+    for (const line of lines) {
+        if (line.trim() !== '') formatLine(line);
+    }
+});
 process.stdin.on('end', () => {
+    if (pending.trim() !== '') formatLine(pending);
+});
+
+function formatLine(input) {
     try {
         const query = JSON.parse(input);
         const formatted = format(query, {
@@ -13,12 +24,12 @@ process.stdin.on('end', () => {
                 keywordCase: 'upper',
                 linesBetweenQueries: 1,
             });
-        process.stdout.write(JSON.stringify({ sql: normalizeLayout(formatted) }));
+        process.stdout.write(JSON.stringify({ sql: normalizeLayout(formatted) }) + '\n');
     } catch (error) {
         process.stdout.write(JSON.stringify({error: String(error.message ?? error)}));
-        process.exitCode = 2;
+        process.stdout.write('\n');
     }
-});
+}
 
 function normalizeLayout(sql) {
     const lines = sql.split(/\r?\n/);

@@ -48,6 +48,12 @@ foreach ($files as $file) {
         file_put_contents($file, $formatted, LOCK_EX);
     }
 }
+if (isset($sqlFormatterProcess) && is_resource($sqlFormatterProcess)) {
+    fclose($sqlFormatterPipes[0]);
+    fclose($sqlFormatterPipes[1]);
+    fclose($sqlFormatterPipes[2]);
+    proc_close($sqlFormatterProcess);
+}
 function formatSqlLiterals(string $source, string $file): string {
     $tokens = token_get_all($source);
     $lines = explode("\n", $source);
@@ -194,30 +200,26 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
 }
 
 function formatWithSqlFormatter(string $sql): string {
-    $command =
-        PHP_OS_FAMILY === 'Windows' ? 'node tools/format_sql.mjs' : 'node tools/format_sql.mjs';
-    $process = proc_open(
-        $command,
-        [
+    global $sqlFormatterProcess, $sqlFormatterPipes;
+    if (!isset($sqlFormatterProcess) || !is_resource($sqlFormatterProcess)) {
+        $sqlFormatterProcess = proc_open('node tools/format_sql.mjs', [
             0 => ['pipe', 'r'],
             1 => ['pipe', 'w'],
             2 => ['pipe', 'w'],
-        ],
-        $pipes,
-        dirname(__DIR__),
-    );
-    if (!is_resource($process)) {
-        throw new RuntimeException('SQL formatter process could not be started');
+        ], $sqlFormatterPipes, dirname(__DIR__));
+        if (!is_resource($sqlFormatterProcess)) {
+            throw new RuntimeException('SQL formatter process could not be started');
+        }
     }
-    fwrite($pipes[0], json_encode($sql, JSON_THROW_ON_ERROR));
-    fclose($pipes[0]);
-    $result = json_decode(stream_get_contents($pipes[1]), true, 512, JSON_THROW_ON_ERROR);
-    fclose($pipes[1]);
-    $error = stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-    $exitCode = proc_close($process);
-    if ($exitCode !== 0 || isset($result['error'])) {
-        throw new RuntimeException($result['error'] ?? trim($error) ?: 'SQL formatter failed');
+    fwrite($sqlFormatterPipes[0], json_encode($sql, JSON_THROW_ON_ERROR) . PHP_EOL);
+    fflush($sqlFormatterPipes[0]);
+    $line = fgets($sqlFormatterPipes[1]);
+    if ($line === false) {
+        throw new RuntimeException('SQL formatter returned no result');
+    }
+    $result = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+    if (isset($result['error'])) {
+        throw new RuntimeException($result['error']);
     }
     return (string) $result['sql'];
 }
