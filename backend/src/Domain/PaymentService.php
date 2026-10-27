@@ -9,9 +9,7 @@ use PDO;
 
 final class PaymentService
 {
-    public function __construct(private PDO $db)
-    {
-    }
+    public function __construct(private PDO $db) {}
     public function list(int $uid, int $campaign): never
     {
         $this->manage($uid, $campaign);

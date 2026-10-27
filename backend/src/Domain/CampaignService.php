@@ -9,9 +9,7 @@ use PDO;
 
 final class CampaignService
 {
-    public function __construct(private PDO $db)
-    {
-    }
+    public function __construct(private PDO $db) {}
     public function list(int $uid): never
     {
         $q = $this->db->prepare("SELECT c.id,c.name,c.slug,c.type,c.location,c.timezone,c.archived_at,c.version,cm.membership_role FROM campaigns c LEFT JOIN campaign_memberships cm ON cm.campaign_id=c.id AND cm.user_id=? AND cm.left_at IS NULL WHERE (c.archived_at IS NULL) AND (cm.user_id IS NOT NULL OR EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin')) ORDER BY c.name");

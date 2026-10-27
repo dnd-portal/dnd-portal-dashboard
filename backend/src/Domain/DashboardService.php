@@ -9,9 +9,7 @@ use PDO;
 
 final class DashboardService
 {
-    public function __construct(private PDO $db)
-    {
-    }
+    public function __construct(private PDO $db) {}
     public function get(int $uid): never
     {
         $q = $this->db->prepare('SELECT s.id,s.title,s.session_date,s.starts_at,c.name campaign_name,(SELECT COUNT(*) FROM session_participants sp WHERE sp.session_id=s.id) participants,(SELECT COUNT(*) FROM session_participants sp WHERE sp.session_id=s.id AND sp.rsvp_status="accepted") rsvp_accepted FROM game_sessions s JOIN campaigns c ON c.id=s.campaign_id JOIN campaign_memberships m ON m.campaign_id=c.id AND m.user_id=? AND m.left_at IS NULL WHERE s.status="planned" AND c.archived_at IS NULL AND s.session_date>=UTC_DATE() ORDER BY s.session_date,s.starts_at LIMIT 1');
