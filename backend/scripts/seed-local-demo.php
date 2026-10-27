@@ -49,14 +49,15 @@ try {
         $db->prepare('INSERT IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?)')->execute([$uid, $rid]);
     }
     $q = $db->prepare('SELECT id FROM campaigns WHERE slug = ?');
-    $q->execute(['local-demo-campaign']);
+    $q->execute(['campaign-1']);
     $campaign = $q->fetchColumn();
     if ($campaign === false) {
-        $db->prepare('INSERT INTO campaigns (name, slug, type, location, timezone, created_by) VALUES (?, ?, "campaign", ?, "Europe/Amsterdam", ?)')->execute(['Local Demo Campaign', 'local-demo-campaign', 'The Old Keep', $admin]);
+        $db->prepare(
+            'INSERT INTO campaigns (name, slug, type, location, timezone, created_by) VALUES (?, ?, "campaign", ?, "Europe/Amsterdam", ?)'
+        )->execute(['Party 1', 'campaign-1', 'In person', $admin]);
         $campaign = (int) $db->lastInsertId();
-    } else {
-        $campaign = (int) $campaign;
     }
+    $campaign = (int) $campaign;
     foreach ([[$admin, 'dm'], [$dm, 'dm'], [$player, 'member']] as [$uid, $membership]) {
         $db->prepare('INSERT IGNORE INTO campaign_memberships (campaign_id, user_id, membership_role) VALUES (?, ?, ?)')->execute([$campaign, $uid, $membership]);
     }
@@ -102,15 +103,36 @@ try {
     ];
     $fixtureIds = [];
     foreach ($fixtureUsers as $legacyId => $displayName) {
-        $username = 'fixture-' . strtolower($displayName) . '-' . $legacyId;
-        $email = $username . '@example.test';
-        $db->prepare(
-            'INSERT IGNORE INTO users (display_name, email, username, account_status, timezone) VALUES (?, ?, ?, "invited", "Europe/Amsterdam")'
-        )->execute([$displayName, $email, $username]);
-        $q = $db->prepare('SELECT id FROM users WHERE username = ?');
-        $q->execute([$username]);
+        $q = $db->prepare('SELECT id FROM users WHERE display_name = ? AND account_status = "invited" AND email IS NULL AND username IS NULL ORDER BY id LIMIT 1');
+        $q->execute([$displayName]);
+        $existingId = $q->fetchColumn();
+        if ($existingId === false) {
+            $legacyUsername = 'fixture-' . strtolower($displayName) . '-' . $legacyId;
+            $q = $db->prepare('SELECT id FROM users WHERE username = ?');
+            $q->execute([$legacyUsername]);
+            $existingId = $q->fetchColumn();
+        }
+        if ($existingId === false) {
+            $db->prepare(
+                'INSERT INTO users (display_name, email, username, account_status, timezone) VALUES (?, NULL, NULL, "invited", "Europe/Amsterdam")'
+            )->execute([$displayName]);
+            $existingId = $db->lastInsertId();
+        }
+        $q = $db->prepare('SELECT id FROM users WHERE id = ?');
+        $q->execute([(int) $existingId]);
         $fixtureIds[$legacyId] = (int) $q->fetchColumn();
     }
+    $db->exec('UPDATE users SET email = NULL, username = NULL, account_status = "invited" WHERE username LIKE "fixture-%" AND id IN (' . implode(',', $fixtureIds) . ')');
+    foreach ($fixtureIds as $legacyId => $fixtureId) {
+        $codeHash = hash('sha256', 'local-pending-invite-' . $legacyId, true);
+        $db->prepare(
+            'INSERT IGNORE INTO registration_invites (invited_user_id, invited_email, code_hash, created_by, expires_at) VALUES (?, NULL, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 365 DAY))'
+        )->execute([$fixtureId, $codeHash, $admin]);
+    }
+    $blankCodeHash = hash('sha256', 'local-blank-invite', true);
+    $db->prepare(
+        'INSERT IGNORE INTO registration_invites (invited_user_id, invited_email, code_hash, created_by, expires_at) VALUES (NULL, NULL, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 365 DAY))'
+    )->execute([$blankCodeHash, $admin]);
 
     $fixtureCampaigns = [
         ['Party 1', 'campaign-1', 'In person'],

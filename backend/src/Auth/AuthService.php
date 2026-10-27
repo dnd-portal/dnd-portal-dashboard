@@ -158,10 +158,7 @@ final class AuthService {
         $h = hash('sha256', $code, true);
         $this->db->beginTransaction();
         try {
-            if ($target === null) {
-                if ($email === null) {
-                    Response::error('validation_failed', 'Email is required.', 422);
-                }
+            if ($target === null && $email !== null) {
                 $q = $this->db->prepare(
                     <<<'SQL'
                     SELECT id, account_status
@@ -199,6 +196,7 @@ final class AuthService {
                 WHERE
                     invited_user_id = ?
                     AND consumed_at IS NULL
+                    AND revoked_at IS NULL
                     AND expires_at > ?
                 SQL
                 ,
@@ -299,9 +297,10 @@ final class AuthService {
         $code = (string) ($in['invite_code'] ?? '');
         $email = $this->norm($in['email'] ?? null);
         $username = $this->norm($in['username'] ?? null);
+        $displayName = trim((string) ($in['display_name'] ?? ''));
         $password = (string) ($in['password'] ?? '');
         $confirm = (string) ($in['password_confirmation'] ?? '');
-        if (strlen($password) < 8 || $password !== $confirm) {
+        if ($email === null || $username === null || strlen($password) < 8 || $password !== $confirm) {
             Response::error('validation_failed', 'Password confirmation failed.', 422);
         }
         $this->db->beginTransaction();
@@ -311,7 +310,8 @@ final class AuthService {
                 SELECT *
                 FROM registration_invites
                 WHERE code_hash=?
-                  AND consumed_at IS NULL
+                    AND consumed_at IS NULL
+                    AND revoked_at IS NULL
                   AND expires_at>? FOR UPDATE
                 SQL
                 ,
@@ -321,29 +321,22 @@ final class AuthService {
             if (!$invite) {
                 Response::error('invalid_invite', 'Invite is invalid or expired.', 422);
             }
-            $uid = (int) $invite['invited_user_id'];
-            $q = $this->db->prepare(
-                <<<'SQL'
-                UPDATE users
-                SET
-                    email = ?,
-                    username = ?,
-                    display_name = ?,
-                    account_status = "active",
-                    updated_at = ?
-                WHERE
-                    id = ?
-                    AND account_status = "invited"
-                SQL
-                ,
-            );
-            $q->execute([
-                $email,
-                $username,
-                trim((string) ($in['display_name'] ?? '')),
-                gmdate('Y-m-d H:i:s.u'),
-                $uid,
-            ]);
+            $uid = $invite['invited_user_id'] === null ? null : (int) $invite['invited_user_id'];
+            if ($uid === null) {
+                $q = $this->db->prepare(
+                    'INSERT INTO users (display_name, email, username, account_status) VALUES (?, ?, ?, "active")'
+                );
+                $q->execute([$displayName, $email, $username]);
+                $uid = (int) $this->db->lastInsertId();
+            } else {
+                $q = $this->db->prepare(
+                    'UPDATE users SET email = ?, username = ?, display_name = ?, account_status = "active", updated_at = ? WHERE id = ? AND account_status = "invited"'
+                );
+                $q->execute([$email, $username, $displayName, gmdate('Y-m-d H:i:s.u'), $uid]);
+                if ($q->rowCount() !== 1) {
+                    Response::error('invalid_invite', 'Invite is no longer available.', 422);
+                }
+            }
             $q = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO user_credentials (user_id, password_hash, password_algo)
@@ -356,14 +349,16 @@ final class AuthService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 UPDATE registration_invites
-                SET
-                    consumed_at = ?
+                    SET
+                    consumed_at = ?,
+                    consumed_by_user_id = ?
                 WHERE
                     id = ?
                 SQL
                 ,
             );
-            $q->execute([gmdate('Y-m-d H:i:s.u'), $invite['id']]);
+            $q->execute([gmdate('Y-m-d H:i:s.u'), $uid, $invite['id']]);
+            $this->audit($uid, 'auth.register');
             $this->db->commit();
         } catch (\Throwable $e) {
             if ($this->db->inTransaction()) {
@@ -371,7 +366,9 @@ final class AuthService {
             }
             Response::error('validation_failed', 'Registration could not be completed.', 422);
         }
-        Response::json(['data' => $this->profile($uid)], 201);
+        $this->sessions->revokeUser($uid);
+        Security::cookie($this->sessions->create($uid), (int) Config::env('AUTH_ABSOLUTE_TTL', '2592000'));
+        Response::json(['data' => $this->profile($uid), 'redirect' => $this->hasCampaigns($uid) ? '/dashboard' : '/dashboard/one-shots'], 201);
     }
 
     public function validateInvite(array $in): never {
@@ -384,6 +381,7 @@ final class AuthService {
             WHERE
                 code_hash = ?
                 AND consumed_at IS NULL
+                AND revoked_at IS NULL
                 AND expires_at > ?
             SQL
             ,
@@ -392,7 +390,8 @@ final class AuthService {
         if (!$q->fetchColumn()) {
             Response::error('invalid_invite', 'Invite is invalid or expired.', 422);
         }
-        Response::json(['data' => ['valid' => true]]);
+        $invite = $q->fetch();
+        Response::json(['data' => ['valid' => true, 'has_pending_user' => $invite['invited_user_id'] !== null]]);
     }
 
     public function validateReset(array $in): never {
@@ -769,6 +768,14 @@ final class AuthService {
     private function norm(mixed $v): ?string {
         $v = trim((string) $v);
         return $v === '' ? null : strtolower($v);
+    }
+
+    private function hasCampaigns(int $uid): bool {
+        $q = $this->db->prepare(
+            'SELECT 1 FROM campaign_memberships WHERE user_id = ? AND left_at IS NULL LIMIT 1',
+        );
+        $q->execute([$uid]);
+        return $q->fetchColumn() !== false;
     }
 
     private function audit(int $uid, string $event): void {
