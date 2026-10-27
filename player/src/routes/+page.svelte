@@ -2,7 +2,6 @@
     import { page } from '$app/state';
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-    import { getDatabase } from '#lib/database/index.js';
     import { api, ApiRequestError } from '#lib/api/index.js';
 
     let activeNav = $state('Overview');
@@ -18,20 +17,17 @@
     let loginBusy = $state(false);
     let authenticated = $state(false);
     let hydrated = $state(false);
-    let mockData = $state<Awaited<ReturnType<typeof getDatabase>> | null>(null);
+    let campaignNames = $state<string[]>([]);
+    let dashboard = $state<{
+        next_session: { title: string; session_date: string; participants: number; rsvp_accepted: number } | null;
+        open_polls: number;
+        open_contributions_cents: number;
+    } | null>(null);
+    let dashboardError = $state(false);
     const role = $derived(page.url.searchParams.get('role'));
     const isPlayer = $derived(authenticated || role === 'player' || role === 'user');
     const isDm = $derived(role === 'dm');
-    const fallbackCampaigns = [
-        'Campaign 1',
-        'Campaign 2',
-        'Campaign 3',
-        'Campaign 4',
-        'Campaign 5',
-        'Campaign 6',
-        'One-shot'
-    ];
-    const campaigns = $derived(mockData?.campaigns.map((campaign) => campaign.name) ?? fallbackCampaigns);
+    const campaigns = $derived(campaignNames);
 
     async function login() {
         loginBusy = true;
@@ -74,9 +70,14 @@
             userEmail = current.email ?? '';
             userUsername = current.username ?? '';
             authenticated = true;
-            const data = await getDatabase();
-            mockData = data;
+            const [campaignsResponse, dashboardResponse] = await Promise.all([
+                api.get<{ name: string }[]>('/api/v1/campaigns'),
+                api.get<typeof dashboard>('/api/v1/dashboard')
+            ]);
+            campaignNames = campaignsResponse.map((campaign) => campaign.name);
+            dashboard = dashboardResponse;
         } catch {
+            dashboardError = true;
             // Anonymous visitors remain on the login screen.
         }
     });

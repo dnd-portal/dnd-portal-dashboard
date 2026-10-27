@@ -30,6 +30,12 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 - [ ] Databasebackup maken en herstellen naar een afzonderlijke testdatabase en daarna kernflows vergelijken.
 - [ ] Resterende mockgebonden productieroutes binnen de bestaande scope verwijderen of ondubbelzinnig als demo markeren.
 
+## Controle-instrumentatie toegevoegd
+
+- `backend/tests/integration/backup_restore.php` maakt uitsluitend onder een geïsoleerde `dnd_portal_test_run_*`-database een aparte herstel-database, kopieert schema/data zonder de bron te wijzigen en controleert row counts, relaties, `schema_migrations` en de financiële nettosom. De runner voert dit script nu uit; uitvoering blijft open zolang MariaDB/Docker niet beschikbaar is.
+- `docs/backend/08-oplevering/tijdzonecontract.md` legt het huidige opslag/API/weergavecontract vast en claimt geen DST-test.
+- `docs/backend/08-oplevering/migratiebron.md` legt vast dat een aantoonbaar oud schema ontbreekt; er is geen synthetische bron verzonnen.
+
 ## Productbesluiten met aanbeveling
 
 - [ ] RSVP-deadlines en wijzigingen na de deadline — aanbeveling: behoud de bestaande `rsvp_deadline_at`-controle en leg alleen vast of beheerders na de deadline mogen corrigeren.
