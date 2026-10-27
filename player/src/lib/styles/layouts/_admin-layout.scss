@@ -18,14 +18,14 @@
         display: flex;
         align-items: center;
         gap: 24px;
-        padding: 0 24px;
+        padding: 0 clamp(20px, 4vw, 56px);
         min-width: 0;
     }
     &__action {
         margin-left: auto;
         flex-shrink: 0;
         color: $color-link;
-        font-size: 12px;
+        font-size: 1rem;
         text-decoration: none;
         &:hover {
             color: $color-link-hover;
@@ -131,7 +131,7 @@
     min-width: 0;
     min-height: 100svh;
     margin-left: $admin-sidebar-width;
-    padding: 104px 40px 64px;
+    padding: 96px clamp(20px, 4vw, 56px) 64px;
     > .admin-shell {
         width: 100%;
         max-width: $content-width;
@@ -166,7 +166,7 @@
     }
     .admin-content {
         margin-left: 0;
-        padding: 88px 16px 32px;
+        padding: 88px 20px 40px;
     }
 }
 @media (prefers-reduced-motion: reduce) {

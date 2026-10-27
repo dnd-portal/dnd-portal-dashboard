@@ -1101,3 +1101,158 @@
         background: $color-accent;
     }
 }
+
+// Shared portal specification overrides the older dashboard art direction.
+.app-shell {
+    .sidebar {
+        width: 280px;
+        flex-basis: 280px;
+        background: $portal-background;
+    }
+    .campaign-switcher,
+    .campaign-menu,
+    .panel,
+    .stat-card,
+    .hero-card,
+    .dm-hero,
+    .login-screen {
+        border: 1px solid $portal-border;
+        border-radius: $radius-panel;
+        background: $portal-surface;
+        box-shadow: none;
+    }
+    .campaign-switcher {
+        background: $portal-surface;
+        border-color: $portal-border;
+        &:hover {
+            background: $portal-surface-raised;
+            border-color: $portal-accent-border;
+        }
+    }
+    .campaign-icon {
+        background: $portal-accent-soft;
+        color: $portal-accent;
+    }
+    .nav-item {
+        min-height: 44px;
+        padding: 10px 12px;
+        gap: 10px;
+        color: $portal-text-secondary;
+        border-radius: $radius-control;
+        &:hover {
+            color: $portal-heading;
+            background: $portal-surface-raised;
+        }
+        &.active {
+            color: $portal-accent;
+            background: $portal-accent-soft;
+            font-weight: 600;
+        }
+    }
+    .nav-icon {
+        width: 20px;
+        color: currentColor;
+    }
+    .content {
+        min-width: 0;
+    }
+    .topbar {
+        min-height: 64px;
+        height: 64px;
+        padding: 0 clamp(20px, 4vw, 56px);
+        background: $portal-background;
+        border-color: $portal-divider;
+    }
+    .page-wrap {
+        width: 100%;
+        max-width: $content-width;
+        min-width: 0;
+        padding: 32px clamp(20px, 4vw, 56px) 64px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+    .welcome h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+        letter-spacing: normal;
+    }
+    .hero-card {
+        padding: 22px;
+        background: $portal-surface;
+    }
+    .hero-card h2 {
+        font-size: 1.25rem;
+        line-height: 1.2;
+        letter-spacing: normal;
+    }
+    .panel {
+        padding: 22px;
+    }
+    .panel h3 {
+        font-size: 1.25rem;
+        line-height: 1.2;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .stat-card {
+        padding: 22px;
+    }
+    .stat-card > strong {
+        font-size: 1.5rem;
+    }
+    .login-input {
+        min-height: 46px;
+        padding: 12px;
+        color: $portal-text;
+        background: $portal-surface;
+        border-color: $portal-border;
+        font: 1rem $font-sans;
+    }
+    .login-button,
+    .dm-primary {
+        min-height: 44px;
+        padding: 10px 18px;
+        border-radius: $radius-control;
+        color: $portal-button-text;
+        background: $portal-button-background;
+        font: 600 1rem $font-sans;
+    }
+    .login-button:hover,
+    .dm-primary:hover {
+        background: $portal-accent-hover;
+    }
+    .secondary-button,
+    .full-button {
+        min-height: 44px;
+        padding: 10px 18px;
+        border-radius: $radius-control;
+        border-color: $portal-accent-border;
+        color: $portal-text;
+        background: transparent;
+        font: 600 1rem $font-sans;
+    }
+    a {
+        color: $portal-accent;
+    }
+    @media (max-width: 900px) {
+        .sidebar {
+            width: 240px;
+            flex-basis: 240px;
+        }
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 680px) {
+        .sidebar {
+            width: 100%;
+        }
+        .page-wrap {
+            padding: 24px 20px 40px;
+        }
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}

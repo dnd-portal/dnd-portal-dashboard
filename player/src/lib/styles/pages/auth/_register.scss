@@ -5,14 +5,14 @@
     display: grid;
     place-items: center;
     padding: 32px 16px;
-    background: radial-gradient(circle at 50% 15%, rgba(69, 94, 135, 0.17), transparent 38%), $color-background;
+    background: $portal-background;
     .register-card {
         width: min(100%, 430px);
         padding: 42px 44px 33px;
         border: 1px solid #1f2d42;
         border-radius: 11px;
-        background: linear-gradient(145deg, #121b29, #0e141e);
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+        background: $portal-surface;
+        box-shadow: none;
     }
     .error-actions {
         display: flex;
@@ -95,6 +95,7 @@
     }
     input {
         width: 100%;
+        min-height: 46px;
         border: 1px solid #2a3b53;
         border-radius: 6px;
         padding: 12px 13px;
@@ -137,17 +138,17 @@
     .auth-login-form .login-button {
         width: 100%;
         margin-top: 24px;
-        border: 1px solid #5477ad;
+        border: 1px solid $portal-accent-border;
         border-radius: 6px;
         padding: 12px;
-        color: #f1f6ff;
-        background: #455e87;
+        color: $portal-button-text;
+        background: $portal-button-background;
         font-size: 11px;
         font-weight: 700;
         cursor: pointer;
     }
     .auth-login-form .login-button:hover:not(:disabled) {
-        background: #5474a8;
+        background: $portal-accent-hover;
     }
     .auth-login-form .login-button:disabled {
         cursor: not-allowed;
@@ -161,6 +162,7 @@
     }
     .primary-button {
         width: 100%;
+        min-height: 44px;
         margin-top: 24px;
         border: 1px solid #5477ad;
         border-radius: 6px;

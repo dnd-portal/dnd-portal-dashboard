@@ -1,6 +1,24 @@
 @use 'variables' as *;
 @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=DM+Mono:wght@400;500&display=swap');
 
+:root {
+    --portal-background: #0b0c0f;
+    --portal-surface: #111318;
+    --portal-surface-raised: #1b1e25;
+    --portal-text: #d9dcdf;
+    --portal-heading: #f3f5f6;
+    --portal-text-secondary: #a5abb3;
+    --portal-text-muted: #949ca8;
+    --portal-border: #2d3642;
+    --portal-divider: #222936;
+    --portal-accent: #79b8ff;
+    --portal-accent-hover: #a5d0ff;
+    --portal-accent-border: #4f7096;
+    --portal-accent-soft: #192b42;
+    --portal-button-background: #79b8ff;
+    --portal-button-text: #0b1420;
+}
+
 *,
 *::before,
 *::after {
@@ -13,8 +31,8 @@ body {
     background: $color-background;
     color: $color-text;
     font-family: $font-sans;
-    font-size: 16px;
-    line-height: 1.55;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 button,
 input,
