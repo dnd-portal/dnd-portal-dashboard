@@ -52,7 +52,7 @@
             />
         </div>
         {#if loginError}<p class="error-message" role="alert">{loginError}</p>{/if}
-        <button class="p-button" type="submit" disabled={busy}
+        <button class="p-button" type="submit" disabled={busy || !identifier.trim() || !password}
             >{busy ? 'Signing in…' : 'Continue with email'} <span aria-hidden="true">→</span></button
         >
     </form>
