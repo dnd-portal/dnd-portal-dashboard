@@ -1,5 +1,5 @@
 # Bestaande-data-migratie
 
-De lokale repository bevat geen aantoonbaar oud/pre-V1 schema, export of legacy-DDL waarop een accountmigratie kan worden gebaseerd. De beschikbare refactor-ZIP bevat alleen geanonimiseerde frontend-mocktabellen. `backend/database/migrations/001_initial_portal_schema.sql` is het huidige schema, geen bronhistorie.
+De gebruiker leverde `C:\Users\toonv\Downloads\users.sql (1).zip` aan. Dit is een aantoonbare oude phpMyAdmin-export met één `users`-tabel en 7 records. Het bevat geen usernameveld, relatie-export of expliciete adminmapping. `backend/database/migrations/001_initial_portal_schema.sql` blijft het huidige schema, geen bronhistorie.
 
-Daarom is geen migratie verzonnen of uitgevoerd. Zie `accountmigratie.md` voor de exact benodigde bronbestanden en hashmetadata. Zodra die beschikbaar zijn, moet eerst een veld- en relatie-mapping worden opgesteld en daarna een geïsoleerde dry-run met synthetische data, row counts en foreign keys worden uitgevoerd.
+Daarom is geen import uitgevoerd. De geïsoleerde dry-run op `dnd_portal_test_run_20261027120001` controleerde conflicts en hashcompatibiliteit zonder records te schrijven; zie `accountmigratie.md` voor de exacte uitkomst en resterende mappings.
