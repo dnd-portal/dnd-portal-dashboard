@@ -79,14 +79,16 @@
                 id="invite-code"
                 bind:value={inviteCode}
                 onkeydown={(event) => event.key === 'Enter' && checkInvite()}
-                placeholder="WINF-3525-FKMW-3522-LA22"
+                placeholder="ABCD-1234-ABCD-1234-AB12"
                 autocomplete="off"
                 spellcheck="false"
             />
         </div>
         <p class="format-hint">Letters and numbers separated by hyphens</p>
         {#if inviteError}<p class="error-message">{inviteError}</p>{/if}
-        <button class="p-button" onclick={checkInvite}>Continue <span>→</span></button>
+        <button class="p-button" disabled={!inviteCode.trim() || busy} onclick={checkInvite}
+            >Continue <span>→</span></button
+        >
     {:else}
         <div class="given-code">
             <span>Given invite code:</span><strong>{inviteCode}</strong><button
