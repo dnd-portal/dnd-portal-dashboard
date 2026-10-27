@@ -88,7 +88,12 @@ function formatSqlLiterals(string $source, string $file): string {
     return $output;
 }
 
-function formatSqlNowdocBody(string $body, string $file, int $line, bool $concatenated = false): string {
+function formatSqlNowdocBody(
+    string $body,
+    string $file,
+    int $line,
+    bool $concatenated = false,
+): string {
     $sql = trim($body);
     if (!preg_match('/^(SELECT|INSERT|UPDATE|DELETE)\b/i', $sql)) {
         return $body;
@@ -115,10 +120,7 @@ function formatSqlNowdocBody(string $body, string $file, int $line, bool $concat
         if ($concatenated) {
             $lines[count($lines) - 1] .= ' ';
         }
-        return implode(
-            "\n",
-            $lines,
-        ) . "\n";
+        return implode("\n", $lines) . "\n";
     } catch (Throwable $exception) {
         fwrite(
             STDERR,
