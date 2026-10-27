@@ -33,7 +33,7 @@ foreach ($matches as $row) {
     $source[] = ['legacy_id' => (int)$row[1], 'name' => str_replace("''", "'", $row[2]),
         'email' => strtolower(str_replace("''", "'", $row[3])), 'hash' => str_replace("''", "'", $row[4])];
 }
-$source = array_values(array_filter($source, static fn(array $row): bool => $row['legacy_id'] !== 1));
+$source = array_values(array_filter($source, static fn(array $row): bool => !in_array($row['legacy_id'], [1, 2, 5], true)));
 $plan = AccountMigrationPlanner::propose(array_map(static fn(array $row): array => [
     'legacy_id' => $row['legacy_id'], 'name' => $row['name'], 'email' => $row['email'],
 ], $source), 1);
@@ -74,4 +74,4 @@ $counts = [];
 foreach (['users','user_credentials','user_roles','auth_sessions','password_reset_tokens','registration_invites'] as $table) {
     $counts[$table] = (int)$db->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
 }
-echo 'IMPORT_OK excluded_legacy_id=1 inserted=' . $inserted . ' reused=' . $reused . ' total_users=' . $counts['users'] . ' roles=' . $counts['user_roles'] . ' sessions=' . $counts['auth_sessions'] . ' reset_tokens=' . $counts['password_reset_tokens'] . ' invites=' . $counts['registration_invites'] . PHP_EOL;
+echo 'IMPORT_OK excluded_legacy_ids=1,2,5 inserted=' . $inserted . ' reused=' . $reused . ' total_users=' . $counts['users'] . ' roles=' . $counts['user_roles'] . ' sessions=' . $counts['auth_sessions'] . ' reset_tokens=' . $counts['password_reset_tokens'] . ' invites=' . $counts['registration_invites'] . PHP_EOL;

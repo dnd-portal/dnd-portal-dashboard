@@ -26,7 +26,7 @@ foreach ($matches as $row) {
         'role' => str_replace("''", "'", $row[5]),
     ];
 }
-$source = array_values(array_filter($source, static fn(array $row): bool => $row['legacy_id'] !== 1));
+$source = array_values(array_filter($source, static fn(array $row): bool => !in_array($row['legacy_id'], [1, 2, 5], true)));
 $plan = AccountMigrationPlanner::propose(array_map(static fn(array $row): array => [
     'legacy_id' => $row['legacy_id'], 'name' => $row['name'], 'email' => $row['email'],
 ], $source), 1);
@@ -49,7 +49,7 @@ $proposal = [
     'notes' => [
         'proposed_new_id values are isolated dry-run IDs and are not production IDs',
         'no sessions, reset codes, invite tokens, admin roles or campaign memberships are proposed',
-        'legacy ID 1 is explicitly excluded and is not proposed for migration',
+        'legacy IDs 1, 2 and 5 are explicitly excluded and are not proposed for migration',
     ],
 ];
 if (file_put_contents($outputPath, json_encode($proposal, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) === false) throw new RuntimeException('proposal could not be written');
