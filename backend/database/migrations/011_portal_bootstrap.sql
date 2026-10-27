@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS portal_bootstrap_state (
+    id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+    used_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+) ENGINE=InnoDB;
+
+INSERT IGNORE INTO portal_bootstrap_state (id) VALUES (1);

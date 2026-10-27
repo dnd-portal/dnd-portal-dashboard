@@ -15,6 +15,7 @@ require dirname(__DIR__) . '/src/Auth/Security.php';
 require dirname(__DIR__) . '/src/Auth/RateLimiter.php';
 require dirname(__DIR__) . '/src/Auth/RateLimitAdminService.php';
 require dirname(__DIR__) . '/src/Auth/AuthService.php';
+require dirname(__DIR__) . '/src/Auth/BootstrapService.php';
 require dirname(__DIR__) . '/src/Domain/CampaignService.php';
 require dirname(__DIR__) . '/src/Domain/PollService.php';
 require dirname(__DIR__) . '/src/Domain/PaymentService.php';
@@ -29,6 +30,7 @@ use DndPortal\Database\Connection;
 use DndPortal\Auth\SessionStore;
 use DndPortal\Auth\Security;
 use DndPortal\Auth\AuthService;
+use DndPortal\Auth\BootstrapService;
 use DndPortal\Domain\CampaignService;
 use DndPortal\Domain\PollService;
 use DndPortal\Domain\PaymentService;
@@ -49,6 +51,11 @@ if ($origin !== '' && $allowedOrigin !== '' && hash_equals($allowedOrigin, $orig
 }
 
 $router = new Router();
+$router->post('/api/v1/bootstrap/first-admin', static function ($r) {
+    if (!DndPortal\Config::isProduction()) Response::error('not_found', 'Not found.', 404);
+    $db = Connection::make();
+    new BootstrapService($db)->create($r->json(), $r->header('X-Bootstrap-Token'));
+});
 $router->options('/api/v1/health', static fn() => Response::json(['data' => ['status' => 'ok']]));
 $router->get('/api/v1/health', static fn() => HealthService::report());
 $router->get('/api/v1/auth/csrf', static function () {
