@@ -61,14 +61,18 @@
 </svelte:head>
 
 <section class="auth-route-content">
-    <h1>{accountCreated ? 'You’re on the list' : inviteAccepted ? 'Create your account' : 'Enter your invite code'}</h1>
-    <p>
-        {accountCreated
-            ? 'Your account has been created. You can now sign in.'
-            : inviteAccepted
-              ? 'Your invite is valid. Choose the details you’ll use to sign in.'
-              : 'The D&D Portal Dashboard is currently invite-only. Enter your code to continue.'}
-    </p>
+    <div class="auth-route-content__heading">
+        <h1>
+            {accountCreated ? 'You’re on the list' : inviteAccepted ? 'Create your account' : 'Enter your invite code'}
+        </h1>
+        <p>
+            {accountCreated
+                ? 'Your account has been created. You can now sign in.'
+                : inviteAccepted
+                  ? 'Your invite is valid. Choose the details you’ll use to sign in.'
+                  : 'The D&D Portal Dashboard is currently invite-only. Enter your code to continue.'}
+        </p>
+    </div>
     {#if accountCreated}
         <div class="success-mark">✓</div>
         <button class="p-button" onclick={() => (window.location.href = '/login')}>Go to sign in <span>→</span></button>

@@ -25,7 +25,7 @@
 
 <svelte:head><title>D&amp;D Portal · Sign in</title></svelte:head>
 <section class="auth-route-content">
-    <div>
+    <div class="auth-route-content__heading">
         <h1>Sign in</h1>
         <p>Use your account to continue to your campaign dashboard.</p>
     </div>
