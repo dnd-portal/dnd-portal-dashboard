@@ -3,7 +3,7 @@
     import { api, ApiRequestError } from '#lib/api/index.js';
     import Tooltip from '#lib/components/shared/Tooltip.svelte';
 
-    const invitePattern = /^[A-Za-z0-9_-]{32,}$/;
+    const invitePattern = /^[A-Za-z0-9_-]{8,}$/;
     let inviteCode = $state('');
     let inviteError = $state('');
     let inviteAccepted = $state(false);

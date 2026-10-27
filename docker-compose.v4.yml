@@ -20,4 +20,21 @@ services:
     depends_on: {database: {condition: service_healthy}}
     environment: {PMA_HOST: database, PMA_PORT: 3306}
     ports: ["127.0.0.1:8096:80"]
-volumes: {dnd-portal-v4-db: {name: dnd-portal-v4-db}}
+  database-preview:
+    image: mariadb:11.4.13
+    container_name: dnd-portal-v4-mariadb-preview
+    environment:
+      MARIADB_DATABASE: dnd_portal_v4_preview
+      MARIADB_USER: dnd_v4_preview
+      MARIADB_PASSWORD: local-v4-preview-only
+      MARIADB_ROOT_PASSWORD: local-v4-preview-root-only
+    ports: ["127.0.0.1:3311:3306"]
+    volumes: [dnd-portal-v4-preview-db:/var/lib/mysql]
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -plocal-v4-preview-root-only"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+volumes:
+  dnd-portal-v4-db: {name: dnd-portal-v4-db}
+  dnd-portal-v4-preview-db: {name: dnd-portal-v4-preview-db}
