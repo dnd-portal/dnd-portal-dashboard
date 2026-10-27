@@ -71,7 +71,12 @@
                     <a href={`/admin/payments/${row.id}`}>{row.title}</a> — {row.amount_cents === null
                         ? 'Variable'
                         : `${row.amount_cents} ${row.currency}`} — {row.status}
-                    {#if row.external_url}<a href={row.external_url} target="_blank" rel="noreferrer">Open payment link</a><img src={`https://quickchart.io/qr?text=${encodeURIComponent(row.external_url)}&size=180`} alt="QR code for payment link" />{/if}
+                    {#if row.external_url}<a href={row.external_url} target="_blank" rel="noreferrer"
+                            >Open payment link</a
+                        ><img
+                            src={`https://quickchart.io/qr?text=${encodeURIComponent(row.external_url)}&size=180`}
+                            alt="QR code for payment link"
+                        />{/if}
                 </li>{/each}
         </ul>
     </section>{:else if campaignId}<p role="status">No payment requests loaded.</p>{/if}

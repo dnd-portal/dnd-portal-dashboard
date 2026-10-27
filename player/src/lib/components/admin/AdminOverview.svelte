@@ -74,7 +74,9 @@
         {#if data.admin}<DetailPanel eyebrow="RECENT ACTIVITY" title="Latest changes"
                 >{#if data.admin.activity.length}<div class="admin-overview__list">
                         {#each data.admin.activity as item}<div class="admin-overview__list-row">
-                                <span><b>{item.actor_name ?? 'System'} · {item.event_type}</b></span><time>{item.occurred_at}</time>
+                                <span><b>{item.actor_name ?? 'System'} · {item.event_type}</b></span><time
+                                    >{item.occurred_at}</time
+                                >
                             </div>{/each}
                     </div>{:else}<p class="admin-overview__empty">
                         No activity has been recorded yet.

@@ -26,8 +26,15 @@ async function createPoll(
     title: string
 ) {
     await adminPage.goto('/admin/polls');
-    const campaigns = await adminPage.evaluate(async () => (await fetch('/api/v1/campaigns')).json());
-    const campaignId = Number(campaigns.data[0].id);
+    const campaignId = await adminPage.evaluate(async () => {
+        const campaigns = await fetch('/api/v1/campaigns').then((response) => response.json());
+        for (const campaign of campaigns.data) {
+            const members = await fetch(`/api/v1/campaigns/${campaign.id}/members`).then((response) => response.json());
+            if (members.data.some((member: { username: string }) => member.username === 'pollplayer'))
+                return Number(campaign.id);
+        }
+        throw new Error('Poll browser fixture campaign membership was not found.');
+    });
     await adminPage.getByLabel('Campaign ID').fill(String(campaignId));
     await adminPage.getByLabel('Poll title').fill(title);
     await adminPage.getByLabel('Choice type').selectOption(choiceType);
@@ -67,6 +74,10 @@ test.describe('real poll player flows', () => {
         const playerPage = player.page;
         await login(playerPage, process.env.POLL_PLAYER_USERNAME!, process.env.POLL_PLAYER_PASSWORD!);
         await playerPage.goto(`/polls/${pollId}`);
+        await playerPage.getByRole('button', { name: 'No option fits' }).click();
+        await expect(playerPage.getByText('Response saved.', { exact: true })).toBeVisible();
+        await playerPage.reload();
+        await expect(playerPage.getByText('No option fits.', { exact: true })).toBeVisible();
         await playerPage.locator('input[name="poll-option"]').nth(0).check();
         await playerPage.getByRole('button', { name: 'Save vote' }).click();
         await expect(playerPage.getByText('Vote saved.', { exact: true }))
@@ -97,6 +108,10 @@ test.describe('real poll player flows', () => {
         const playerPage = player.page;
         await login(playerPage, process.env.POLL_PLAYER_USERNAME!, process.env.POLL_PLAYER_PASSWORD!);
         await playerPage.goto(`/polls/${pollId}`);
+        await playerPage.getByRole('button', { name: 'No option fits' }).click();
+        await expect(playerPage.getByText('Response saved.', { exact: true })).toBeVisible();
+        await playerPage.reload();
+        await expect(playerPage.getByText('No option fits.', { exact: true })).toBeVisible();
         await playerPage.locator('input[name="poll-option"]').nth(0).check();
         await playerPage.locator('input[name="poll-option"]').nth(1).check();
         await playerPage.getByRole('button', { name: 'Save vote' }).click();

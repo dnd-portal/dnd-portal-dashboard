@@ -41,7 +41,7 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 
 - [x] RSVP na deadline: speler geweigerd; managercorrectie en afzonderlijke attendance toegestaan en beide auditgelogd.
 - [x] `responded_without_option`: bodyloze POST kreeg eerder geen CSRF-header in de helper; muterende requests sturen nu altijd de token. Backendtest geeft HTTP 200, status `responded_without_option`, herlaadstatus en nul optiestemmen; gesloten/verlopen en niet-deelnemer blijven geweigerd.
-- [ ] Pollbrowserflows: backend is geslaagd, maar beide bestaande browserflows stoppen in `createPoll` omdat de aangemaakte poll-link niet zichtbaar wordt; geen CSRF-fout.
+- [x] Pollbrowserflows: oorzaak was campagnekeuze in fixture (`data[0]`) terwijl speler-membership op de fixturecampagne zat; createPoll selecteert nu via echte campaign/member-responses. Beide single-/multiple-flows geslaagd; “No option fits” opslaan/herladen en daarna optiestem opslaan getest.
 - [ ] Financieel beleid voor negatieve correcties/verrekeningen — aanbeveling: gebruik uitsluitend append-only reversals binnen dezelfde verplichting/valuta; voeg verrekening pas toe na expliciete keuze.
 - [x] Dashboardactiviteit: alleen portaladmin-response-allowlist bevat actornaam/actie; geen secrets of emailadressen.
 

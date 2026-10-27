@@ -120,6 +120,7 @@
             Status: {poll.status}{#if poll.closes_at}
                 · closes {poll.closes_at}{/if} · {poll.choice_type}
         </p>
+        {#if poll.response_state === 'responded_without_option'}<p role="status">No option fits.</p>{/if}
         {#if poll.status === 'open'}<fieldset>
                 <legend>Your answer</legend>{#each poll.options as option}<label
                         ><input
