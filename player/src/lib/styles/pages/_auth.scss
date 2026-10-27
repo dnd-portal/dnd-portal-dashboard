@@ -101,7 +101,8 @@
     object-fit: contain;
 }
 .p-auth__brand {
-    display: inline-block;
+    display: flex;
+    justify-content: center;
     margin-bottom: 24px;
 }
 .p-auth__panel {
@@ -113,6 +114,9 @@
     display: grid;
     gap: 12px;
     margin-bottom: 24px;
+}
+.p-auth__header .p-eyebrow {
+    margin-bottom: -8px;
 }
 .auth-route-content {
     display: grid;
