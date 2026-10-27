@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { api } from '#lib/api/index.js';
-    import PublicNavigation from '#lib/components/shared/PublicNavigation.svelte';
+    import PublicLayout from '#lib/components/layouts/PublicLayout.svelte';
 
     let signedIn = $state(false);
     onMount(async () => {
@@ -17,8 +17,7 @@
     <meta name="description" content="A calm home for your D&D campaign sessions, party and shared expenses." />
 </svelte:head>
 
-<main class="p-auth p-public-home">
-    <PublicNavigation {signedIn} />
+<PublicLayout {signedIn}>
     <section class="p-card p-public-home__panel">
         <p class="p-eyebrow">D&amp;D PORTAL</p>
         <h1>Everything your campaign needs, in one place.</h1>
@@ -32,4 +31,4 @@
             <a class="p-button p-button--secondary" href="/register">Join with an invite</a>
         </div>
     </section>
-</main>
+</PublicLayout>

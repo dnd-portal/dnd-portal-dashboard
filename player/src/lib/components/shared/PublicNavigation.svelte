@@ -7,7 +7,7 @@
         <img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="176" height="48" />
     </a>
     <a href="/">Home</a>
-    {#if signedIn}<a class="p-button" href="/dashboard">Open dashboard</a>{:else}<a href="/login">Login</a><a
-            href="/register">Register</a
-        >{/if}
+    <a href="https://dnd-portal.com/">D&amp;D Portal Wiki</a>
+    <a class="p-button" href="/dashboard">{signedIn ? 'Open dashboard' : 'Dashboard'}</a>
+    {#if !signedIn}<a href="/login">Login</a><a href="/register">Register</a>{/if}
 </nav>

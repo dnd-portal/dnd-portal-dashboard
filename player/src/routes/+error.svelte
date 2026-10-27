@@ -1,6 +1,6 @@
 <script lang="ts">
     import { page } from '$app/state';
-    import AuthLayout from '#lib/components/player/AuthLayout.svelte';
+    import PublicLayout from '#lib/components/layouts/PublicLayout.svelte';
 
     const copy: Record<number, { title: string; description: string }> = {
         400: { title: 'Request could not be understood', description: 'Check the information and try again.' },
@@ -30,13 +30,27 @@
 
 <svelte:head><title>{message.title} | D&D Portal</title></svelte:head>
 
-<AuthLayout title={message.title} description={message.description}>
-    <div class="error-actions">
-        {#if status === 401 || status === 419}<a class="primary-button" href="/login">Sign in again</a>{:else}<button
-                class="primary-button"
-                type="button"
-                onclick={() => location.reload()}>Try again</button
-            >{/if}
-        <a class="secondary-button" href="/">Return to the portal</a>
-    </div>
-</AuthLayout>
+<PublicLayout>
+    <section class="p-public-error" aria-labelledby="error-title">
+        <p class="p-eyebrow">ERROR {status}</p>
+        <h1 id="error-title">{message.title}</h1>
+        <p>{message.description}</p>
+        <div class="p-public-error__actions">
+            {#if status === 401 || status === 419}
+                <a class="p-button" href="/login">Sign in again</a>
+            {:else if status === 404}
+                <a class="p-button" href="/">Return home</a>
+            {:else if status === 403}
+                <a class="p-button" href="/dashboard">Open dashboard</a>
+            {:else if status === 409 || status === 429 || status === 500 || status === 502 || status === 503}
+                <button class="p-button" type="button" onclick={() => location.reload()}>Try again</button>
+            {:else}
+                <a class="p-button" href="/">Return home</a>
+            {/if}
+            {#if status !== 404 && status !== 403}<a class="p-button p-button--secondary" href="/dashboard"
+                    >Open dashboard</a
+                >{/if}
+        </div>
+        <a class="p-public-error__home" href="/">Return to the portal</a>
+    </section>
+</PublicLayout>
