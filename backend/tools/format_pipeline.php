@@ -202,11 +202,16 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
 function formatWithSqlFormatter(string $sql): string {
     global $sqlFormatterProcess, $sqlFormatterPipes;
     if (!isset($sqlFormatterProcess) || !is_resource($sqlFormatterProcess)) {
-        $sqlFormatterProcess = proc_open('node tools/format_sql.mjs', [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ], $sqlFormatterPipes, dirname(__DIR__));
+        $sqlFormatterProcess = proc_open(
+            'node tools/format_sql.mjs',
+            [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ],
+            $sqlFormatterPipes,
+            dirname(__DIR__),
+        );
         if (!is_resource($sqlFormatterProcess)) {
             throw new RuntimeException('SQL formatter process could not be started');
         }
