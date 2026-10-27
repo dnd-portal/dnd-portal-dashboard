@@ -69,8 +69,9 @@ function formatSqlLiterals(string $source, string $file): string {
                 is_array($endToken) &&
                 $endToken[0] === T_END_HEREDOC
             ) {
+                $concatenated = ($tokens[$index + 3] ?? null) === '.';
                 $output .= $token[1];
-                $output .= formatSqlNowdocBody($bodyToken[1], $file, $token[2]);
+                $output .= formatSqlNowdocBody($bodyToken[1], $file, $token[2], $concatenated);
                 $output .= $endToken[1];
                 $index += 2;
                 continue;
@@ -87,7 +88,7 @@ function formatSqlLiterals(string $source, string $file): string {
     return $output;
 }
 
-function formatSqlNowdocBody(string $body, string $file, int $line): string {
+function formatSqlNowdocBody(string $body, string $file, int $line, bool $concatenated = false): string {
     $sql = trim($body);
     if (!preg_match('/^(SELECT|INSERT|UPDATE|DELETE)\b/i', $sql)) {
         return $body;
@@ -107,12 +108,16 @@ function formatSqlNowdocBody(string $body, string $file, int $line): string {
             );
             return $body;
         }
+        $lines = array_map(
+            static fn(string $formattedLine): string => $indent . $formattedLine,
+            explode("\n", trim($formatted)),
+        );
+        if ($concatenated) {
+            $lines[count($lines) - 1] .= ' ';
+        }
         return implode(
             "\n",
-            array_map(
-                static fn(string $formattedLine): string => $indent . $formattedLine,
-                explode("\n", trim($formatted)),
-            ),
+            $lines,
         ) . "\n";
     } catch (Throwable $exception) {
         fwrite(
