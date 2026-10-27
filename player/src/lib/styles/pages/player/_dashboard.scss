@@ -26,21 +26,15 @@
     .brand {
         display: flex;
         align-items: center;
-        gap: 10px;
+        min-height: 48px;
         padding: 0 13px 30px;
-        font-size: 12px;
-        font-weight: 800;
-        color: $color-text;
-        letter-spacing: 0.12em;
-
-        &-mark {
-            color: $color-link;
-        }
+        text-decoration: none;
     }
-    .brand-mark {
-        color: $color-accent;
-        font-size: 23px;
-        line-height: 1;
+    .brand img {
+        display: block;
+        width: 110px;
+        height: 48px;
+        object-fit: contain;
     }
     .campaign-switcher {
         display: flex;
@@ -151,6 +145,9 @@
         margin-top: 31px;
     }
     .nav-item {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
         width: 100%;
         border: 0;
         background: transparent;
@@ -161,6 +158,13 @@
         transition: 0.2s;
         color: #8ea4c3;
         border-radius: 5px;
+        text-decoration: none;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid $color-accent;
+            outline-offset: 2px;
+        }
 
         &:hover,
         &.active {
@@ -512,7 +516,8 @@
         font-size: 16px;
     }
     .login-screen {
-        width: min(100%, 410px);
+        box-sizing: border-box;
+        width: min(100%, 520px);
         margin: 74px auto;
         padding: 42px 45px;
         border: 1px solid #1f2d42;

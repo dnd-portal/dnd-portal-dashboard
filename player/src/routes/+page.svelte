@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
 
-    type User = { display_name: string; email: string | null; username: string | null };
+    type User = { display_name: string; email: string | null; username: string | null; roles?: string[] };
     type Campaign = { id: number; name: string; membership_role: string | null };
     type Session = {
         id: number;
@@ -135,7 +135,9 @@
 {:else}
     <div class="app-shell">
         <aside class="sidebar">
-            <div class="brand"><span class="brand-mark">✦</span><span>D&amp;D PORTAL<br />PLAYER DASHBOARD</span></div>
+            <a class="brand" href="/" aria-label="D&D Portal dashboard"
+                ><img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" /></a
+            >
             <div class="campaign-switcher-wrap">
                 <div class="campaign-switcher">
                     <div class="campaign-icon">D&amp;D</div>
@@ -148,25 +150,25 @@
                     class:active={activeNav === 'Overview'}
                     class="nav-item"
                     href="/"
-                    onclick={() => (activeNav = 'Overview')}>⌗ Overview</a
+                    onclick={() => (activeNav = 'Overview')}><span class="nav-icon">⌗</span>Overview</a
                 >
                 <a
                     class:active={activeNav === 'Sessions'}
                     class="nav-item"
                     href="/sessions"
-                    onclick={() => (activeNav = 'Sessions')}>▣ Sessions</a
+                    onclick={() => (activeNav = 'Sessions')}><span class="nav-icon">▣</span>Sessions</a
                 >
                 <a
                     class:active={activeNav === 'The party'}
                     class="nav-item"
                     href="/party"
-                    onclick={() => (activeNav = 'The party')}>♧ The party</a
+                    onclick={() => (activeNav = 'The party')}><span class="nav-icon">♧</span>The party</a
                 >
                 <a
                     class:active={activeNav === 'Treasury'}
                     class="nav-item"
                     href="/payments"
-                    onclick={() => (activeNav = 'Treasury')}>◈ Treasury</a
+                    onclick={() => (activeNav = 'Treasury')}><span class="nav-icon">◈</span>Treasury</a
                 >
                 <p class="nav-label secondary-label">WORLD</p>
                 <span class="nav-item is-disabled" title="Chronicle is not available for this campaign"
@@ -179,6 +181,9 @@
                     <div class="avatar avatar-blue">{user.display_name.slice(0, 2).toUpperCase()}</div>
                     <div><strong>{user.display_name}</strong><span>@{user.username ?? 'player'}</span></div>
                 </div>
+                {#if user.roles?.includes('portal_admin')}<a class="nav-item" href="/admin"
+                        ><span class="nav-icon">⚙</span>Admin</a
+                    >{/if}
                 <button class="nav-item" type="button" onclick={logout}>Sign out</button>
             </div>
         </aside>
