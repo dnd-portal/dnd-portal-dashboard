@@ -126,7 +126,7 @@ function formatSqlNowdocBody(
             explode("\n", trim($formatted)),
         );
         if ($concatenated) {
-            $lines[count($lines) - 1] .= ' ';
+            $lines[] = '';
         }
         return implode("\n", $lines) . "\n";
     } catch (Throwable $exception) {
