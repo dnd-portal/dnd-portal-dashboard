@@ -1,0 +1,63 @@
+<script lang="ts">
+    import { page } from '$app/state';
+    import { api } from '#lib/api/index.js';
+    import PlayerNavigation from '#lib/components/player/PlayerNavigation.svelte';
+    import { playerLinks } from '#lib/navigation.js';
+    import type { Snippet } from 'svelte';
+
+    type User = { display_name: string; username: string | null; roles?: string[] };
+    let { user, campaignName, children }: { user: User; campaignName?: string; children: Snippet } = $props();
+    let menuOpen = $state(false);
+    const active = $derived(playerLinks.find((link) => page.url.pathname.startsWith(link.href))?.label ?? 'Overview');
+
+    async function logout() {
+        await api.post('/api/v1/auth/logout', {});
+        window.location.href = '/';
+    }
+
+    function closeMenu() {
+        menuOpen = false;
+    }
+</script>
+
+<svelte:window onkeydown={(event) => event.key === 'Escape' && closeMenu()} />
+
+<div class="p-shell" data-menu-open={menuOpen}>
+    <header class="p-shell__header">
+        <a class="p-shell__brand" href="/" aria-label="D&D Portal dashboard"
+            ><img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" /></a
+        >
+        <button
+            class="p-button p-button--secondary p-shell__menu-toggle"
+            type="button"
+            aria-label="Open navigation"
+            aria-expanded={menuOpen}
+            aria-controls="portal-navigation"
+            onclick={() => (menuOpen = !menuOpen)}>Menu</button
+        >
+        <div class="p-shell__header-actions">
+            <span class="p-shell__breadcrumb"
+                ><span class="p-shell__breadcrumb-section">Campaign /</span> <strong>{active}</strong></span
+            >
+        </div>
+    </header>
+    <button class="p-shell__backdrop" type="button" aria-label="Close navigation" onclick={closeMenu}></button>
+    <aside id="portal-navigation" class="p-shell__sidebar">
+        {#if campaignName}<button class="p-campaign-picker" type="button">
+                <span class="p-campaign-picker__mark">D&amp;D</span>
+                <span class="p-campaign-picker__copy"
+                    ><strong>{campaignName}</strong><small>Player campaign</small></span
+                >
+                <span class="p-campaign-picker__chevron" aria-hidden="true">⌄</span>
+            </button>{/if}
+        <PlayerNavigation close={closeMenu} />
+        <div class="p-shell__sidebar-footer">
+            {#if user.roles?.includes('portal_admin')}<a class="p-button p-button--secondary" href="/admin">Admin</a
+                >{/if}
+            <button class="p-button p-button--secondary" type="button" onclick={logout}>Sign out</button>
+        </div>
+    </aside>
+    <main class="p-shell__main">
+        <div class="p-container">{@render children()}</div>
+    </main>
+</div>

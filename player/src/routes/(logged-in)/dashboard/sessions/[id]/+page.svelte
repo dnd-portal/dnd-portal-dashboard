@@ -47,7 +47,7 @@
 </script>
 
 <section class="p-dashboard">
-    <a href="/sessions">← Sessions</a>{#if error}<p class="error-message" role="alert">
+    <a href="/dashboard/sessions">← Sessions</a>{#if error}<p class="error-message" role="alert">
             {error}
         </p>{:else if !session}<p role="status">Loading session…</p>{:else}<h1>{session.title}</h1>
         <dl>

@@ -36,13 +36,13 @@ test('external SCSS has no legacy catch-all, Svelte global syntax or important o
 test('route groups keep public, auth, player and admin ownership explicit', () => {
     const required = [
         'src/routes/(public)/+page.svelte',
-        'src/routes/(logged-out)/+layout.svelte',
-        'src/routes/(logged-out)/login/+page.svelte',
+        'src/routes/(auth)/+layout.svelte',
+        'src/routes/(auth)/login/+page.svelte',
         'src/routes/(logged-in)/+layout.svelte',
         'src/routes/(logged-in)/dashboard/+page.svelte',
-        'src/routes/(logged-in)/sessions/+page.svelte',
-        'src/routes/(logged-in)/party/+page.svelte',
-        'src/routes/(logged-in)/payments/+page.svelte',
+        'src/routes/(logged-in)/dashboard/sessions/+page.svelte',
+        'src/routes/(logged-in)/dashboard/party/+page.svelte',
+        'src/routes/(logged-in)/dashboard/payments/+page.svelte',
         'src/routes/(is-admin)/+layout.svelte',
         'src/routes/(is-admin)/admin/+page.svelte'
     ];

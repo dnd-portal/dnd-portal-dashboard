@@ -84,7 +84,7 @@
                         ><b>Time</b>{formatPortalTime(nextSession.starts_at)}</span
                     >
                 </div>
-                <a class="p-button p-button--secondary" href={`/sessions/${nextSession.id}`}
+                <a class="p-button p-button--secondary" href={`/dashboard/sessions/${nextSession.id}`}
                     >View session details <span aria-hidden="true">→</span></a
                 >
             </div>
@@ -121,12 +121,14 @@
                     <p class="p-eyebrow">THE ROAD AHEAD</p>
                     <h3>Upcoming sessions</h3>
                 </div>
-                <a class="p-button p-button--secondary" href="/sessions"
+                <a class="p-button p-button--secondary" href="/dashboard/sessions"
                     >View calendar <span aria-hidden="true">→</span></a
                 >
             </div>
             {#if sessions.length}<div class="p-list">
-                    {#each sessions as session}<a class="p-list__row p-session-row" href={`/sessions/${session.id}`}
+                    {#each sessions as session}<a
+                            class="p-list__row p-session-row"
+                            href={`/dashboard/sessions/${session.id}`}
                             ><div class="p-session-row__date">
                                 <strong>{session.session_date.slice(8, 10)}</strong><span
                                     >{session.session_date.slice(5, 7)}</span
@@ -148,7 +150,7 @@
                     <p class="p-eyebrow">YOUR PARTY</p>
                     <h3>Fellow adventurers</h3>
                 </div>
-                <a class="p-button p-button--secondary" aria-label="Open party roster" href="/party">＋</a>
+                <a class="p-button p-button--secondary" aria-label="Open party roster" href="/dashboard/party">＋</a>
             </div>
             {#if members.length}<div class="p-list">
                     {#each members.slice(0, 5) as member}<div class="p-list__row party-row">
@@ -161,7 +163,7 @@
                         </div>{/each}
                 </div>{:else}<p role="status">No party members available.</p>{/if}<a
                 class="p-button p-button--secondary p-button--full"
-                href="/party">Open party roster <span aria-hidden="true">→</span></a
+                href="/dashboard/party">Open party roster <span aria-hidden="true">→</span></a
             >
         </section>
     </div>

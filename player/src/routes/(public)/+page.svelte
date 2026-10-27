@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { api } from '#lib/api/index.js';
+    import PublicNavigation from '#lib/components/shared/PublicNavigation.svelte';
 
     let signedIn = $state(false);
     onMount(async () => {
@@ -17,9 +18,7 @@
 </svelte:head>
 
 <main class="p-auth p-public-home">
-    <a class="p-auth__brand" href="/" aria-label="D&D Portal">
-        <img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="176" height="48" />
-    </a>
+    <PublicNavigation {signedIn} />
     <section class="p-card p-public-home__panel">
         <p class="p-eyebrow">D&amp;D PORTAL</p>
         <h1>Everything your campaign needs, in one place.</h1>
