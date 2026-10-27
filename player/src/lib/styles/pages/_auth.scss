@@ -42,6 +42,8 @@
 }
 .p-public-error {
     max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
     padding: clamp(32px, 8vw, 96px) 0;
 }
 .p-public-error h1 {
@@ -55,6 +57,7 @@
 }
 .p-public-error__actions {
     display: flex;
+    justify-content: center;
     gap: 12px;
     margin-top: 32px;
     flex-wrap: wrap;
