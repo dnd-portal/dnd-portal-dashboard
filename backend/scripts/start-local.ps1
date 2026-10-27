@@ -1,3 +1,5 @@
+# Use -SeedDemo after migrations to add idempotent synthetic local accounts and data.
+param([switch]$SeedDemo)
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $backend = Join-Path $repo 'backend'
@@ -51,6 +53,9 @@ try {
     }
     Invoke-Native 'php' @('backend/scripts/ensure-development-database.php')
     Invoke-Native 'php' @('backend/scripts/migrate.php')
+    if ($SeedDemo) {
+        Invoke-Native 'php' @('backend/scripts/seed-local-demo.php')
+    }
     $email = Read-Host 'Local admin email (existing active portal admin is reused)'
     $username = Read-Host 'Local admin username'
     $displayName = Read-Host 'Local admin display name'

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from '$app/state';
     import { api, ApiRequestError } from '#lib/api/index.js';
+    import AuthLayout from '#lib/components/player/AuthLayout.svelte';
 
     let code = $state(page.url.searchParams.get('code') ?? '');
     let identifier = $state('');
@@ -43,54 +44,49 @@
 
 <svelte:head><title>D&amp;D Portal · Reset password</title></svelte:head>
 
-<main class="register-shell">
-    <section class="register-card">
-        <div class="brand-mark">✦</div>
-        <p class="eyebrow">D&amp;D PORTAL PLAYER DASHBOARD</p>
-        <h1>Choose a new password</h1>
-        <p class="intro">
-            Use the reset code from your organizer. The code is single-use and expires after 30 minutes.
-        </p>
-        <div class="field-group">
-            <label for="reset-identifier">Email or username</label><input
-                id="reset-identifier"
-                bind:value={identifier}
-                autocomplete="username"
-            />
-        </div>
-        <button class="secondary-button" type="button" disabled={!code || !identifier} onclick={validate}
-            >Validate code</button
-        >
-        <div class="field-group">
-            <label for="reset-code">Reset code</label><input
-                id="reset-code"
-                bind:value={code}
-                autocomplete="one-time-code"
-            />
-        </div>
-        <div class="field-group">
-            <label for="password">New password</label><input
-                id="password"
-                type="password"
-                bind:value={password}
-                autocomplete="new-password"
-            />
-        </div>
-        <div class="field-group">
-            <label for="confirmation">Confirm password</label><input
-                id="confirmation"
-                type="password"
-                bind:value={confirmation}
-                autocomplete="new-password"
-            />
-        </div>
-        {#if error}<p class="error-message">{error}</p>{/if}
-        {#if message}<p class="success-message">{message}</p>{/if}
-        <button
-            class="primary-button"
-            disabled={!verified || password.length < 8 || password !== confirmation}
-            onclick={submit}>Set password <span>→</span></button
-        >
-        <p class="footer-note"><a href="/">Return to sign in</a></p>
-    </section>
-</main>
+<AuthLayout
+    title="Choose a new password"
+    description="Use the reset code from your organizer. The code is single-use and expires after 30 minutes."
+>
+    <div class="field-group">
+        <label for="reset-identifier">Email or username</label><input
+            id="reset-identifier"
+            bind:value={identifier}
+            autocomplete="username"
+        />
+    </div>
+    <button class="secondary-button" type="button" disabled={!code || !identifier} onclick={validate}
+        >Validate code</button
+    >
+    <div class="field-group">
+        <label for="reset-code">Reset code</label><input
+            id="reset-code"
+            bind:value={code}
+            autocomplete="one-time-code"
+        />
+    </div>
+    <div class="field-group">
+        <label for="password">New password</label><input
+            id="password"
+            type="password"
+            bind:value={password}
+            autocomplete="new-password"
+        />
+    </div>
+    <div class="field-group">
+        <label for="confirmation">Confirm password</label><input
+            id="confirmation"
+            type="password"
+            bind:value={confirmation}
+            autocomplete="new-password"
+        />
+    </div>
+    {#if error}<p class="error-message">{error}</p>{/if}
+    {#if message}<p class="success-message">{message}</p>{/if}
+    <button
+        class="primary-button"
+        disabled={!verified || password.length < 8 || password !== confirmation}
+        onclick={submit}>Set password <span>→</span></button
+    >
+    <p class="footer-note"><a href="/">Return to sign in</a></p>
+</AuthLayout>

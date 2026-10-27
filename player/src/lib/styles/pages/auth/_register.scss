@@ -26,6 +26,16 @@
         background: #192b48;
         font-size: 26px;
     }
+    .auth-brand {
+        display: block;
+        width: fit-content;
+        margin: 0 auto 22px;
+    }
+    .auth-brand img {
+        display: block;
+        width: 150px;
+        height: auto;
+    }
     .register-card .eyebrow {
         margin: 0 0 10px;
         color: $color-text-subtle;
@@ -87,6 +97,38 @@
         color: #dc9382;
         font: 10px $font-mono;
         line-height: 1.5;
+    }
+    .auth-login-form {
+        display: grid;
+        gap: 0;
+    }
+    .auth-login-form .login-input {
+        box-sizing: border-box;
+    }
+    .auth-login-form .login-button {
+        width: 100%;
+        margin-top: 24px;
+        border: 1px solid #5477ad;
+        border-radius: 6px;
+        padding: 12px;
+        color: #f1f6ff;
+        background: #455e87;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .auth-login-form .login-button:hover:not(:disabled) {
+        background: #5474a8;
+    }
+    .auth-login-form .login-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+    }
+    .auth-login-form .login-button span {
+        float: right;
+        color: #b4caf0;
+        font-size: 16px;
+        line-height: 11px;
     }
     .primary-button {
         width: 100%;

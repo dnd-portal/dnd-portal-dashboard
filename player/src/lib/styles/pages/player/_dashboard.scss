@@ -1,7 +1,6 @@
 @use '../../variables' as *;
 
 .app-shell {
-    overflow-x: hidden;
     display: flex;
     min-height: 100vh;
     background: $color-background;
@@ -276,7 +275,71 @@
     .content {
         flex: 1;
         min-width: 0;
-        overflow-x: hidden;
+    }
+
+    .player-page {
+        width: min(100%, 860px);
+        margin: 0 auto;
+        padding: 8px 0 40px;
+        color: $color-text;
+
+        h1 {
+            margin: 18px 0 24px;
+            font-size: 30px;
+        }
+
+        h2 {
+            margin-top: 26px;
+        }
+
+        a {
+            color: $color-link;
+        }
+
+        ul {
+            display: grid;
+            gap: 10px;
+            padding: 0;
+            list-style: none;
+        }
+
+        li {
+            padding: 14px 16px;
+            border: 1px solid $color-border;
+            border-radius: 8px;
+            background: $color-surface;
+        }
+
+        dl {
+            display: grid;
+            grid-template-columns: minmax(100px, 160px) minmax(0, 1fr);
+            gap: 10px 20px;
+            margin: 0;
+            padding: 18px;
+            border: 1px solid $color-border;
+            border-radius: 8px;
+            background: $color-surface;
+        }
+
+        dt {
+            color: $color-text-subtle;
+        }
+        dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .rsvp-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 22px 0;
+        }
+
+        .rsvp-actions button {
+            margin: 0;
+            cursor: pointer;
+        }
     }
 
     .nav-item.is-disabled {
@@ -525,6 +588,18 @@
         background: linear-gradient(145deg, #121b29, #0e141e);
         text-align: center;
         box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2);
+    }
+
+    .auth-brand {
+        display: block;
+        width: fit-content;
+        margin: 0 auto 22px;
+    }
+
+    .auth-brand img {
+        display: block;
+        width: 150px;
+        height: auto;
     }
     .login-mark {
         display: grid;
@@ -952,7 +1027,7 @@
         }
         .sidebar nav {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 4px;
         }
         .nav-item {

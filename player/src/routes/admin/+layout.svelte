@@ -117,7 +117,7 @@
 
 <svelte:head><title>{adminTitle}</title></svelte:head>
 <svelte:window onkeydown={keyboard} />
-<div class="admin-app" data-hydrated={hydrated || undefined}>
+<div class="admin-app" class:admin-app--denied={access !== 'allowed'} data-hydrated={hydrated || undefined}>
     <header class="admin-topbar">
         <div class="admin-topbar__inner">
             <button
