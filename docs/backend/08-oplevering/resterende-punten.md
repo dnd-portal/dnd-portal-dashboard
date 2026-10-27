@@ -25,14 +25,15 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 - [ ] Tijdzoneconversie, zomer-/wintertijd en ambigue/niet-bestaande lokale tijden. Het huidige contract bewaart `starts_at` als TIME en heeft geen expliciete lokale-timezonevalidatie.
 - [x] Beschikbaarheid via echte browsercontext opgeslagen, herladen via API gecontroleerd en verwijderd; jaarwisseling `2026-12-31` → `2027-01-01` en datumbehoud getest.
 - [x] Schrikkeldag in de mutatieflow: `session_availability_matrix.php` slaagde met `2028-02-29`; productiebeleid ±366 dagen bleef ongewijzigd.
-- [ ] Dashboardbrowser uitbreiden met expliciet gecontroleerde sessie/RSVP-totalen, open polls, lege toestand, API-uitval en afzonderlijke valuta. API-/backendchecks voor privacy, totals en valuta slagen; de nieuwe browser-empty/outage-test is nog niet stabiel reproduceerbaar door de geïsoleerde fixture/login-rate-limit.
+- [x] Dashboardbrowser/API: exacte sessie-/RSVP-totalen, lege toestand, gecontroleerde API-uitval met foutstatus, EUR/USD-scheiding en admin-/spelerprivacy geslaagd. De betaal/dashboardbatch is structureel geïsoleerd door testdatabase-only cleanup van `rate_limit_buckets`; volledige batch `3 passed`.
 - [ ] Bestaande-data-migratie uitvoeren met synthetische representatieve brondata — geblokkeerd: aantoonbaar oud schema ontbreekt; zie `migratiebron.md`.
 - [x] Databasebackup herstellen naar afzonderlijke testdatabase: runner `dnd_portal_test_run_1233620261027092517`; `schema_migrations=7`, relaties `7`, financiële nettosom `14100`, row counts gelijk.
 - [x] Resterende mockgebonden adminloader vervangen door API-backed loader met behoud van bestaande componenten en autorisatie; anonieme adminnavigatie blijft data-loos en eindigt in `Admin access required`.
 
 ## Controle-instrumentatie toegevoegd
 
-- `backend/tests/integration/backup_restore.php` maakt uitsluitend onder een geïsoleerde `dnd_portal_test_run_*`-database een aparte herstel-database, kopieert schema/data zonder de bron te wijzigen en controleert row counts, relaties, `schema_migrations` en de financiële nettosom. De runner voert dit script nu uit; uitvoering blijft open zolang MariaDB/Docker niet beschikbaar is.
+- `backend/tests/integration/backup_restore.php` maakt uitsluitend onder een geïsoleerde `dnd_portal_test_run_*`-database een aparte herstel-database, kopieert schema/data zonder de bron te wijzigen en controleert row counts, relaties, `schema_migrations` en de financiële nettosom. Volledige runner geslaagd op `dnd_portal_test_run_3223620261027094730`.
+- `prepare_payment_browser_fixture.php` wist vóór de betaal/dashboardbrowsergroep uitsluitend de testdatabase-tabel `rate_limit_buckets`. De werkelijke sleutel is `login|REMOTE_ADDR`; productierate-limiting en limieten zijn niet gewijzigd.
 - `docs/backend/08-oplevering/tijdzonecontract.md` legt het huidige opslag/API/weergavecontract vast en claimt geen DST-test.
 - `docs/backend/08-oplevering/migratiebron.md` legt vast dat een aantoonbaar oud schema ontbreekt; er is geen synthetische bron verzonnen.
 
