@@ -20,46 +20,56 @@ final class PaymentService {
     }
 
     public function get(int $uid, int $id): never {
-        $q = $this->db->prepare('SELECT
-    r.*,
-    c.id campaign_id
-FROM
-    payment_requests r
-JOIN campaigns c ON
-    c.id = r.campaign_id
-WHERE
-    r.id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            r.*,
+            c.id campaign_id
+            FROM
+            payment_requests r
+            JOIN campaigns c ON
+            c.id = r.campaign_id
+            WHERE
+            r.id = ?
+            SQL
+            ,
+        );
         $q->execute([$id]);
         $r = $q->fetch();
         if (!$r) {
             Response::error('not_found', 'Payment request not found.', 404);
         }
         $this->manage($uid, (int) $r['campaign_id']);
-        $q = $this->db->prepare('SELECT
-    o.id,
-    o.user_id,
-    o.amount_cents,
-    o.currency,
-    o.status,
-    COALESCE(
-        SUM(
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            o.id,
+            o.user_id,
+            o.amount_cents,
+            o.currency,
+            o.status,
+            COALESCE(
+            SUM(
             CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
-        END
-    ),
-    0
-) paid_cents,
-MAX(
-    CASE WHEN e.entry_kind = "payment" AND e.status = "confirmed" THEN e.id ELSE NULL
-END
-) last_payment_entry_id
-FROM
-    payment_obligations o
-LEFT JOIN payment_entries e ON
-    e.obligation_id = o.id
-WHERE
-    o.payment_request_id = ?
-GROUP BY
-    o.id');
+            END
+            ),
+            0
+            ) paid_cents,
+            MAX(
+            CASE WHEN e.entry_kind = "payment" AND e.status = "confirmed" THEN e.id ELSE NULL
+            END
+            ) last_payment_entry_id
+            FROM
+            payment_obligations o
+            LEFT JOIN payment_entries e ON
+            e.obligation_id = o.id
+            WHERE
+            o.payment_request_id = ?
+            GROUP BY
+            o.id
+            SQL
+            ,
+        );
         $q->execute([$id]);
         Response::json([
             'data' => [
@@ -90,17 +100,22 @@ GROUP BY
         if (!preg_match('/^[A-Z]{3}$/', $currency)) {
             Response::error('validation_failed', 'Invalid currency.', 422);
         }
-        $q = $this->db->prepare('INSERT INTO payment_requests(
-    campaign_id,
-    created_by,
-    title,
-    description,
-    amount_cents,
-    currency,
-    external_url,
-    due_date
-)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO payment_requests(
+            campaign_id,
+            created_by,
+            title,
+            description,
+            amount_cents,
+            currency,
+            external_url,
+            due_date
+            )
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+            SQL
+            ,
+        );
         $q->execute([
             $campaign,
             $uid,
@@ -115,13 +130,18 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
     }
 
     public function obligation(int $uid, int $request, array $in): never {
-        $q = $this->db->prepare('SELECT
-    campaign_id,
-    currency
-FROM
-    payment_requests
-WHERE
-    id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            campaign_id,
+            currency
+            FROM
+            payment_requests
+            WHERE
+            id = ?
+            SQL
+            ,
+        );
         $q->execute([$request]);
         $r = $q->fetch();
         if (!$r) {
@@ -138,13 +158,18 @@ WHERE
         ) {
             Response::error('validation_failed', 'Invalid obligation.', 422);
         }
-        $q = $this->db->prepare('INSERT INTO payment_obligations(
-    payment_request_id,
-    user_id,
-    amount_cents,
-    currency
-)
-VALUES(?, ?, ?, ?)');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO payment_obligations(
+            payment_request_id,
+            user_id,
+            amount_cents,
+            currency
+            )
+            VALUES(?, ?, ?, ?)
+            SQL
+            ,
+        );
         try {
             $q->execute([$request, $target, $amount, $r['currency']]);
         } catch (\PDOException) {
@@ -161,16 +186,21 @@ VALUES(?, ?, ?, ?)');
         }
         $this->db->beginTransaction();
         try {
-            $q = $this->db->prepare('SELECT
-    o.amount_cents,
-    o.currency,
-    r.campaign_id
-FROM
-    payment_obligations o
-JOIN payment_requests r ON
-    r.id = o.payment_request_id
-WHERE
-    o.id = ? FOR UPDATE');
+            $q = $this->db->prepare(
+                <<<'SQL'
+                SELECT
+                o.amount_cents,
+                o.currency,
+                r.campaign_id
+                FROM
+                payment_obligations o
+                JOIN payment_requests r ON
+                r.id = o.payment_request_id
+                WHERE
+                o.id = ? FOR UPDATE
+                SQL
+                ,
+            );
             $q->execute([$obligation]);
             $o = $q->fetch();
             if (!$o) {
@@ -213,12 +243,17 @@ WHERE
             }
             $reference = $in['external_reference'] ?? null;
             if ($reference !== null) {
-                $q = $this->db->prepare('SELECT
-    1
-FROM
-    payment_entries
-WHERE
-    obligation_id = ? AND external_reference = ?');
+                $q = $this->db->prepare(
+                    <<<'SQL'
+                    SELECT
+                    1
+                    FROM
+                    payment_entries
+                    WHERE
+                    obligation_id = ? AND external_reference = ?
+                    SQL
+                    ,
+                );
                 $q->execute([$obligation, $reference]);
                 if ($q->fetchColumn()) {
                     Response::error('conflict', 'Payment reference already recorded.', 409);
@@ -271,34 +306,39 @@ WHERE
     }
 
     public function own(int $uid): never {
-        $q = $this->db->prepare('SELECT
-    o.id,
-    o.payment_request_id,
-    o.amount_cents,
-    o.currency,
-    o.status,
-    COALESCE(
-        SUM(
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            o.id,
+            o.payment_request_id,
+            o.amount_cents,
+            o.currency,
+            o.status,
+            COALESCE(
+            SUM(
             CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
-        END
-    ),
-    0
-) paid_cents,
-o.amount_cents - COALESCE(
-    SUM(
-        CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
-    END
-),
-0
-) outstanding_cents
-FROM
-    payment_obligations o
-LEFT JOIN payment_entries e ON
-    e.obligation_id = o.id
-WHERE
-    o.user_id = ? AND o.status = "open"
-GROUP BY
-    o.id');
+            END
+            ),
+            0
+            ) paid_cents,
+            o.amount_cents - COALESCE(
+            SUM(
+            CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
+            END
+            ),
+            0
+            ) outstanding_cents
+            FROM
+            payment_obligations o
+            LEFT JOIN payment_entries e ON
+            e.obligation_id = o.id
+            WHERE
+            o.user_id = ? AND o.status = "open"
+            GROUP BY
+            o.id
+            SQL
+            ,
+        );
         $q->execute([$uid]);
         Response::json(['data' => $q->fetchAll()]);
     }
@@ -313,24 +353,29 @@ GROUP BY
     }
 
     private function manage(int $uid, int $campaign): void {
-        $q = $this->db->prepare("SELECT
-    EXISTS(
-    SELECT
-        1
-    FROM
-        user_roles ur
-    JOIN roles r ON
-        r.id = ur.role_id
-    WHERE
-        ur.user_id = ? AND r.role_key = 'portal_admin'
-) OR EXISTS(
-    SELECT
-        1
-    FROM
-        campaign_memberships
-    WHERE
-        user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
-)");
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            EXISTS(
+            SELECT
+            1
+            FROM
+            user_roles ur
+            JOIN roles r ON
+            r.id = ur.role_id
+            WHERE
+            ur.user_id = ? AND r.role_key = 'portal_admin'
+            ) OR EXISTS(
+            SELECT
+            1
+            FROM
+            campaign_memberships
+            WHERE
+            user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
+            )
+            SQL
+            ,
+        );
         $q->execute([$uid, $uid, $campaign]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Payment management required.', 403);

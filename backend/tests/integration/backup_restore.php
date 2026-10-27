@@ -63,20 +63,26 @@ $restore->exec('SET FOREIGN_KEY_CHECKS=1');
 foreach ($tables as $table) {
     $sourceCount = (int) $source
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    `' .
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            `
+            SQL
+            .
                 $table .
                 '`',
         )
         ->fetchColumn();
     $restoreCount = (int) $restore
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    `' .
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            `
+            SQL
+            .
                 $table .
                 '`',
         )
@@ -86,18 +92,24 @@ FROM
     }
 }
 $checks = [
-    'schema_migrations' => 'SELECT
+    'schema_migrations' => <<<'SQL'
+    SELECT
     COUNT(*)
-FROM
-    schema_migrations',
-    'relations' => 'SELECT
+    FROM
+    schema_migrations
+    SQL
+    ,
+    'relations' => <<<'SQL'
+    SELECT
     COUNT(*)
-FROM
+    FROM
     campaign_memberships m
-JOIN campaigns c ON
+    JOIN campaigns c ON
     c.id = m.campaign_id
-JOIN users u ON
-    u.id = m.user_id',
+    JOIN users u ON
+    u.id = m.user_id
+    SQL
+    ,
     'financial_sums' =>
         "SELECT COALESCE(SUM(CASE WHEN entry_kind='payment' THEN amount_cents WHEN entry_kind='reversal' THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE status='confirmed'",
 ];

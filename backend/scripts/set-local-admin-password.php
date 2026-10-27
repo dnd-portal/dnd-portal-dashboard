@@ -22,16 +22,21 @@ if ($username === '' || $password === '' || strlen($password) < 8) {
     exit(2);
 }
 $db = Connection::make();
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     u.id
-FROM
+    FROM
     users u
-JOIN user_roles ur ON
+    JOIN user_roles ur ON
     ur.user_id = u.id
-JOIN roles r ON
+    JOIN roles r ON
     r.id = ur.role_id
-WHERE
-    u.username = ? AND u.account_status = "active" AND r.role_key = "portal_admin"');
+    WHERE
+    u.username = ? AND u.account_status = "active" AND r.role_key = "portal_admin"
+    SQL
+    ,
+);
 $q->execute([$username]);
 $id = $q->fetchColumn();
 if ($id === false) {
@@ -40,21 +45,31 @@ if ($id === false) {
 }
 $db->beginTransaction();
 try {
-    $q = $db->prepare('UPDATE
-    user_credentials
-SET
-    password_hash = ?,
-    password_algo = ?,
-    password_changed_at = UTC_TIMESTAMP(6)
-WHERE
-    user_id = ?');
+    $q = $db->prepare(
+        <<<'SQL'
+        UPDATE
+        user_credentials
+        SET
+        password_hash = ?,
+        password_algo = ?,
+        password_changed_at = UTC_TIMESTAMP(6)
+        WHERE
+        user_id = ?
+        SQL
+        ,
+    );
     $q->execute([password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT, $id]);
-    $q = $db->prepare('UPDATE
-    auth_sessions
-SET
-    revoked_at = UTC_TIMESTAMP(6)
-WHERE
-    user_id = ? AND revoked_at IS NULL');
+    $q = $db->prepare(
+        <<<'SQL'
+        UPDATE
+        auth_sessions
+        SET
+        revoked_at = UTC_TIMESTAMP(6)
+        WHERE
+        user_id = ? AND revoked_at IS NULL
+        SQL
+        ,
+    );
     $q->execute([$id]);
     $db->commit();
     echo "LOCAL_ADMIN_PASSWORD_UPDATED $username\n";

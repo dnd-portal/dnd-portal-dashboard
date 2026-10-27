@@ -14,9 +14,14 @@ if (
     exit("REFUSED\n");
 }
 $db = Connection::make();
-$db->exec('DELETE
-FROM
-    rate_limit_buckets');
+$db->exec(
+    <<<'SQL'
+    DELETE
+    FROM
+    rate_limit_buckets
+    SQL
+    ,
+);
 $base = getenv('TEST_BACKEND_URL') ?: 'http://127.0.0.1:8099';
 $cookie = '';
 $csrf = '';
@@ -103,51 +108,66 @@ $ok(
 );
 $username = 'policy-player-' . bin2hex(random_bytes(3));
 $db->prepare(
-    'INSERT INTO users(
+    <<<'SQL'
+    INSERT INTO users(
     display_name,
     email,
     username,
     account_status
-)
-VALUES("Policy Player", ?, ?, "active")',
+    )
+    VALUES("Policy Player", ?, ?, "active")
+    SQL
+    ,
 )->execute([$username . '@example.test', $username]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
-    'INSERT INTO user_credentials(
+    <<<'SQL'
+    INSERT INTO user_credentials(
     user_id,
     password_hash,
     password_algo
-)
-VALUES(?, ?, ?)',
+    )
+    VALUES(?, ?, ?)
+    SQL
+    ,
 )->execute([$player, password_hash('PolicyPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 $db->prepare(
-    'INSERT INTO campaign_memberships(
+    <<<'SQL'
+    INSERT INTO campaign_memberships(
     campaign_id,
     user_id,
     membership_role
-)
-VALUES(?, ?, "member")',
+    )
+    VALUES(?, ?, "member")
+    SQL
+    ,
 )->execute([$campaign, $player]);
 $db->prepare(
-    'INSERT INTO game_sessions(
+    <<<'SQL'
+    INSERT INTO game_sessions(
     campaign_id,
     title,
     session_date,
     rsvp_deadline_at,
     created_by
-)
-VALUES(
+    )
+    VALUES(
     ?,
     ?,
     "2026-12-01",
     "2026-01-01 00:00:00",
     ?
-)',
+    )
+    SQL
+    ,
 )->execute([$campaign, 'Past RSVP deadline', $admin]);
 $session = (int) $db->lastInsertId();
 $db->prepare(
-    'INSERT INTO session_participants(session_id, user_id)
-VALUES(?, ?)',
+    <<<'SQL'
+    INSERT INTO session_participants(session_id, user_id)
+    VALUES(?, ?)
+    SQL
+    ,
 )->execute([$session, $player]);
 [$s] = $req('POST', '/api/v1/auth/logout');
 $cookie = '';
@@ -181,15 +201,20 @@ $csrf = $b['data']['token'] ?? '';
     'attendance_status' => 'present',
 ]);
 $ok($s === 200, 'manager correction and attendance');
-$q = $db->prepare("SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     COUNT(*)
-FROM
+    FROM
     audit_events
-WHERE
+    WHERE
     actor_user_id = ? AND event_type IN(
-        'session_rsvp_corrected',
-        'session_attendance_corrected'
-    )");
+    'session_rsvp_corrected',
+    'session_attendance_corrected'
+    )
+    SQL
+    ,
+);
 $q->execute([$admin]);
 $ok((int) $q->fetchColumn() >= 2, 'manager corrections audit logged');
 [$s, $b] = $req('POST', "/api/v1/campaigns/$campaign/polls", [
@@ -218,22 +243,32 @@ $ok(
     $s === 200 && ($b['data']['response_state'] ?? '') === 'responded_without_option',
     'responded without option accepted status=' . $s . ' body=' . json_encode($b),
 );
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     response_state
-FROM
+    FROM
     poll_participants
-WHERE
-    poll_id = ? AND user_id = ?');
+    WHERE
+    poll_id = ? AND user_id = ?
+    SQL
+    ,
+);
 $q->execute([$poll, $player]);
 $ok(
     $q->fetchColumn() === 'responded_without_option',
     'response state persisted without option vote',
 );
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     COUNT(*)
-FROM
+    FROM
     poll_votes
-WHERE
-    poll_id = ? AND user_id = ?');
+    WHERE
+    poll_id = ? AND user_id = ?
+    SQL
+    ,
+);
 $q->execute([$poll, $player]);
 $ok((int) $q->fetchColumn() === 0, 'no option vote created');

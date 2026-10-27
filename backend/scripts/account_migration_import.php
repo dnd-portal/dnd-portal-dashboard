@@ -70,12 +70,15 @@ $conflicts = AccountMigrationPlanner::conflicts(
         'strtolower',
         $db
             ->query(
-                'SELECT
-    email
-FROM
-    users
-WHERE
-    email IS NOT NULL',
+                <<<'SQL'
+                SELECT
+                email
+                FROM
+                users
+                WHERE
+                email IS NOT NULL
+                SQL
+                ,
             )
             ->fetchAll(PDO::FETCH_COLUMN),
     ),
@@ -83,12 +86,15 @@ WHERE
         'strtolower',
         $db
             ->query(
-                'SELECT
-    username
-FROM
-    users
-WHERE
-    username IS NOT NULL',
+                <<<'SQL'
+                SELECT
+                username
+                FROM
+                users
+                WHERE
+                username IS NOT NULL
+                SQL
+                ,
             )
             ->fetchAll(PDO::FETCH_COLUMN),
     ),
@@ -100,18 +106,23 @@ $db->beginTransaction();
 try {
     foreach ($plan as $item) {
         $row = $byLegacy[$item['legacy_id']];
-        $q = $db->prepare('SELECT
-    u.id,
-    u.display_name,
-    u.email,
-    u.username,
-    c.password_hash
-FROM
-    users u
-JOIN user_credentials c ON
-    c.user_id = u.id
-WHERE
-    u.id = ?');
+        $q = $db->prepare(
+            <<<'SQL'
+            SELECT
+            u.id,
+            u.display_name,
+            u.email,
+            u.username,
+            c.password_hash
+            FROM
+            users u
+            JOIN user_credentials c ON
+            c.user_id = u.id
+            WHERE
+            u.id = ?
+            SQL
+            ,
+        );
         $q->execute([$item['proposed_new_id']]);
         $existing = $q->fetch();
         if ($existing) {
@@ -126,33 +137,48 @@ WHERE
             $reused++;
             continue;
         }
-        $q = $db->prepare('SELECT
-    id
-FROM
-    users
-WHERE
-    email = ? OR username = ?
-LIMIT 1');
+        $q = $db->prepare(
+            <<<'SQL'
+            SELECT
+            id
+            FROM
+            users
+            WHERE
+            email = ? OR username = ?
+            LIMIT 1
+            SQL
+            ,
+        );
         $q->execute([$row['email'], $item['username']]);
         if ($q->fetchColumn() !== false) {
             throw new RuntimeException('email or username conflict; no overwrite');
         }
-        $q = $db->prepare('INSERT INTO users(
-    id,
-    display_name,
-    email,
-    username,
-    account_status,
-    timezone
-)
-VALUES(?, ?, ?, ?, "active", "UTC")');
+        $q = $db->prepare(
+            <<<'SQL'
+            INSERT INTO users(
+            id,
+            display_name,
+            email,
+            username,
+            account_status,
+            timezone
+            )
+            VALUES(?, ?, ?, ?, "active", "UTC")
+            SQL
+            ,
+        );
         $q->execute([$item['proposed_new_id'], $row['name'], $row['email'], $item['username']]);
-        $q = $db->prepare('INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-)
-VALUES(?, ?, ?)');
+        $q = $db->prepare(
+            <<<'SQL'
+            INSERT INTO user_credentials(
+            user_id,
+            password_hash,
+            password_algo
+            )
+            VALUES(?, ?, ?)
+            SQL
+            ,
+        );
         $q->execute([$item['proposed_new_id'], $row['hash'], 'bcrypt']);
         $inserted++;
     }
@@ -178,10 +204,13 @@ foreach (
 ) {
     $counts[$table] = (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    `' .
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            `
+            SQL
+            .
                 $table .
                 '`',
         )

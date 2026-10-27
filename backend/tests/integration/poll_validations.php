@@ -106,12 +106,15 @@ $expired = (int) $b['data']['id'];
 $expiredOption = (int) $b['data']['options'][0]['id'];
 $db = Connection::make();
 $db->prepare(
-    'UPDATE
+    <<<'SQL'
+    UPDATE
     polls
-SET
+    SET
     closes_at = UTC_TIMESTAMP(6) - INTERVAL 1 MINUTE
-WHERE
-    id = ?',
+    WHERE
+    id = ?
+    SQL
+    ,
 )->execute([$expired]);
 $request('POST', "/api/v1/polls/$expired/participants/$admin", ['active' => true]);
 [$s, $b] = $request('PUT', "/api/v1/polls/$expired/vote", ['option_ids' => [$expiredOption]]);

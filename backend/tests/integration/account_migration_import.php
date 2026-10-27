@@ -44,10 +44,13 @@ $db = Connection::make();
 $ok(
     (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    users',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            users
+            SQL
+            ,
         )
         ->fetchColumn() === 4,
     'exactly four accounts imported',
@@ -55,10 +58,13 @@ FROM
 $ok(
     (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    users',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            users
+            SQL
+            ,
         )
         ->fetchColumn() === 4,
     'source exclusion leaves four target accounts',
@@ -66,10 +72,13 @@ FROM
 $ok(
     (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    user_roles',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            user_roles
+            SQL
+            ,
         )
         ->fetchColumn() === 0,
     'no roles imported',
@@ -77,10 +86,13 @@ FROM
 $ok(
     (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    auth_sessions',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            auth_sessions
+            SQL
+            ,
         )
         ->fetchColumn() === 0,
     'no sessions imported',
@@ -88,10 +100,13 @@ FROM
 $ok(
     (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    password_reset_tokens',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            password_reset_tokens
+            SQL
+            ,
         )
         ->fetchColumn() === 0,
     'no reset tokens imported',
@@ -99,22 +114,28 @@ FROM
 $ok(
     (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    registration_invites',
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            registration_invites
+            SQL
+            ,
         )
         ->fetchColumn() === 0,
     'no invite tokens imported',
 );
 $stored = $db
     ->query(
-        'SELECT
-    password_hash
-FROM
-    user_credentials
-ORDER BY
-    user_id',
+        <<<'SQL'
+        SELECT
+        password_hash
+        FROM
+        user_credentials
+        ORDER BY
+        user_id
+        SQL
+        ,
     )
     ->fetchAll(PDO::FETCH_COLUMN);
 $ok(

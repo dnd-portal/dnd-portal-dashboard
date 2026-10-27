@@ -14,9 +14,14 @@ if (
     exit("REFUSED\n");
 }
 $db = Connection::make();
-$db->exec('DELETE
-FROM
-    rate_limit_buckets');
+$db->exec(
+    <<<'SQL'
+    DELETE
+    FROM
+    rate_limit_buckets
+    SQL
+    ,
+);
 $base = getenv('TEST_BACKEND_URL') ?: 'http://127.0.0.1:8099';
 $cookie = '';
 $csrf = '';
@@ -83,40 +88,52 @@ $admin = (int) $me['data']['id'];
 $username = 'poll-access-' . bin2hex(random_bytes(3));
 $email = $username . '@example.test';
 $db->prepare(
-    'INSERT INTO users(
+    <<<'SQL'
+    INSERT INTO users(
     display_name,
     email,
     username,
     account_status
-)
-VALUES(?, ?, ?, "active")',
+    )
+    VALUES(?, ?, ?, "active")
+    SQL
+    ,
 )->execute(['Poll Access Player', $email, $username]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
-    'INSERT INTO user_credentials(
+    <<<'SQL'
+    INSERT INTO user_credentials(
     user_id,
     password_hash,
     password_algo
-)
-VALUES(?, ?, ?)',
+    )
+    VALUES(?, ?, ?)
+    SQL
+    ,
 )->execute([$player, password_hash('PollAccess2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 $db->prepare(
-    'INSERT INTO user_roles(user_id, role_id)
-SELECT
+    <<<'SQL'
+    INSERT INTO user_roles(user_id, role_id)
+    SELECT
     ?,
     id
-FROM
+    FROM
     roles
-WHERE
-    role_key = "campaign_member"',
+    WHERE
+    role_key = "campaign_member"
+    SQL
+    ,
 )->execute([$player]);
 $db->prepare(
-    'INSERT INTO campaign_memberships(
+    <<<'SQL'
+    INSERT INTO campaign_memberships(
     campaign_id,
     user_id,
     membership_role
-)
-VALUES(?, ?, "member")',
+    )
+    VALUES(?, ?, "member")
+    SQL
+    ,
 )->execute([$campaign, $player]);
 [$s, $b] = $request('POST', "/api/v1/campaigns/$campaign/polls", [
     'title' => 'Access',

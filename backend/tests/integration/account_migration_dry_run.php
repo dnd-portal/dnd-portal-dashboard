@@ -81,13 +81,18 @@ foreach ($rows as $row) {
         $emailConflicts++;
     }
     $seenEmails[$email] = true;
-    $q = $db->prepare('SELECT
-    1
-FROM
-    users
-WHERE
-    email = ?
-LIMIT 1');
+    $q = $db->prepare(
+        <<<'SQL'
+        SELECT
+        1
+        FROM
+        users
+        WHERE
+        email = ?
+        LIMIT 1
+        SQL
+        ,
+    );
     $q->execute([$email]);
     if ($q->fetchColumn()) {
         $emailConflicts++;
@@ -117,10 +122,13 @@ foreach (
 ) {
     $emptyState[$table] = (int) $db
         ->query(
-            'SELECT
-    COUNT(*)
-FROM
-    `' .
+            <<<'SQL'
+            SELECT
+            COUNT(*)
+            FROM
+            `
+            SQL
+            .
                 $table .
                 '`',
         )

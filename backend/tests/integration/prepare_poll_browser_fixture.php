@@ -16,183 +16,240 @@ if (
 }
 $db = Connection::make();
 // This is fixture setup in the isolated test database only; production rate limiting is untouched.
-$db->exec('DELETE
-FROM
-    rate_limit_buckets');
+$db->exec(
+    <<<'SQL'
+    DELETE
+    FROM
+    rate_limit_buckets
+    SQL
+    ,
+);
 $adminUsername = 'polladmin';
 $adminPassword = 'PollAdmin2026!';
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     id
-FROM
+    FROM
     users
-WHERE
-    username = ?');
+    WHERE
+    username = ?
+    SQL
+    ,
+);
 $q->execute([$adminUsername]);
 $admin = $q->fetchColumn();
 if ($admin === false) {
     $db->prepare(
-        'INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-)
-VALUES(
-    "Poll Admin",
-    "poll-admin@example.test",
-    ?,
-    "active"
-)',
+        <<<'SQL'
+        INSERT INTO users(
+        display_name,
+        email,
+        username,
+        account_status
+        )
+        VALUES(
+        "Poll Admin",
+        "poll-admin@example.test",
+        ?,
+        "active"
+        )
+        SQL
+        ,
     )->execute([$adminUsername]);
     $admin = (int) $db->lastInsertId();
     $db->prepare(
-        'INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-)
-VALUES(?, ?, ?)',
+        <<<'SQL'
+        INSERT INTO user_credentials(
+        user_id,
+        password_hash,
+        password_algo
+        )
+        VALUES(?, ?, ?)
+        SQL
+        ,
     )->execute([$admin, password_hash($adminPassword, PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
     $db->prepare(
-        'INSERT INTO user_roles(user_id, role_id)
-SELECT
-    ?,
-    id
-FROM
-    roles
-WHERE
-    role_key = "portal_admin"',
+        <<<'SQL'
+        INSERT INTO user_roles(user_id, role_id)
+        SELECT
+        ?,
+        id
+        FROM
+        roles
+        WHERE
+        role_key = "portal_admin"
+        SQL
+        ,
     )->execute([$admin]);
 } else {
     $admin = (int) $admin;
     $db->prepare(
-        'UPDATE
-    users
-SET
-    account_status = "active"
-WHERE
-    id = ?',
+        <<<'SQL'
+        UPDATE
+        users
+        SET
+        account_status = "active"
+        WHERE
+        id = ?
+        SQL
+        ,
     )->execute([$admin]);
     $db->prepare(
-        'UPDATE
-    user_credentials
-SET
-    password_hash = ?,
-    password_algo = ?
-WHERE
-    user_id = ?',
+        <<<'SQL'
+        UPDATE
+        user_credentials
+        SET
+        password_hash = ?,
+        password_algo = ?
+        WHERE
+        user_id = ?
+        SQL
+        ,
     )->execute([password_hash($adminPassword, PASSWORD_DEFAULT), PASSWORD_DEFAULT, $admin]);
 }
 $db->prepare(
-    'INSERT IGNORE
-INTO user_roles(user_id, role_id)
-SELECT
+    <<<'SQL'
+    INSERT IGNORE
+    INTO user_roles(user_id, role_id)
+    SELECT
     ?,
     id
-FROM
+    FROM
     roles
-WHERE
-    role_key = ?',
+    WHERE
+    role_key = ?
+    SQL
+    ,
 )->execute([$admin, 'portal_admin']);
 $campaign = (int) $db
     ->query(
-        'SELECT
-    id
-FROM
-    campaigns
-ORDER BY
-    id
-DESC
-LIMIT 1',
+        <<<'SQL'
+        SELECT
+        id
+        FROM
+        campaigns
+        ORDER BY
+        id
+        DESC
+        LIMIT 1
+        SQL
+        ,
     )
     ->fetchColumn();
 if (!$campaign) {
     throw new RuntimeException('Poll browser fixture requires a campaign.');
 }
 $db->prepare(
-    'INSERT INTO campaign_memberships(
+    <<<'SQL'
+    INSERT INTO campaign_memberships(
     campaign_id,
     user_id,
     membership_role
-)
-VALUES(?, ?, "dm")
-ON DUPLICATE KEY
-UPDATE
+    )
+    VALUES(?, ?, "dm")
+    ON DUPLICATE KEY
+    UPDATE
     membership_role = "dm",
-    left_at = NULL',
+    left_at = NULL
+    SQL
+    ,
 )->execute([$campaign, $admin]);
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     id
-FROM
+    FROM
     users
-WHERE
-    username = "pollplayer"');
+    WHERE
+    username = "pollplayer"
+    SQL
+    ,
+);
 $q->execute();
 $player = $q->fetchColumn();
 if ($player === false) {
     $db->prepare(
-        'INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-)
-VALUES(
-    "Poll Player",
-    "poll-player@example.test",
-    "pollplayer",
-    "active"
-)',
+        <<<'SQL'
+        INSERT INTO users(
+        display_name,
+        email,
+        username,
+        account_status
+        )
+        VALUES(
+        "Poll Player",
+        "poll-player@example.test",
+        "pollplayer",
+        "active"
+        )
+        SQL
+        ,
     )->execute();
     $player = (int) $db->lastInsertId();
     $db->prepare(
-        'INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-)
-VALUES(?, ?, ?)',
+        <<<'SQL'
+        INSERT INTO user_credentials(
+        user_id,
+        password_hash,
+        password_algo
+        )
+        VALUES(?, ?, ?)
+        SQL
+        ,
     )->execute([$player, password_hash('PollPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
     $db->prepare(
-        'INSERT INTO user_roles(user_id, role_id)
-SELECT
-    ?,
-    id
-FROM
-    roles
-WHERE
-    role_key = "campaign_member"',
+        <<<'SQL'
+        INSERT INTO user_roles(user_id, role_id)
+        SELECT
+        ?,
+        id
+        FROM
+        roles
+        WHERE
+        role_key = "campaign_member"
+        SQL
+        ,
     )->execute([$player]);
 } else {
     $player = (int) $player;
     $db->prepare(
-        'UPDATE
-    users
-SET
-    account_status = "active"
-WHERE
-    id = ?',
+        <<<'SQL'
+        UPDATE
+        users
+        SET
+        account_status = "active"
+        WHERE
+        id = ?
+        SQL
+        ,
     )->execute([$player]);
     $db->prepare(
-        'UPDATE
-    user_credentials
-SET
-    password_hash = ?,
-    password_algo = ?
-WHERE
-    user_id = ?',
+        <<<'SQL'
+        UPDATE
+        user_credentials
+        SET
+        password_hash = ?,
+        password_algo = ?
+        WHERE
+        user_id = ?
+        SQL
+        ,
     )->execute([password_hash('PollPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT, $player]);
 }
 $db->prepare(
-    'INSERT INTO campaign_memberships(
+    <<<'SQL'
+    INSERT INTO campaign_memberships(
     campaign_id,
     user_id,
     membership_role
-)
-VALUES(?, ?, "member")
-ON DUPLICATE KEY
-UPDATE
+    )
+    VALUES(?, ?, "member")
+    ON DUPLICATE KEY
+    UPDATE
     membership_role = "member",
-    left_at = NULL',
+    left_at = NULL
+    SQL
+    ,
 )->execute([$campaign, $player]);
 echo "POLL_BROWSER_CAMPAIGN=$campaign\n";

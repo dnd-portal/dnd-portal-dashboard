@@ -20,11 +20,16 @@ $port = \DndPortal\Config::env('DB_PORT', '3307');
 $pdo = new PDO("mysql:host=$host;port=$port;charset=utf8mb4", 'root', $rootPassword, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
-$q = $pdo->prepare('SELECT SCHEMA_NAME
-FROM
+$q = $pdo->prepare(
+    <<<'SQL'
+    SELECT SCHEMA_NAME
+    FROM
     INFORMATION_SCHEMA.SCHEMATA
-WHERE SCHEMA_NAME
-    = ?');
+    WHERE SCHEMA_NAME
+    = ?
+    SQL
+    ,
+);
 $q->execute([$name]);
 if ($q->fetchColumn() === false) {
     $pdo->exec(

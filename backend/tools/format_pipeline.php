@@ -40,18 +40,21 @@ foreach ($files as $file) {
 function formatSqlLiterals(string $source, string $file): string
 {
     $tokens = token_get_all($source);
+    $lines = explode("\n", $source);
     $output = '';
     foreach ($tokens as $token) {
         $text = is_array($token) ? $token[1] : $token;
         if (is_array($token) && $token[0] === T_CONSTANT_ENCAPSED_STRING) {
-            $text = formatSqlLiteral($text, $file, $token[2]);
+            $line = $token[2];
+            $indent = preg_match('/^\\s*/', $lines[$line - 1] ?? '', $match) ? $match[0] : '';
+            $text = formatSqlLiteral($text, $file, $line, $indent);
         }
         $output .= $text;
     }
     return $output;
 }
 
-function formatSqlLiteral(string $literal, string $file, int $line): string
+function formatSqlLiteral(string $literal, string $file, int $line, string $indent): string
 {
     if (str_contains($literal, '\\')) {
         return $literal;
@@ -84,7 +87,20 @@ function formatSqlLiteral(string $literal, string $file, int $line): string
             return $literal;
         }
 
-        return $quote . $leading . trim($formatted) . $trailing . $quote;
+        $formatted = $leading . trim($formatted) . $trailing;
+        if (!str_contains($formatted, "\n")) {
+            return $quote . $formatted . $quote;
+        }
+        if (preg_match('/(^|\n)SQL(?:\r?\n|$)/', $formatted)) {
+            fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL delimiter occurs in literal; left unchanged\n", $file, $line));
+            return $literal;
+        }
+
+        $body = implode("\n", array_map(
+            static fn (string $line): string => $indent . ltrim($line),
+            explode("\n", trim($formatted)),
+        ));
+        return "<<<'SQL'\n" . $body . "\n" . $indent . 'SQL';
     } catch (Throwable $exception) {
         fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL parser skipped query (%s)\n", $file, $line, $exception->getMessage()));
         return $literal;

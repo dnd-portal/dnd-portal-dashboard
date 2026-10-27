@@ -80,61 +80,76 @@ $campaign = (int) $body['data']['id'];
 [$status, $body] = $request('GET', '/api/v1/auth/me');
 $admin = (int) $body['data']['id'];
 $db->prepare(
-    'INSERT INTO campaign_memberships(
+    <<<'SQL'
+    INSERT INTO campaign_memberships(
     campaign_id,
     user_id,
     membership_role
-)
-VALUES(?, ?, "dm")
-ON DUPLICATE KEY
-UPDATE
+    )
+    VALUES(?, ?, "dm")
+    ON DUPLICATE KEY
+    UPDATE
     left_at = NULL,
-    membership_role = "dm"',
+    membership_role = "dm"
+    SQL
+    ,
 )->execute([$campaign, $admin]);
 $db->prepare(
-    'INSERT INTO game_sessions(
+    <<<'SQL'
+    INSERT INTO game_sessions(
     campaign_id,
     title,
     session_date,
     starts_at,
     created_by
-)
-VALUES(
+    )
+    VALUES(
     ?,
     ?,
     "2026-10-27",
     "2026-10-27 00:00:00",
     ?
-)',
+    )
+    SQL
+    ,
 )->execute([$campaign, 'Dashboard exact session', $admin]);
 $session = (int) $db->lastInsertId();
 for ($i = 1; $i <= 3; $i++) {
     $username = 'dashboard-player-' . bin2hex(random_bytes(3));
     $db->prepare(
-        'INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-)
-VALUES(?, ?, ?, "active")',
+        <<<'SQL'
+        INSERT INTO users(
+        display_name,
+        email,
+        username,
+        account_status
+        )
+        VALUES(?, ?, ?, "active")
+        SQL
+        ,
     )->execute(["Dashboard Player $i", $username . '@example.test', $username]);
     $player = (int) $db->lastInsertId();
     $db->prepare(
-        'INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-)
-VALUES(?, ?, "member")',
+        <<<'SQL'
+        INSERT INTO campaign_memberships(
+        campaign_id,
+        user_id,
+        membership_role
+        )
+        VALUES(?, ?, "member")
+        SQL
+        ,
     )->execute([$campaign, $player]);
     $db->prepare(
-        'INSERT INTO session_participants(
-    session_id,
-    user_id,
-    rsvp_status
-)
-VALUES(?, ?, ?)',
+        <<<'SQL'
+        INSERT INTO session_participants(
+        session_id,
+        user_id,
+        rsvp_status
+        )
+        VALUES(?, ?, ?)
+        SQL
+        ,
     )->execute([$session, $player, $i < 3 ? 'accepted' : 'pending']);
 }
 [$status, $body] = $request('GET', '/api/v1/dashboard');
@@ -147,22 +162,28 @@ $ok(
 $cookie = '';
 $empty = 'dashboard-empty-' . bin2hex(random_bytes(3));
 $db->prepare(
-    'INSERT INTO users(
+    <<<'SQL'
+    INSERT INTO users(
     display_name,
     email,
     username,
     account_status
-)
-VALUES("Dashboard Empty", ?, ?, "active")',
+    )
+    VALUES("Dashboard Empty", ?, ?, "active")
+    SQL
+    ,
 )->execute([$empty . '@example.test', $empty]);
 $emptyId = (int) $db->lastInsertId();
 $db->prepare(
-    'INSERT INTO user_credentials(
+    <<<'SQL'
+    INSERT INTO user_credentials(
     user_id,
     password_hash,
     password_algo
-)
-VALUES(?, ?, ?)',
+    )
+    VALUES(?, ?, ?)
+    SQL
+    ,
 )->execute([$emptyId, password_hash('EmptyDashboard2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 [$status, $body] = $request('GET', '/api/v1/auth/csrf');
 $csrf = $body['data']['token'] ?? '';

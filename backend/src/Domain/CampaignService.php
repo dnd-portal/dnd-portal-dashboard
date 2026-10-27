@@ -11,56 +11,66 @@ final class CampaignService {
     public function __construct(private PDO $db) {}
 
     public function list(int $uid): never {
-        $q = $this->db->prepare("SELECT
-    c.id,
-    c.name,
-    c.slug,
-    c.type,
-    c.location,
-    c.timezone,
-    c.archived_at,
-    c.version,
-    cm.membership_role
-FROM
-    campaigns c
-LEFT JOIN campaign_memberships cm ON
-    cm.campaign_id = c.id AND cm.user_id = ? AND cm.left_at IS NULL
-WHERE
-    (c.archived_at IS NULL) AND(
-        cm.user_id IS NOT NULL OR EXISTS(
-        SELECT
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            c.id,
+            c.name,
+            c.slug,
+            c.type,
+            c.location,
+            c.timezone,
+            c.archived_at,
+            c.version,
+            cm.membership_role
+            FROM
+            campaigns c
+            LEFT JOIN campaign_memberships cm ON
+            cm.campaign_id = c.id AND cm.user_id = ? AND cm.left_at IS NULL
+            WHERE
+            (c.archived_at IS NULL) AND(
+            cm.user_id IS NOT NULL OR EXISTS(
+            SELECT
             1
-        FROM
+            FROM
             user_roles ur
-        JOIN roles r ON
+            JOIN roles r ON
             r.id = ur.role_id
-        WHERE
+            WHERE
             ur.user_id = ? AND r.role_key = 'portal_admin'
-    )
-    )
-ORDER BY
-    c.name");
+            )
+            )
+            ORDER BY
+            c.name
+            SQL
+            ,
+        );
         $q->execute([$uid, $uid]);
         Response::json(['data' => $q->fetchAll()]);
     }
 
     public function get(int $uid, int $id): never {
-        $q = $this->db->prepare('SELECT
-    c.id,
-    c.name,
-    c.slug,
-    c.type,
-    c.location,
-    c.timezone,
-    c.archived_at,
-    c.version,
-    cm.membership_role
-FROM
-    campaigns c
-LEFT JOIN campaign_memberships cm ON
-    cm.campaign_id = c.id AND cm.user_id = ? AND cm.left_at IS NULL
-WHERE
-    c.id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            c.id,
+            c.name,
+            c.slug,
+            c.type,
+            c.location,
+            c.timezone,
+            c.archived_at,
+            c.version,
+            cm.membership_role
+            FROM
+            campaigns c
+            LEFT JOIN campaign_memberships cm ON
+            cm.campaign_id = c.id AND cm.user_id = ? AND cm.left_at IS NULL
+            WHERE
+            c.id = ?
+            SQL
+            ,
+        );
         $q->execute([$uid, $id]);
         $row = $q->fetch();
         if (!$row) {
@@ -87,12 +97,17 @@ WHERE
             $uid,
         ]);
         $id = (int) $this->db->lastInsertId();
-        $q = $this->db->prepare("INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-)
-VALUES(?, ?, 'dm')");
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO campaign_memberships(
+            campaign_id,
+            user_id,
+            membership_role
+            )
+            VALUES(?, ?, 'dm')
+            SQL
+            ,
+        );
         $q->execute([$id, $uid]);
         Response::json(['data' => $this->campaign($id)], 201);
     }
@@ -137,53 +152,73 @@ VALUES(?, ?, 'dm')");
         if (!in_array($role, ['member', 'dm'], true)) {
             Response::error('validation_failed', 'Invalid membership role.', 422);
         }
-        $q = $this->db->prepare('SELECT
-    1
-FROM
-    campaigns
-WHERE
-    id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            1
+            FROM
+            campaigns
+            WHERE
+            id = ?
+            SQL
+            ,
+        );
         $q->execute([$campaign]);
         if (!$q->fetchColumn()) {
             Response::error('not_found', 'Campaign not found.', 404);
         }
-        $q = $this->db->prepare('SELECT
-    1
-FROM
-    users
-WHERE
-    id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            1
+            FROM
+            users
+            WHERE
+            id = ?
+            SQL
+            ,
+        );
         $q->execute([$member]);
         if (!$q->fetchColumn()) {
             Response::error('not_found', 'User not found.', 404);
         }
-        $q = $this->db->prepare('INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role,
-    left_at
-)
-VALUES(?, ?, ?, NULL)
-ON DUPLICATE KEY
-UPDATE
-    membership_role =
-VALUES(membership_role), left_at = NULL');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO campaign_memberships(
+            campaign_id,
+            user_id,
+            membership_role,
+            left_at
+            )
+            VALUES(?, ?, ?, NULL)
+            ON DUPLICATE KEY
+            UPDATE
+            membership_role =
+            VALUES(membership_role), left_at = NULL
+            SQL
+            ,
+        );
         $q->execute([$campaign, $member, $role]);
-        $q = $this->db->prepare('SELECT
-    cm.campaign_id,
-    cm.user_id,
-    cm.membership_role,
-    cm.joined_at,
-    cm.left_at,
-    u.display_name,
-    u.email,
-    u.username
-FROM
-    campaign_memberships cm
-JOIN users u ON
-    u.id = cm.user_id
-WHERE
-    cm.campaign_id = ? AND cm.user_id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            cm.campaign_id,
+            cm.user_id,
+            cm.membership_role,
+            cm.joined_at,
+            cm.left_at,
+            u.display_name,
+            u.email,
+            u.username
+            FROM
+            campaign_memberships cm
+            JOIN users u ON
+            u.id = cm.user_id
+            WHERE
+            cm.campaign_id = ? AND cm.user_id = ?
+            SQL
+            ,
+        );
         $q->execute([$campaign, $member]);
         $row = $q->fetch();
         if (!$row) {
@@ -195,21 +230,23 @@ WHERE
     public function members(int $uid, int $campaign): never {
         $this->assertView($uid, $campaign);
         $manager = $this->canManage($uid, $campaign);
-        $sql = 'SELECT
-    cm.campaign_id,
-    cm.user_id,
-    cm.membership_role,
-    cm.joined_at,
-    cm.left_at,
-    u.display_name,
-    u.email,
-    u.username
-FROM
-    campaign_memberships cm
-JOIN users u ON
-    u.id = cm.user_id
-WHERE
-    cm.campaign_id = ?';
+        $sql = <<<'SQL'
+        SELECT
+        cm.campaign_id,
+        cm.user_id,
+        cm.membership_role,
+        cm.joined_at,
+        cm.left_at,
+        u.display_name,
+        u.email,
+        u.username
+        FROM
+        campaign_memberships cm
+        JOIN users u ON
+        u.id = cm.user_id
+        WHERE
+        cm.campaign_id = ?
+        SQL;
         $params = [$campaign];
         if (!$manager) {
             $sql .= ' AND cm.user_id=?';
@@ -224,12 +261,17 @@ WHERE
 
     public function leave(int $uid, int $campaign, int $member): never {
         $this->assertManage($uid, $campaign);
-        $q = $this->db->prepare('UPDATE
-    campaign_memberships
-SET
-    left_at = ?
-WHERE
-    campaign_id = ? AND user_id = ? AND left_at IS NULL');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            UPDATE
+            campaign_memberships
+            SET
+            left_at = ?
+            WHERE
+            campaign_id = ? AND user_id = ? AND left_at IS NULL
+            SQL
+            ,
+        );
         $q->execute([gmdate('Y-m-d H:i:s.u'), $campaign, $member]);
         Response::json(['data' => null]);
     }
@@ -253,20 +295,22 @@ WHERE
         $campaign = $this->sessionCampaign($session);
         $this->assertView($uid, $campaign);
         $manager = $this->canManage($uid, $campaign);
-        $sql = 'SELECT
-    sp.session_id,
-    sp.user_id,
-    sp.rsvp_status,
-    sp.attendance_status,
-    sp.responded_at,
-    sp.attendance_recorded_at,
-    u.display_name
-FROM
-    session_participants sp
-JOIN users u ON
-    u.id = sp.user_id
-WHERE
-    sp.session_id = ?';
+        $sql = <<<'SQL'
+        SELECT
+        sp.session_id,
+        sp.user_id,
+        sp.rsvp_status,
+        sp.attendance_status,
+        sp.responded_at,
+        sp.attendance_recorded_at,
+        u.display_name
+        FROM
+        session_participants sp
+        JOIN users u ON
+        u.id = sp.user_id
+        WHERE
+        sp.session_id = ?
+        SQL;
         $params = [$session];
         if (!$manager) {
             $sql .= ' AND sp.user_id=?';
@@ -282,17 +326,22 @@ WHERE
         $this->assertManage($uid, $campaign);
         $in = $this->normaliseSessionInput($in);
         $this->validateSession($in);
-        $q = $this->db->prepare('INSERT INTO game_sessions(
-    campaign_id,
-    title,
-    session_date,
-    starts_at,
-    ends_at,
-    rsvp_deadline_at,
-    location,
-    created_by
-)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO game_sessions(
+            campaign_id,
+            title,
+            session_date,
+            starts_at,
+            ends_at,
+            rsvp_deadline_at,
+            location,
+            created_by
+            )
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+            SQL
+            ,
+        );
         $q->execute([
             $campaign,
             $in['title'],
@@ -357,13 +406,18 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
         if (!$isManager && isset($in['rsvp_status']) && $this->deadlinePassed($session)) {
             Response::error('conflict', 'The RSVP deadline has passed.', 409);
         }
-        $existing = $this->db->prepare('SELECT
-    rsvp_status,
-    attendance_status
-FROM
-    session_participants
-WHERE
-    session_id = ? AND user_id = ?');
+        $existing = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            rsvp_status,
+            attendance_status
+            FROM
+            session_participants
+            WHERE
+            session_id = ? AND user_id = ?
+            SQL
+            ,
+        );
         $existing->execute([$session, $member]);
         $current = $existing->fetch() ?: [
             'rsvp_status' => 'pending',
@@ -371,43 +425,48 @@ WHERE
         ];
         $r = $in['rsvp_status'] ?? $current['rsvp_status'];
         $a = $in['attendance_status'] ?? $current['attendance_status'];
-        $q = $this->db->prepare('INSERT INTO session_participants(
-    session_id,
-    user_id,
-    rsvp_status,
-    attendance_status,
-    responded_at,
-    attendance_recorded_at
-)
-VALUES(
-    ?,
-    ?,
-    ?,
-    ?,
-    IF(
-        ? IS NULL,
-        NULL,
-        UTC_TIMESTAMP(6)
-    ),
-    IF(
-        ? IS NULL,
-        NULL,
-        UTC_TIMESTAMP(6)
-    )
-)
-ON DUPLICATE KEY
-UPDATE
-    rsvp_status =
-VALUES(rsvp_status), attendance_status =
-VALUES(attendance_status), responded_at = IF(
-    ? IS NULL,
-    responded_at,
-VALUES(responded_at)
-), attendance_recorded_at = IF(
-    ? IS NULL,
-    attendance_recorded_at,
-VALUES(attendance_recorded_at)
-)');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO session_participants(
+            session_id,
+            user_id,
+            rsvp_status,
+            attendance_status,
+            responded_at,
+            attendance_recorded_at
+            )
+            VALUES(
+            ?,
+            ?,
+            ?,
+            ?,
+            IF(
+            ? IS NULL,
+            NULL,
+            UTC_TIMESTAMP(6)
+            ),
+            IF(
+            ? IS NULL,
+            NULL,
+            UTC_TIMESTAMP(6)
+            )
+            )
+            ON DUPLICATE KEY
+            UPDATE
+            rsvp_status =
+            VALUES(rsvp_status), attendance_status =
+            VALUES(attendance_status), responded_at = IF(
+            ? IS NULL,
+            responded_at,
+            VALUES(responded_at)
+            ), attendance_recorded_at = IF(
+            ? IS NULL,
+            attendance_recorded_at,
+            VALUES(attendance_recorded_at)
+            )
+            SQL
+            ,
+        );
         $q->execute([
             $session,
             $member,
@@ -442,21 +501,26 @@ VALUES(attendance_recorded_at)
         }
         $isAdmin = $this->isAdmin($uid);
         if ($forUser === null && $isAdmin) {
-            $q = $this->db->query('SELECT
-    a.user_id,
-    a.availability_date,
-    a.status,
-    a.note,
-    a.updated_at,
-    u.display_name
-FROM
-    user_availability a
-JOIN users u ON
-    u.id = a.user_id
-WHERE
-    a.availability_date BETWEEN UTC_DATE() - INTERVAL 366 DAY AND UTC_DATE() + INTERVAL 366 DAY
-ORDER BY
-    a.availability_date, u.display_name');
+            $q = $this->db->query(
+                <<<'SQL'
+                SELECT
+                a.user_id,
+                a.availability_date,
+                a.status,
+                a.note,
+                a.updated_at,
+                u.display_name
+                FROM
+                user_availability a
+                JOIN users u ON
+                u.id = a.user_id
+                WHERE
+                a.availability_date BETWEEN UTC_DATE() - INTERVAL 366 DAY AND UTC_DATE() + INTERVAL 366 DAY
+                ORDER BY
+                a.availability_date, u.display_name
+                SQL
+                ,
+            );
             Response::json(['data' => $q->fetchAll()]);
         }
         $q = $this->db->prepare(
@@ -489,11 +553,16 @@ ORDER BY
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             Response::error('validation_failed', 'Invalid calendar date.', 422);
         }
-        $q = $this->db->prepare('DELETE
-FROM
-    user_availability
-WHERE
-    user_id = ? AND availability_date = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            DELETE
+            FROM
+            user_availability
+            WHERE
+            user_id = ? AND availability_date = ?
+            SQL
+            ,
+        );
         $q->execute([$uid, $date]);
         Response::json(['data' => null]);
     }
@@ -515,12 +584,17 @@ WHERE
     }
 
     private function sessionCampaign(int $id): int {
-        $q = $this->db->prepare('SELECT
-    campaign_id
-FROM
-    game_sessions
-WHERE
-    id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            campaign_id
+            FROM
+            game_sessions
+            WHERE
+            id = ?
+            SQL
+            ,
+        );
         $q->execute([$id]);
         $v = $q->fetchColumn();
         if (!$v) {
@@ -530,56 +604,71 @@ WHERE
     }
 
     private function canManage(int $uid, int $campaign): bool {
-        $q = $this->db->prepare("SELECT
-    EXISTS(
-    SELECT
-        1
-    FROM
-        user_roles ur
-    JOIN roles r ON
-        r.id = ur.role_id
-    WHERE
-        ur.user_id = ? AND r.role_key = 'portal_admin'
-) OR EXISTS(
-    SELECT
-        1
-    FROM
-        campaign_memberships
-    WHERE
-        user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
-)");
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            EXISTS(
+            SELECT
+            1
+            FROM
+            user_roles ur
+            JOIN roles r ON
+            r.id = ur.role_id
+            WHERE
+            ur.user_id = ? AND r.role_key = 'portal_admin'
+            ) OR EXISTS(
+            SELECT
+            1
+            FROM
+            campaign_memberships
+            WHERE
+            user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
+            )
+            SQL
+            ,
+        );
         $q->execute([$uid, $uid, $campaign]);
         return (bool) $q->fetchColumn();
     }
 
     private function isAdmin(int $uid): bool {
-        $q = $this->db->prepare("SELECT
-    EXISTS(
-    SELECT
-        1
-    FROM
-        user_roles ur
-    JOIN roles r ON
-        r.id = ur.role_id
-    WHERE
-        ur.user_id = ? AND r.role_key = 'portal_admin'
-)");
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            EXISTS(
+            SELECT
+            1
+            FROM
+            user_roles ur
+            JOIN roles r ON
+            r.id = ur.role_id
+            WHERE
+            ur.user_id = ? AND r.role_key = 'portal_admin'
+            )
+            SQL
+            ,
+        );
         $q->execute([$uid]);
         return (bool) $q->fetchColumn();
     }
 
     private function requireAdmin(int $uid): void {
-        $q = $this->db->prepare("SELECT
-    EXISTS(
-    SELECT
-        1
-    FROM
-        user_roles ur
-    JOIN roles r ON
-        r.id = ur.role_id
-    WHERE
-        ur.user_id = ? AND r.role_key = 'portal_admin'
-)");
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            EXISTS(
+            SELECT
+            1
+            FROM
+            user_roles ur
+            JOIN roles r ON
+            r.id = ur.role_id
+            WHERE
+            ur.user_id = ? AND r.role_key = 'portal_admin'
+            )
+            SQL
+            ,
+        );
         $q->execute([$uid]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Administrator access required.', 403);
@@ -587,12 +676,17 @@ WHERE
     }
 
     private function assertView(int $uid, int $campaign): void {
-        $q = $this->db->prepare('SELECT
-    1
-FROM
-    campaign_memberships
-WHERE
-    user_id = ? AND campaign_id = ? AND left_at IS NULL');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            1
+            FROM
+            campaign_memberships
+            WHERE
+            user_id = ? AND campaign_id = ? AND left_at IS NULL
+            SQL
+            ,
+        );
         $q->execute([$uid, $campaign]);
         if (!$q->fetchColumn()) {
             $this->requireAdmin($uid);
@@ -606,12 +700,17 @@ WHERE
     }
 
     private function deadlinePassed(int $session): bool {
-        $q = $this->db->prepare('SELECT
-    rsvp_deadline_at
-FROM
-    game_sessions
-WHERE
-    id = ?');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            SELECT
+            rsvp_deadline_at
+            FROM
+            game_sessions
+            WHERE
+            id = ?
+            SQL
+            ,
+        );
         $q->execute([$session]);
         $v = $q->fetchColumn();
         return $v !== null && strtotime($v) <= time();
@@ -654,12 +753,17 @@ WHERE
     }
 
     private function audit(int $uid, string $event, array $payload): void {
-        $q = $this->db->prepare('INSERT INTO audit_events(
-    actor_user_id,
-    event_type,
-    payload_json
-)
-VALUES(?, ?, ?)');
+        $q = $this->db->prepare(
+            <<<'SQL'
+            INSERT INTO audit_events(
+            actor_user_id,
+            event_type,
+            payload_json
+            )
+            VALUES(?, ?, ?)
+            SQL
+            ,
+        );
         $q->execute([$uid, $event, json_encode($payload, JSON_THROW_ON_ERROR)]);
     }
 

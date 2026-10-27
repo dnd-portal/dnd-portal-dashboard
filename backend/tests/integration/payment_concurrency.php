@@ -22,12 +22,17 @@ if (($argv[1] ?? '') === 'worker') {
     }
     try {
         $db->beginTransaction();
-        $q = $db->prepare('SELECT
-    amount_cents
-FROM
-    payment_obligations
-WHERE
-    id = ? FOR UPDATE');
+        $q = $db->prepare(
+            <<<'SQL'
+            SELECT
+            amount_cents
+            FROM
+            payment_obligations
+            WHERE
+            id = ? FOR UPDATE
+            SQL
+            ,
+        );
         $q->execute([(int) $oid]);
         $ob = $q->fetch();
         $q = $db->prepare(
@@ -57,23 +62,33 @@ $q = $db->prepare(
 );
 $q->execute(['concurrency-' . bin2hex(random_bytes(3))]);
 $campaign = (int) $db->lastInsertId();
-$q = $db->prepare('INSERT INTO payment_requests(
+$q = $db->prepare(
+    <<<'SQL'
+    INSERT INTO payment_requests(
     campaign_id,
     created_by,
     title,
     amount_cents,
     currency
-)
-VALUES(?, 1, "Concurrency", 10000, "EUR")');
+    )
+    VALUES(?, 1, "Concurrency", 10000, "EUR")
+    SQL
+    ,
+);
 $q->execute([$campaign]);
 $rid = (int) $db->lastInsertId();
-$q = $db->prepare('INSERT INTO payment_obligations(
+$q = $db->prepare(
+    <<<'SQL'
+    INSERT INTO payment_obligations(
     payment_request_id,
     user_id,
     amount_cents,
     currency
-)
-VALUES(?, 1, 10000, "EUR")');
+    )
+    VALUES(?, 1, 10000, "EUR")
+    SQL
+    ,
+);
 $q->execute([$rid]);
 $oid = (int) $db->lastInsertId();
 $db->prepare(
@@ -153,25 +168,35 @@ $runMixed = function () use ($oid): array {
     return [$oa, $ob];
 };
 [$a, $b] = $run('payment', 100, 'same-ref');
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     COUNT(*)
-FROM
+    FROM
     payment_entries
-WHERE
-    obligation_id = ? AND external_reference = ?');
+    WHERE
+    obligation_id = ? AND external_reference = ?
+    SQL
+    ,
+);
 $q->execute([$oid, 'same-ref']);
 if ((int) $q->fetchColumn() !== 1) {
     throw new RuntimeException('duplicate reference race inserted more than once');
 }
 echo "PASS: concurrent duplicate reference [$a|$b]\n";
 [$a, $b] = $run('reversal', 6000, 'reversal-a');
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     COALESCE(SUM(amount_cents),
     0)
-FROM
+    FROM
     payment_entries
-WHERE
-    obligation_id = ? AND entry_kind = "reversal"');
+    WHERE
+    obligation_id = ? AND entry_kind = "reversal"
+    SQL
+    ,
+);
 $q->execute([$oid]);
 if ((int) $q->fetchColumn() > 10000) {
     throw new RuntimeException('reversal race exceeded original payment');

@@ -3,6 +3,6 @@
     "printWidth": 100,
     "braceStyle": "1tbs",
     "singleQuote": true,
-    "phpVersion": "8.4",
+    "phpVersion": "composer",
     "plugins": ["@prettier/plugin-php"]
 }

@@ -70,35 +70,44 @@ $campaign = (int) $b['data']['id'];
 [$s, $me] = $req('GET', '/api/v1/auth/me');
 $admin = (int) $me['data']['id'];
 $db->prepare(
-    'INSERT INTO campaign_memberships(
+    <<<'SQL'
+    INSERT INTO campaign_memberships(
     campaign_id,
     user_id,
     membership_role
-)
-VALUES(?, ?, "dm")
-ON DUPLICATE KEY
-UPDATE
+    )
+    VALUES(?, ?, "dm")
+    ON DUPLICATE KEY
+    UPDATE
     membership_role = "dm",
-    left_at = NULL',
+    left_at = NULL
+    SQL
+    ,
 )->execute([$campaign, $admin]);
 $username = 'payplayer-' . bin2hex(random_bytes(3));
 $db->prepare(
-    'INSERT INTO users(
+    <<<'SQL'
+    INSERT INTO users(
     display_name,
     email,
     username,
     account_status
-)
-VALUES("Payment Player", ?, ?, "active")',
+    )
+    VALUES("Payment Player", ?, ?, "active")
+    SQL
+    ,
 )->execute([$username . '@example.test', $username]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
-    'INSERT INTO user_credentials(
+    <<<'SQL'
+    INSERT INTO user_credentials(
     user_id,
     password_hash,
     password_algo
-)
-VALUES(?, ?, ?)',
+    )
+    VALUES(?, ?, ?)
+    SQL
+    ,
 )->execute([$player, password_hash('PayPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 [$s, $b] = $req('POST', "/api/v1/campaigns/$campaign/payment-requests", [
     'title' => 'Table fee',
@@ -148,12 +157,17 @@ $ok($s === 422, 'reversal bound');
     'external_reference' => 'pay-1',
 ]);
 $ok($s === 409, 'duplicate payment reference rejected');
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     COUNT(*)
-FROM
+    FROM
     payment_entries
-WHERE
-    obligation_id = ? AND external_reference = ?');
+    WHERE
+    obligation_id = ? AND external_reference = ?
+    SQL
+    ,
+);
 $q->execute([$oid, 'pay-1']);
 $ok((int) $q->fetchColumn() === 1, 'duplicate reference created no second entry');
 [$s, $b] = $req('POST', "/api/v1/campaigns/$campaign/payment-requests", [

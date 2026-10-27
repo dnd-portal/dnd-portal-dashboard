@@ -20,24 +20,29 @@ if ($email === '' || $username === '' || $name === '') {
     exit(2);
 }
 $db = Connection::make();
-$q = $db->prepare('SELECT
+$q = $db->prepare(
+    <<<'SQL'
+    SELECT
     u.id,
     u.account_status,
     EXISTS(
     SELECT
-        1
+    1
     FROM
-        user_roles ur
+    user_roles ur
     JOIN roles r ON
-        r.id = ur.role_id
+    r.id = ur.role_id
     WHERE
-        ur.user_id = u.id AND r.role_key = "portal_admin"
-) AS is_admin
-FROM
+    ur.user_id = u.id AND r.role_key = "portal_admin"
+    ) AS is_admin
+    FROM
     users u
-WHERE
+    WHERE
     u.email = ? OR u.username = ?
-LIMIT 2');
+    LIMIT 2
+    SQL
+    ,
+);
 $q->execute([$email, $username]);
 $rows = $q->fetchAll();
 if (count($rows) > 1) {
@@ -63,30 +68,45 @@ if (strlen($password) < 8) {
 }
 $db->beginTransaction();
 try {
-    $q = $db->prepare('INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-)
-VALUES(?, ?, ?, "active")');
+    $q = $db->prepare(
+        <<<'SQL'
+        INSERT INTO users(
+        display_name,
+        email,
+        username,
+        account_status
+        )
+        VALUES(?, ?, ?, "active")
+        SQL
+        ,
+    );
     $q->execute([$name, $email, $username]);
     $id = (int) $db->lastInsertId();
-    $q = $db->prepare('INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-)
-VALUES(?, ?, ?)');
+    $q = $db->prepare(
+        <<<'SQL'
+        INSERT INTO user_credentials(
+        user_id,
+        password_hash,
+        password_algo
+        )
+        VALUES(?, ?, ?)
+        SQL
+        ,
+    );
     $q->execute([$id, password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
-    $q = $db->prepare('INSERT INTO user_roles(user_id, role_id)
-SELECT
-    ?,
-    id
-FROM
-    roles
-WHERE
-    role_key = "portal_admin"');
+    $q = $db->prepare(
+        <<<'SQL'
+        INSERT INTO user_roles(user_id, role_id)
+        SELECT
+        ?,
+        id
+        FROM
+        roles
+        WHERE
+        role_key = "portal_admin"
+        SQL
+        ,
+    );
     $q->execute([$id]);
     if ($q->rowCount() !== 1) {
         throw new RuntimeException('portal_admin role is missing');

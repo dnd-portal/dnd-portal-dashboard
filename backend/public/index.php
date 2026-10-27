@@ -107,12 +107,17 @@ $router->post('/api/v1/admin/invites/revoke', static function ($r) {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
     $a->requireRole('portal_admin');
-    $q = $db->prepare('UPDATE
-    registration_invites
-SET
-    consumed_at = ?
-WHERE
-    id = ? AND consumed_at IS NULL');
+    $q = $db->prepare(
+        <<<'SQL'
+        UPDATE
+        registration_invites
+        SET
+        consumed_at = ?
+        WHERE
+        id = ? AND consumed_at IS NULL
+        SQL
+        ,
+    );
     $q->execute([gmdate('Y-m-d H:i:s.u'), (int) ($r->json()['id'] ?? 0)]);
     Response::json(['data' => null]);
 });
@@ -121,12 +126,17 @@ $router->post('/api/v1/admin/password-reset-codes/revoke', static function ($r) 
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
     $a->requireRole('portal_admin');
-    $q = $db->prepare('UPDATE
-    password_reset_tokens
-SET
-    used_at = ?
-WHERE
-    id = ? AND used_at IS NULL');
+    $q = $db->prepare(
+        <<<'SQL'
+        UPDATE
+        password_reset_tokens
+        SET
+        used_at = ?
+        WHERE
+        id = ? AND used_at IS NULL
+        SQL
+        ,
+    );
     $q->execute([gmdate('Y-m-d H:i:s.u'), (int) ($r->json()['id'] ?? 0)]);
     Response::json(['data' => null]);
 });
