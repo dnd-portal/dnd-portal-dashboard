@@ -11,7 +11,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Er is voor dit prototype geen PHP-server, MySQL of `.env` nodig. `src/lib/database/` bevat de meegeleverde geanonimiseerde mockdata. Registratie en rolkeuze zijn demonstratiegedrag, geen productie-authenticatie. De PHP/API-architectuur van de hoofdrepository blijft de beoogde grens voor echte authenticatie en databasebewerkingen.
+Voor alleen frontend-adaptertests is geen PHP-server of MySQL nodig. Voor het echte player-dashboard en de screenshotprocedure hieronder is de PHP/API-server met de lokale ontwikkel-database vereist. Registratie en rolkeuze zijn geen productie-authenticatie; echte login en dashboardgegevens lopen via de lokale API.
 
 ## Controles
 
@@ -34,6 +34,56 @@ pnpm test:browser
 Playwright start zelf een lokale Vite-server op `127.0.0.1:5173`. De tests controleren desktop/mobiel, uitlijning, overflow, refresh/back bij filters, selectie, menu's, breadcrumbs, kalenderbediening en CSS-isolatie. Optioneel kan `PLAYWRIGHT_CHROMIUM_EXECUTABLE` naar een bestaande Chromium/headless-shell executable verwijzen. Normaal is dat niet nodig.
 
 Formatteren gebeurt met vier spaties. `pnpm format` past de bestaande formatterconfiguratie toe op broncode, tests en projectdocumentatie.
+
+## Lokale dashboard-screenshots
+
+Gebruik voor echte API-backed playerdata de lokale ontwikkelprocedure vanuit de repositoryroot. Deze procedure gebruikt uitsluitend de expliciete lokale database `dnd_portal_development`.
+
+1. Seed de idempotente fictieve accounts en dashboarddata:
+
+    ```powershell
+    $env:APP_ENV='local'
+    $env:DB_HOST='127.0.0.1'
+    $env:DB_PORT='3307'
+    $env:DB_NAME='dnd_portal_development'
+    $env:DB_USER='dnd_test'
+    $env:DB_PASSWORD='local-test-only'
+    php backend/scripts/seed-local-demo.php
+    ```
+
+    Of laat de bestaande lokale startprocedure dit doen met `backend/scripts/start-local.ps1 -SeedDemo`.
+
+2. Start backend en frontend met de bestaande lokale procedure:
+
+    ```powershell
+    backend/scripts/start-local.ps1 -SeedDemo
+    ```
+
+    Die procedure start Docker/MariaDB indien nodig, de PHP API op `http://127.0.0.1:8099` en Vite op `http://127.0.0.1:5173`. Laat bestaande servers ongemoeid als de poorten al bezet zijn.
+
+3. Stel in een aparte PowerShell-sessie de lokale screenshotcredentials in. Gebruik geen credentials uit productie en commit deze waarden niet:
+
+    ```powershell
+    $env:PLAYER_DASHBOARD_USERNAME='localdemo-player'
+    $env:PLAYER_DASHBOARD_PASSWORD='<lokale seed-wachtwoordwaarde>'
+    $env:PLAYWRIGHT_CHROMIUM_EXECUTABLE='' # optioneel; normaal leeg laten
+    ```
+
+4. Maak de drie screenshots met het herbruikbare Playwright-script:
+
+    ```powershell
+    pnpm --dir player visual:dashboard
+    ```
+
+    Het script start of stopt geen servers, containers of databases. Het gebruikt alleen `http://127.0.0.1:5173`, controleert de backend via `/api/v1/health`, logt in en vervangt uitsluitend bestaande bestanden onder `player/test-results/manual-dashboard/`.
+
+    De bestanden verschijnen hier:
+
+    ```text
+    player/test-results/manual-dashboard/dashboard-1440x1000.png
+    player/test-results/manual-dashboard/dashboard-1920x1080.png
+    player/test-results/manual-dashboard/dashboard-390x844.png
+    ```
 
 ## Adminstructuur
 

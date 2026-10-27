@@ -7,13 +7,14 @@
         "dev": "vite dev",
         "build": "vite build",
         "preview": "vite preview",
-        "format": "prettier --write \"src/**/*.svelte\" \"src/**/*.html\" \"src/**/*.ts\" \"src/**/*.scss\" \"tests/**/*.mjs\" \"tests/**/*.ts\" \"*.json\" \"*.ts\" \"*.md\"",
-        "format:check": "prettier --check \"src/**/*.svelte\" \"src/**/*.html\" \"src/**/*.ts\" \"src/**/*.scss\" \"tests/**/*.mjs\" \"tests/**/*.ts\" \"*.json\" \"*.ts\" \"*.md\"",
+        "format": "prettier --write \"src/**/*.svelte\" \"src/**/*.html\" \"src/**/*.ts\" \"src/**/*.scss\" \"tests/**/*.mjs\" \"tests/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\" \"*.ts\" \"*.md\"",
+        "format:check": "prettier --check \"src/**/*.svelte\" \"src/**/*.html\" \"src/**/*.ts\" \"src/**/*.scss\" \"tests/**/*.mjs\" \"tests/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\" \"*.ts\" \"*.md\"",
         "prepare": "svelte-kit sync || echo ''",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
         "test": "node --test tests/*.test.mjs",
-        "test:browser": "playwright test"
+        "test:browser": "playwright test",
+        "visual:dashboard": "node scripts/capture-dashboard.mjs"
     },
     "devDependencies": {
         "@playwright/test": "^1.64.1",
