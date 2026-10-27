@@ -117,8 +117,8 @@
 
 <svelte:head><title>{adminTitle}</title></svelte:head>
 <svelte:window onkeydown={keyboard} />
-<div class="admin-app" class:admin-app--denied={access !== 'allowed'} data-hydrated={hydrated || undefined}>
-    <header class="admin-topbar">
+<div class="p-shell admin-app" class:admin-app--denied={access !== 'allowed'} data-hydrated={hydrated || undefined}>
+    <header class="p-shell__header admin-topbar">
         <div class="admin-topbar__inner">
             <button
                 bind:this={menuButton}
@@ -132,7 +132,7 @@
                     ><path d="M4 6h16M4 12h16M4 18h16" /></svg
                 ></button
             >
-            <a class="admin-brand" href="/admin"
+            <a class="p-shell__brand admin-brand" href="/admin"
                 ><img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" /></a
             >
             <Breadcrumbs items={breadcrumbItems} />
@@ -142,7 +142,7 @@
     <aside
         bind:this={sidebar}
         id="admin-sidebar"
-        class="admin-sidebar"
+        class="p-shell__sidebar admin-sidebar"
         class:admin-sidebar--open={sidebarOpen}
         inert={mobile && !sidebarOpen}
         aria-label="Admin navigation"
@@ -150,7 +150,7 @@
         {#each ['Overview', 'Database', 'Campaign', 'Finance', 'System'] as group}<section class="admin-sidebar__group">
                 <p class="admin-sidebar__label">{group}</p>
                 {#each adminLinks.filter((link) => link.group === group) as link (link.id)}<a
-                        class="admin-sidebar__link"
+                        class="p-nav__link admin-sidebar__link"
                         class:admin-sidebar__link--active={active === link.id}
                         href={link.href}
                         aria-current={active === link.id ? 'page' : undefined}
@@ -169,7 +169,7 @@
             aria-label="Close admin navigation"
             onclick={() => closeSidebar(true)}
         ></button>{/if}
-    <main class="admin-content" inert={sidebarOpen && mobile}>
+    <main class="p-shell__main p-container admin-content" inert={sidebarOpen && mobile}>
         {#if access === 'checking'}
             <section class="content-state" aria-live="polite"><p>Checking access…</p></section>
         {:else if access === 'denied'}

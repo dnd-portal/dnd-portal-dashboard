@@ -84,27 +84,27 @@
         description="Sign in to see your campaign sessions, party and shared expenses."
     >
         <form
-            class="auth-login-form"
+            class="p-form auth-login-form"
             onsubmit={(event) => {
                 event.preventDefault();
                 void login();
             }}
         >
             <label for="login-identifier">Email or username</label><input
-                class="login-input"
+                class="p-input login-input"
                 id="login-identifier"
                 bind:value={identifier}
                 autocomplete="username"
                 required
             /><label for="login-password">Password</label><input
-                class="login-input"
+                class="p-input login-input"
                 id="login-password"
                 type="password"
                 bind:value={password}
                 autocomplete="current-password"
                 required
             />{#if loginError}<p class="error-message" role="alert">{loginError}</p>{/if}<button
-                class="login-button"
+                class="p-button login-button"
                 type="submit"
                 disabled={busy}>{busy ? 'Signing in…' : 'Continue with email'} <span>→</span></button
             >
@@ -121,24 +121,24 @@
             </section>{:else if !campaigns.length}<section class="player-empty-state">
                 <h1>No campaign yet</h1>
                 <p class="login-copy">Your organizer has not added you to a campaign.</p>
-            </section>{:else}<section class="welcome">
+            </section>{:else}<section class="p-page-header welcome">
                 <div>
-                    <p class="eyebrow">YOUR CAMPAIGN</p>
+                    <p class="p-eyebrow eyebrow">YOUR CAMPAIGN</p>
                     <h1>Welcome, {user.display_name} <span>✦</span></h1>
                     <p class="subcopy">Your campaign information comes from the portal.</p>
                 </div>
             </section>
-            {#if nextSession}<section class="hero-card">
+            {#if nextSession}<section class="p-card p-dashboard__hero hero-card">
                     <div class="hero-copy">
                         <div class="session-status"><span class="live-dot"></span> NEXT SESSION</div>
                         <h2>{nextSession.title}</h2>
-                        <p>{nextSession.location ?? 'Location to be announced.'}</p>
-                        <div class="hero-meta">
+                        <p class="p-card__description">{nextSession.location ?? 'Location to be announced.'}</p>
+                        <div class="p-dashboard__hero-meta hero-meta">
                             <span>◷ <b>{formatPortalDate(nextSession.session_date)}</b></span><span
                                 >◷ <b>{formatPortalTime(nextSession.starts_at)}</b></span
                             >
                         </div>
-                        <a class="secondary-button" href={`/sessions/${nextSession.id}`}
+                        <a class="p-button p-button--secondary" href={`/sessions/${nextSession.id}`}
                             >View session details <span>→</span></a
                         >
                     </div>
@@ -146,45 +146,49 @@
                     <h2>No upcoming sessions</h2>
                     <p>Your organizer has not scheduled another session.</p>
                 </section>{/if}
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-top"><span>UPCOMING SESSIONS</span></div>
-                    <strong>{sessions.length}</strong>
-                    <p>{sessions.length ? 'Scheduled in this campaign' : 'None scheduled'}</p>
+            <section class="p-dashboard__stats stats-grid">
+                <div class="p-card p-stat stat-card">
+                    <div class="p-eyebrow stat-top"><span>UPCOMING SESSIONS</span></div>
+                    <strong class="p-stat__value">{sessions.length}</strong>
+                    <p class="p-stat__description">
+                        {sessions.length ? 'Scheduled in this campaign' : 'None scheduled'}
+                    </p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-top"><span>YOUR BALANCE</span></div>
-                    <strong
+                <div class="p-card p-stat stat-card">
+                    <div class="p-eyebrow stat-top"><span>YOUR BALANCE</span></div>
+                    <strong class="p-stat__value"
                         >{dashboard?.open_contributions_cents
                             ? `${(dashboard.open_contributions_cents / 100).toFixed(2)} EUR`
                             : 'Paid'}</strong
                     >
-                    <p>Own open obligations</p>
+                    <p class="p-stat__description">Own open obligations</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-top"><span>PARTY ROSTER</span></div>
-                    <strong>{members.length}</strong>
-                    <p>Campaign members</p>
+                <div class="p-card p-stat stat-card">
+                    <div class="p-eyebrow stat-top"><span>PARTY ROSTER</span></div>
+                    <strong class="p-stat__value">{members.length}</strong>
+                    <p class="p-stat__description">Campaign members</p>
                 </div>
             </section>
-            <div class="dashboard-grid">
-                <section class="panel sessions-panel">
-                    <div class="panel-header">
+            <div class="p-dashboard__columns dashboard-grid">
+                <section class="p-card panel sessions-panel">
+                    <div class="p-card__header panel-header">
                         <div>
-                            <p class="eyebrow">THE ROAD AHEAD</p>
+                            <p class="p-eyebrow eyebrow">THE ROAD AHEAD</p>
                             <h3>Upcoming sessions</h3>
                         </div>
-                        <a class="text-button" href="/sessions">View calendar <span>→</span></a>
+                        <a class="p-button p-button--secondary" href="/sessions">View calendar <span>→</span></a>
                     </div>
-                    {#if sessions.length}<div class="session-list">
-                            {#each sessions as session}<a class="session-row" href={`/sessions/${session.id}`}
+                    {#if sessions.length}<div class="p-list session-list">
+                            {#each sessions as session}<a
+                                    class="p-list__row session-row"
+                                    href={`/sessions/${session.id}`}
                                     ><div class="date-block">
                                         <strong>{session.session_date.slice(8, 10)}</strong><span
                                             >{session.session_date.slice(5, 7)}</span
                                         >
                                     </div>
                                     <div class="session-info">
-                                        <strong>{session.title}</strong><span
+                                        <strong class="p-list__title">{session.title}</strong><span class="p-list__meta"
                                             >{formatPortalTime(session.starts_at)} · {session.location ??
                                                 'Location to be announced'}</span
                                         >
@@ -193,25 +197,27 @@
                                 >{/each}
                         </div>{:else}<p role="status">No sessions available.</p>{/if}
                 </section>
-                <section class="panel party-panel">
-                    <div class="panel-header">
+                <section class="p-card panel party-panel">
+                    <div class="p-card__header panel-header">
                         <div>
-                            <p class="eyebrow">YOUR PARTY</p>
+                            <p class="p-eyebrow eyebrow">YOUR PARTY</p>
                             <h3>Fellow adventurers</h3>
                         </div>
-                        <a class="round-button" aria-label="Open party roster" href="/party">＋</a>
+                        <a class="p-button p-button--secondary" aria-label="Open party roster" href="/party">＋</a>
                     </div>
-                    {#if members.length}<div class="party-list">
-                            {#each members.slice(0, 5) as member}<div class="party-row">
+                    {#if members.length}<div class="p-list party-list">
+                            {#each members.slice(0, 5) as member}<div class="p-list__row party-row">
                                     <div class="avatar avatar-blue">
                                         {member.display_name.slice(0, 2).toUpperCase()}
                                     </div>
                                     <div>
-                                        <strong>{member.display_name}</strong><span>{member.membership_role}</span>
+                                        <strong class="p-list__title">{member.display_name}</strong><span
+                                            class="p-list__meta">{member.membership_role}</span
+                                        >
                                     </div>
                                 </div>{/each}
                         </div>{:else}<p role="status">No party members available.</p>{/if}<a
-                        class="full-button"
+                        class="p-button p-button--secondary p-button--full"
                         href="/party">Open party roster <span>→</span></a
                     >
                 </section>

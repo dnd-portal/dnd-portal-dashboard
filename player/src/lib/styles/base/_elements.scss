@@ -1,0 +1,35 @@
+body {
+    background: var(--p-bg);
+    color: var(--p-text);
+    font-family: var(--p-font);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+h1,
+h2,
+h3,
+h4 {
+    color: var(--p-heading);
+    font-weight: 700;
+    line-height: 1.2;
+}
+h1 {
+    font-size: 2rem;
+}
+h2 {
+    font-size: 1.5rem;
+}
+h3 {
+    font-size: 1.25rem;
+}
+a {
+    color: var(--p-accent);
+    text-underline-offset: 0.2em;
+}
+a:hover {
+    color: var(--p-accent-hover);
+}
+:focus-visible {
+    outline: 2px solid var(--p-accent);
+    outline-offset: 3px;
+}

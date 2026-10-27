@@ -22,7 +22,7 @@
 </script>
 
 {#if user}<PlayerShell {user} campaignName={campaign?.name}
-        ><section class="player-page">
+        ><section class="p-dashboard">
             <a href="/">← Dashboard</a>
             <h1>Party roster</h1>
             {#if error}<p class="error-message" role="alert">{error}</p>{:else if !rows.length}<p role="status">

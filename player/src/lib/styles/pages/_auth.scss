@@ -1,0 +1,36 @@
+.p-auth {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 24px;
+    padding: 32px 20px;
+}
+.p-auth__brand img {
+    width: 170px;
+    height: 56px;
+    object-fit: contain;
+}
+.p-auth__panel {
+    width: 100%;
+    max-width: 480px;
+    padding: 32px;
+}
+.p-auth__header {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.p-auth__header p,
+.p-auth__footer {
+    color: var(--p-secondary);
+}
+.p-auth__footer {
+    margin-top: 24px;
+    font-size: 0.875rem;
+}
+@media (max-width: 480px) {
+    .p-auth__panel {
+        padding: 22px;
+    }
+}

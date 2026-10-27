@@ -3,14 +3,16 @@
     let { title, description, children }: { title: string; description: string; children: Snippet } = $props();
 </script>
 
-<main class="register-shell">
-    <section class="register-card">
-        <a class="auth-brand" href="/" aria-label="D&D Portal"
-            ><img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" /></a
-        >
-        <p class="eyebrow">D&amp;D PORTAL PLAYER DASHBOARD</p>
-        <h1>{title}</h1>
-        <p class="intro">{description}</p>
+<main class="p-auth">
+    <a class="p-auth__brand" href="/" aria-label="D&D Portal"
+        ><img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" /></a
+    >
+    <section class="p-card p-auth__panel">
+        <header class="p-auth__header">
+            <p class="p-eyebrow">D&amp;D PORTAL PLAYER DASHBOARD</p>
+            <h1>{title}</h1>
+            <p>{description}</p>
+        </header>
         {@render children()}
     </section>
 </main>

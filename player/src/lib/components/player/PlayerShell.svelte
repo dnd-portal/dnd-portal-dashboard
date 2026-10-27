@@ -9,6 +9,7 @@
         campaignName = 'No campaign',
         children
     }: { user: User; campaignName?: string; children: Snippet } = $props();
+    let menuOpen = $state(false);
     const active = $derived(
         page.url.pathname === '/'
             ? 'Overview'
@@ -25,55 +26,72 @@
         await api.post('/api/v1/auth/logout', {});
         window.location.href = '/';
     }
+
+    function closeMenu() {
+        menuOpen = false;
+    }
 </script>
 
-<div class="app-shell">
-    <aside class="sidebar">
-        <a class="brand" href="/" aria-label="D&D Portal dashboard"
+<svelte:window onkeydown={(event) => event.key === 'Escape' && closeMenu()} />
+
+<div class="p-shell" data-menu-open={menuOpen}>
+    <header class="p-shell__header">
+        <a class="p-shell__brand" href="/" aria-label="D&D Portal dashboard"
             ><img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" /></a
         >
-        <div class="campaign-switcher-wrap">
-            <div class="campaign-switcher">
-                <div class="campaign-icon">D&amp;D</div>
-                <div><strong>{campaignName}</strong><span>Player</span></div>
-            </div>
-        </div>
-        <nav aria-label="Main navigation">
-            <p class="nav-label">CAMPAIGN</p>
-            <a class:active={active === 'Overview'} class="nav-item" href="/"><span class="nav-icon">⌗</span>Overview</a
+        <button
+            class="p-button p-button--secondary p-shell__menu-toggle"
+            type="button"
+            aria-label="Open navigation"
+            aria-expanded={menuOpen}
+            aria-controls="portal-navigation"
+            onclick={() => (menuOpen = !menuOpen)}>Menu</button
+        >
+        <div class="p-shell__header-actions"><span>{active}</span></div>
+    </header>
+    <button class="p-shell__backdrop" type="button" aria-label="Close navigation" onclick={closeMenu}></button>
+    <aside id="portal-navigation" class="p-shell__sidebar">
+        <button class="p-campaign-picker" type="button"><strong>{campaignName}</strong><small>Player</small></button>
+        <nav class="p-nav" aria-label="Campaign">
+            <p class="p-nav__label">Campaign</p>
+            <a
+                class="p-nav__link"
+                href="/"
+                aria-current={active === 'Overview' ? 'page' : undefined}
+                onclick={closeMenu}>⌗ Overview</a
             >
-            <a class:active={active === 'Sessions'} class="nav-item" href="/sessions"
-                ><span class="nav-icon">▣</span>Sessions</a
+            <a
+                class="p-nav__link"
+                href="/sessions"
+                aria-current={active === 'Sessions' ? 'page' : undefined}
+                onclick={closeMenu}>▣ Sessions</a
             >
-            <a class:active={active === 'The party'} class="nav-item" href="/party"
-                ><span class="nav-icon">♧</span>The party</a
+            <a
+                class="p-nav__link"
+                href="/party"
+                aria-current={active === 'The party' ? 'page' : undefined}
+                onclick={closeMenu}>♧ The party</a
             >
-            <a class:active={active === 'Treasury'} class="nav-item" href="/payments"
-                ><span class="nav-icon">◈</span>Treasury</a
+            <a
+                class="p-nav__link"
+                href="/payments"
+                aria-current={active === 'Treasury' ? 'page' : undefined}
+                onclick={closeMenu}>◈ Treasury</a
             >
-            <p class="nav-label secondary-label">WORLD</p>
-            <span class="nav-item is-disabled" title="Chronicle is not available for this campaign"
-                ><span class="nav-icon">◒</span>Chronicle</span
+            <span class="p-nav__link" aria-disabled="true" title="Chronicle is not available in this portal build"
+                >▤ Chronicle</span
             >
-            <span class="nav-item is-disabled" title="Map room is not available for this campaign"
-                ><span class="nav-icon">⌁</span>Map room</span
+            <span class="p-nav__link" aria-disabled="true" title="Map room is not available in this portal build"
+                >⌖ Map room</span
             >
         </nav>
-        <div class="sidebar-bottom">
-            <div class="profile">
-                <div class="avatar avatar-blue">{user.display_name.slice(0, 2).toUpperCase()}</div>
-                <div><strong>{user.display_name}</strong><span>@{user.username ?? 'player'}</span></div>
-            </div>
-            {#if user.roles?.includes('portal_admin')}<a class="nav-item" href="/admin"
-                    ><span class="nav-icon">⚙</span>Admin</a
-                >{/if}<button class="nav-item" type="button" onclick={logout}>Sign out</button>
+        <div class="p-shell__sidebar-footer">
+            {#if user.roles?.includes('portal_admin')}<a class="p-button p-button--secondary" href="/admin">Admin</a
+                >{/if}
+            <button class="p-button p-button--secondary" type="button" onclick={logout}>Sign out</button>
         </div>
     </aside>
-    <main class="content">
-        <header class="topbar">
-            <div class="breadcrumb"><span>Campaign</span><b>/</b><strong>{active}</strong></div>
-            <div class="avatar avatar-blue">{user.display_name.slice(0, 2).toUpperCase()}</div>
-        </header>
-        <div class="page-wrap">{@render children()}</div>
+    <main class="p-shell__main">
+        <div class="p-container">{@render children()}</div>
     </main>
 </div>

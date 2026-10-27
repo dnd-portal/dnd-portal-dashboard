@@ -1,15 +1,18 @@
-@use 'base';
-@use 'layouts/admin-layout';
-@use 'components/admin/header';
-@use 'components/admin/table';
-@use 'components/admin/detail';
-@use 'components/admin/calendar';
-@use 'components/shared/user-identity';
-@use 'components/shared/status-label';
-@use 'components/shared/content-state';
-@use 'components/shared/row-actions';
-@use 'components/shared/popover';
+@use 'settings/tokens';
+@use 'base/reset';
+@use 'base/elements';
+@use 'layouts/shell';
+@use 'components/navigation';
+@use 'components/card';
+@use 'components/button';
+@use 'components/form';
+@use 'components/table';
+@use 'components/state';
+@use 'pages/dashboard';
+@use 'pages/auth';
+
+// These existing styles cover functional controls that have no v1 package equivalent.
 @use 'components/shared/dropdown-select';
-@use 'pages/admin/overview';
-@use 'pages/player/dashboard';
-@use 'pages/auth/register';
+@use 'components/shared/popover';
+@use 'components/admin/calendar';
+@use 'components/admin/detail';

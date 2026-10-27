@@ -30,13 +30,13 @@
 </script>
 
 {#if user}<PlayerShell {user} campaignName={campaign?.name}
-        ><section class="player-page">
+        ><section class="p-dashboard">
             <a href="/">← Dashboard</a>
             <h1>Sessions</h1>
             {#if error}<p class="error-message" role="alert">{error}</p>{:else if !rows.length}<p role="status">
                     No sessions available.
-                </p>{:else}<ul>
-                    {#each rows as row}<li>
+                </p>{:else}<ul class="p-card p-list">
+                    {#each rows as row}<li class="p-list__row">
                             <a href={`/sessions/${row.id}`}>{row.title}</a> — {formatPortalDate(row.session_date)} · {formatPortalTime(
                                 row.starts_at
                             )} · {row.location ?? 'Location to be announced'}

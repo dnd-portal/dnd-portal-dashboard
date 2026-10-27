@@ -1,0 +1,13 @@
+.p-state {
+    display: grid;
+    justify-items: start;
+    gap: 16px;
+    width: 100%;
+    max-width: 720px;
+    margin-inline: auto;
+    padding: clamp(24px, 4vw, 48px);
+}
+.p-state p {
+    max-width: 60ch;
+    color: var(--p-secondary);
+}

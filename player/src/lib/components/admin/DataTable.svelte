@@ -53,7 +53,7 @@
     }
 </script>
 
-<section class="admin-table" aria-label={caption}>
+<section class="p-table-wrap admin-table" aria-label={caption}>
     {#if toolbar}<div class="admin-table__toolbar">{@render toolbar()}</div>{/if}
     {#if selectable && selected.length}<div class="admin-table__selection" role="status">
             <strong>{selected.length} selected</strong><button type="button" onclick={() => (selected = [])}
@@ -62,7 +62,7 @@
         </div>{/if}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (The overflow region needs keyboard focus for horizontal scrolling.) -->
     <div class="admin-table__scroll" tabindex="0" role="region" aria-label={`${caption} table`}>
-        <table class="admin-table__table">
+        <table class="p-table admin-table__table">
             <caption class="sr-only">{caption}</caption>
             <thead
                 ><tr>

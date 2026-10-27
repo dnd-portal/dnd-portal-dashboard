@@ -25,7 +25,7 @@
 </script>
 
 {#if user}<PlayerShell {user}
-        ><section class="player-page">
+        ><section class="p-dashboard">
             <h1>My payments</h1>
             <p>Only your own payment obligations are shown.</p>
             {#if error}<p class="error-message" role="alert">{error}</p>{:else if rows.length === 0}<p role="status">

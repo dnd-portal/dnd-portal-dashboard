@@ -107,25 +107,39 @@
 <section class="admin-detail">
     <h2>Create {type === 'campaign' ? 'campaign' : 'one-shot'}</h2>
     <form
-        class="admin-form"
+        class="p-form admin-form"
         onsubmit={(event) => {
             event.preventDefault();
             void create();
         }}
     >
-        <div class="admin-form__field">
+        <div class="p-field admin-form__field">
             <label for="campaign-name">Name</label>
-            <input id="campaign-name" bind:value={name} oninput={updateName} autocomplete="off" required />
-            <small>Use a name your players will recognize.</small>
+            <input
+                class="p-input"
+                id="campaign-name"
+                bind:value={name}
+                oninput={updateName}
+                autocomplete="off"
+                required
+            />
+            <small class="p-field__help">Use a name your players will recognize.</small>
         </div>
-        <div class="admin-form__field">
+        <div class="p-field admin-form__field">
             <label for="campaign-slug">Slug</label>
-            <input id="campaign-slug" bind:value={slug} oninput={updateSlug} autocomplete="off" required />
-            <small>Lowercase letters, numbers and hyphens.</small>
+            <input
+                class="p-input"
+                id="campaign-slug"
+                bind:value={slug}
+                oninput={updateSlug}
+                autocomplete="off"
+                required
+            />
+            <small class="p-field__help">Lowercase letters, numbers and hyphens.</small>
         </div>
         {#if fieldError}<p class="field-error" role="alert">{fieldError}</p>{/if}
         {#if error}<p class="error-message" role="alert">{error}</p>{/if}
-        <button class="primary-button" type="submit" disabled={busy || !name.trim() || !slug.trim()}>
+        <button class="p-button" type="submit" disabled={busy || !name.trim() || !slug.trim()}>
             {busy ? 'Creating…' : 'Create campaign'}
         </button>
     </form>
