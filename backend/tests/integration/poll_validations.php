@@ -34,7 +34,8 @@ $request = function (string $m, string $p, ?array $b = null) use (&$cookie, &$cs
 $ok = function (bool $v, string $n): void {
     if (!$v) {
         throw new RuntimeException('FAIL: '.$n);
-    }echo "PASS: $n\n";
+    }
+    echo "PASS: $n\n";
 };
 [$s,$b] = $request('GET', '/api/v1/auth/csrf');
 $csrf = $b['data']['token'] ?? '';

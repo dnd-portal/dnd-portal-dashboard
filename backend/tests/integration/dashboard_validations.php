@@ -37,7 +37,8 @@ $request = function (string $method, string $path, ?array $body = null) use (&$c
 $ok = static function (bool $condition, string $name): void {
     if (!$condition) {
         throw new RuntimeException('FAIL: ' . $name);
-    } echo "PASS: $name\n";
+    }
+    echo "PASS: $name\n";
 };
 [$status, $body] = $request('GET', '/api/v1/auth/csrf');
 $csrf = $body['data']['token'] ?? '';

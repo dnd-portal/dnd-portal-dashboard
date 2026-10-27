@@ -9,6 +9,7 @@ use PDO;
 
 final class DashboardService {
     public function __construct(private PDO $db) {}
+
     public function get(int $uid): never {
         $q = $this->db->prepare('SELECT s.id,s.title,s.session_date,s.starts_at,c.name campaign_name,(SELECT COUNT(*) FROM session_participants sp WHERE sp.session_id=s.id) participants,(SELECT COUNT(*) FROM session_participants sp WHERE sp.session_id=s.id AND sp.rsvp_status="accepted") rsvp_accepted FROM game_sessions s JOIN campaigns c ON c.id=s.campaign_id JOIN campaign_memberships m ON m.campaign_id=c.id AND m.user_id=? AND m.left_at IS NULL WHERE s.status="planned" AND c.archived_at IS NULL AND s.session_date>=UTC_DATE() ORDER BY s.session_date,s.starts_at LIMIT 1');
         $q->execute([$uid]);
@@ -21,17 +22,20 @@ final class DashboardService {
         $balances = [];
         foreach ($q->fetchAll() as $row) {
             $balances[$row['currency']] = (int)$row['outstanding_cents'];
-        }$data = ['next_session' => $next,'open_polls' => $openPolls,'open_contributions_cents' => $balances['EUR'] ?? 0,'open_contributions_by_currency' => $balances];
+        }
+        $data = ['next_session' => $next,'open_polls' => $openPolls,'open_contributions_cents' => $balances['EUR'] ?? 0,'open_contributions_by_currency' => $balances];
         if ($this->isAdmin($uid)) {
             $data['admin'] = $this->adminTotals();
         }
         Response::json(['data' => $data]);
     }
+
     private function isAdmin(int $uid): bool {
         $q = $this->db->prepare("SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin'");
         $q->execute([$uid]);
         return(bool)$q->fetchColumn();
     }
+
     private function adminTotals(): array {
         $q = $this->db->query('SELECT COUNT(*) FROM users');
         $users = (int)$q->fetchColumn();

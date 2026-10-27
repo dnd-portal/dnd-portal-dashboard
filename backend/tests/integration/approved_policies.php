@@ -32,7 +32,8 @@ $req = function (string $m, string $p, ?array $body = null) use (&$cookie, &$csr
         if (stripos($v, 'Set-Cookie: dnd_session=') === 0) {
             $cookie = explode('=', explode(';', trim(substr($v, 11)), 2)[0], 2)[1];
         }
-    }foreach ($http_response_header ?? [] as $v) {
+    }
+    foreach ($http_response_header ?? [] as $v) {
         if (preg_match('/^Set-Cookie:\\s*dnd_session=([^;]*)/i', $v, $m)) {
             $cookie = $m[1];
         }
@@ -42,7 +43,8 @@ $req = function (string $m, string $p, ?array $body = null) use (&$cookie, &$csr
 $ok = static function (bool $v, string $n): void {
     if (!$v) {
         throw new RuntimeException('FAIL: '.$n);
-    }echo "PASS: $n\n";
+    }
+    echo "PASS: $n\n";
 };
 [$s,$b] = $req('GET', '/api/v1/auth/csrf');
 $csrf = $b['data']['token'] ?? '';

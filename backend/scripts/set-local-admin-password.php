@@ -36,6 +36,7 @@ try {
 } catch (Throwable $e) {
     if ($db->inTransaction()) {
         $db->rollBack();
-    } fwrite(STDERR, "Update failed; transaction rolled back.\n");
+    }
+    fwrite(STDERR, "Update failed; transaction rolled back.\n");
     exit(1);
 }

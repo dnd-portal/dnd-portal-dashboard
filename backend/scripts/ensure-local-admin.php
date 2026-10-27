@@ -61,6 +61,7 @@ try {
 } catch (Throwable $e) {
     if ($db->inTransaction()) {
         $db->rollBack();
-    } fwrite(STDERR, "Creation failed; transaction rolled back.\n");
+    }
+    fwrite(STDERR, "Creation failed; transaction rolled back.\n");
     exit(1);
 }

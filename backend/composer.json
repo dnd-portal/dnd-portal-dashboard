@@ -8,7 +8,7 @@
         "friendsofphp/php-cs-fixer": "^3.64"
     },
     "scripts": {
-        "format": "php-cs-fixer fix --config=.php-cs-fixer.php",
-        "format:check": "php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff"
+        "format": "php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no && php tools/format_pipeline.php",
+        "format:check": "php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no --dry-run --diff && php tools/format_pipeline.php --check"
     }
 }

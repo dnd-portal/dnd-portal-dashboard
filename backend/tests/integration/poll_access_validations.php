@@ -19,21 +19,25 @@ $request = function (string $method, string $path, ?array $body = null) use (&$c
     $headers = ['Accept: application/json','Origin: http://127.0.0.1:5173'];
     if ($cookie) {
         $headers[] = 'Cookie: dnd_session='.$cookie;
-    } if ($body !== null) {
+    }
+    if ($body !== null) {
         $headers[] = 'Content-Type: application/json';
         $headers[] = 'X-CSRF-Token: '.$csrf;
-    } $raw = file_get_contents($base.$path, false, stream_context_create(['http' => ['method' => $method,'ignore_errors' => true,'header' => implode("\r\n", $headers),'content' => $body === null ? '' : json_encode($body)]]));
+    }
+    $raw = file_get_contents($base.$path, false, stream_context_create(['http' => ['method' => $method,'ignore_errors' => true,'header' => implode("\r\n", $headers),'content' => $body === null ? '' : json_encode($body)]]));
     $status = (int)preg_replace('/^HTTP\/[^ ]+ ([0-9]+).*$/', '$1', $http_response_header[0] ?? '0');
     foreach ($http_response_header ?? [] as $header) {
         if (stripos($header, 'Set-Cookie: dnd_session=') === 0) {
             $cookie = explode('=', explode(';', trim(substr($header, 11)), 2)[0], 2)[1];
         }
-    } return[$status,json_decode($raw ?: '{}', true) ?: []];
+    }
+    return[$status,json_decode($raw ?: '{}', true) ?: []];
 };
 $ok = function (bool $v, string $name): void {
     if (!$v) {
         throw new RuntimeException('FAIL: '.$name);
-    }echo "PASS: $name\n";
+    }
+    echo "PASS: $name\n";
 };
 [$s,$b] = $request('GET', '/api/v1/auth/csrf');
 $csrf = $b['data']['token'] ?? '';

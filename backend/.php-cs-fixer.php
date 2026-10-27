@@ -32,6 +32,7 @@ return (new PhpCsFixer\Config())
             'anonymous_functions_opening_brace' => 'same_line',
             'anonymous_classes_opening_brace' => 'same_line',
         ],
+        'class_attributes_separation' => ['elements' => ['method' => 'one']],
         'array_syntax' => ['syntax' => 'short'],
         'single_line_empty_body' => true,
         'no_multiple_statements_per_line' => true,

@@ -12,12 +12,15 @@ final class Security {
     private static function cookieOptions(int $expires): array {
         return ['expires' => $expires,'path' => '/','secure' => Config::isProduction(),'httponly' => true,'samesite' => Config::env('AUTH_COOKIE_SAMESITE', 'Lax')];
     }
+
     public static function cookie(string $value, int $maxAge): void {
         setcookie(Config::env('AUTH_COOKIE', 'dnd_session'), $value, self::cookieOptions(time() + $maxAge));
     }
+
     public static function clearCookie(): void {
         setcookie(Config::env('AUTH_COOKIE', 'dnd_session'), '', self::cookieOptions(1));
     }
+
     public static function csrf(Request $request, bool $mutating): void {
         if (!$mutating) {
             return;
@@ -33,6 +36,7 @@ final class Security {
             Response::error('csrf_failed', 'CSRF validation failed.', 419);
         }
     }
+
     public static function code(): string {
         return rtrim(strtr(base64_encode(random_bytes(16)), '+/', '-_'), '=');
     }

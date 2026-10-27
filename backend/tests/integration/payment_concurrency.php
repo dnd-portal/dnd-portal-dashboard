@@ -35,8 +35,10 @@ if (($argv[1] ?? '') === 'worker') {
     } catch (Throwable $e) {
         if ($db->inTransaction()) {
             $db->rollBack();
-        }echo "rejected:".$e->getMessage()."\n";
-    } exit;
+        }
+        echo "rejected:".$e->getMessage()."\n";
+    }
+    exit;
 }
 $q = $db->prepare("INSERT INTO campaigns(name,slug,type,created_by) VALUES('Concurrency payment',?,'campaign',1)");
 $q->execute(['concurrency-'.bin2hex(random_bytes(3))]);
@@ -60,7 +62,8 @@ $run = function (string $kind, int $amount, string $ref) use ($oid): array {
         foreach ($pipes as $p) {
             fclose($p);
         }
-    }proc_close($a);
+    }
+    proc_close($a);
     proc_close($b);
     foreach (glob($barrier.'.ready.*') as $f) {
         @unlink($f);
@@ -87,7 +90,8 @@ $runMixed = function () use ($oid): array {
         foreach ($pipes as $p) {
             fclose($p);
         }
-    }proc_close($a);
+    }
+    proc_close($a);
     proc_close($b);
     foreach (glob($barrier.'.ready.*') as $f) {
         @unlink($f);
@@ -99,18 +103,21 @@ $q = $db->prepare('SELECT COUNT(*) FROM payment_entries WHERE obligation_id=? AN
 $q->execute([$oid,'same-ref']);
 if ((int)$q->fetchColumn() !== 1) {
     throw new RuntimeException('duplicate reference race inserted more than once');
-}echo "PASS: concurrent duplicate reference [$a|$b]\n";
+}
+echo "PASS: concurrent duplicate reference [$a|$b]\n";
 [$a,$b] = $run('reversal', 6000, 'reversal-a');
 $q = $db->prepare('SELECT COALESCE(SUM(amount_cents),0) FROM payment_entries WHERE obligation_id=? AND entry_kind="reversal"');
 $q->execute([$oid]);
 if ((int)$q->fetchColumn() > 10000) {
     throw new RuntimeException('reversal race exceeded original payment');
-}echo "PASS: concurrent reversals bounded [$a|$b]\n";
+}
+echo "PASS: concurrent reversals bounded [$a|$b]\n";
 [$a,$b] = $runMixed();
 $q = $db->prepare('SELECT COALESCE(SUM(CASE WHEN entry_kind="payment" THEN amount_cents WHEN entry_kind="reversal" THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE obligation_id=? AND status="confirmed"');
 $q->execute([$oid]);
 $net = (int)$q->fetchColumn();
 if ($net < 0 || $net > 10000) {
     throw new RuntimeException('mixed payment/correction race produced invalid net balance');
-}echo "PASS: concurrent payment and correction consistent [$a|$b] net=$net\n";
+}
+echo "PASS: concurrent payment and correction consistent [$a|$b] net=$net\n";
 echo "PASS: payment concurrency database invariants\n";

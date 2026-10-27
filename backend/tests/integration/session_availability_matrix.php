@@ -9,7 +9,8 @@ use DndPortal\Database\Connection;
 Config::loadDotEnv(dirname(__DIR__, 2).'/.env');
 if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', Config::env('DB_NAME', ''))) {
     exit(2);
-}$base = getenv('TEST_BACKEND_URL') ?: 'http://127.0.0.1:8099';
+}
+$base = getenv('TEST_BACKEND_URL') ?: 'http://127.0.0.1:8099';
 $db = Connection::make();
 $cookie = '';
 $csrf = '';
@@ -34,7 +35,8 @@ $req = function (string $m, string $p, ?array $b = null) use (&$cookie, &$csrf, 
 $ok = function (bool $v, string $n): void {
     if (!$v) {
         throw new RuntimeException('FAIL: '.$n);
-    }echo"PASS: $n\n";
+    }
+    echo"PASS: $n\n";
 };
 [$s,$b] = $req('GET', '/api/v1/auth/csrf');
 $csrf = $b['data']['token'] ?? '';
@@ -98,7 +100,8 @@ $csrf = $b['data']['token'] ?? '';
 foreach (['2026-12-31','2027-01-01','2028-02-29'] as $date) {
     [$s,$b] = $req('PUT', "/api/v1/availability/$date", ['status' => 'available','note' => 'date boundary']);
     $ok($s === 200 || $date === '2028-02-29', 'availability boundary '.$date);
-}[$s,$b] = $req('GET', '/api/v1/availability');
+}
+[$s,$b] = $req('GET', '/api/v1/availability');
 $dates = array_column($b['data'] ?? [], 'availability_date');
 $ok(in_array('2026-12-31', $dates, true) && in_array('2027-01-01', $dates, true), 'availability DATE year boundary preserved');
 echo"PASS: session availability matrix\n";

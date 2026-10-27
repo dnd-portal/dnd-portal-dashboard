@@ -13,7 +13,8 @@ if (!preg_match('/^dnd_portal_migration_test_[0-9]+$/', Config::env('DB_NAME')))
 $ok = static function (bool $v, string $s): void {
     if (!$v) {
         throw new RuntimeException('FAIL: '.$s);
-    } echo 'PASS: '.$s."\n";
+    }
+    echo 'PASS: '.$s."\n";
 };
 $zipPath = $argv[1] ?? '';
 if (!is_readable($zipPath)) {
@@ -22,7 +23,8 @@ if (!is_readable($zipPath)) {
 $archive = new ZipArchive();
 if ($archive->open($zipPath) !== true || ($sql = $archive->getFromName('users.sql')) === false) {
     throw new RuntimeException('source ZIP invalid');
-} $archive->close();
+}
+$archive->close();
 if (!preg_match('/INSERT INTO `users`.*?VALUES\s*(.*?);/s', $sql, $match)) {
     throw new RuntimeException('source SQL invalid');
 }
