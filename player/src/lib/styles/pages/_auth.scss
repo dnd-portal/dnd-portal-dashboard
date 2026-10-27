@@ -51,9 +51,12 @@
 }
 .p-public-error > p:not(.p-eyebrow) {
     max-width: 620px;
+    margin-right: auto;
+    margin-left: auto;
     color: var(--p-secondary);
     font-size: 1.125rem;
     line-height: 1.55;
+    text-align: center;
 }
 .p-public-error__actions {
     display: flex;
