@@ -22,11 +22,11 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 
 - [x] Backend-sessiematrix: admin, deelnemer na membership, buitenstaander, historische deelnemer, RSVP en attendance afzonderlijk; uitgevoerd in `session_availability_matrix.php`.
 - [x] Campagne-DM en speler als afzonderlijke browsercontext: `sessions-availability-real.spec.ts`; 4/4 sessiebrowserchecks geslaagd, inclusief DM-creatie en geweigerde speler-mutatie (HTTP 403).
-- [ ] Tijdzoneconversie, zomer-/wintertijd en ambigue/niet-bestaande lokale tijden. Het huidige contract bewaart `starts_at` als TIME en heeft geen expliciete lokale-timezonevalidatie.
+- [x] Europe/Amsterdam-invoer met UTC-opslag/API, weigering van niet-bestaande tijden en expliciete keuze bij ambigue tijden; gecontroleerde checks voor `2026-03-29 02:30` en `2026-10-25 02:30` geslaagd. Een volledige DST-regressiesuite is niet geclaimd.
 - [x] Beschikbaarheid via echte browsercontext opgeslagen, herladen via API gecontroleerd en verwijderd; jaarwisseling `2026-12-31` → `2027-01-01` en datumbehoud getest.
 - [x] Schrikkeldag in de mutatieflow: `session_availability_matrix.php` slaagde met `2028-02-29`; productiebeleid ±366 dagen bleef ongewijzigd.
 - [x] Dashboardbrowser/API: exacte sessie-/RSVP-totalen, lege toestand, gecontroleerde API-uitval met foutstatus, EUR/USD-scheiding en admin-/spelerprivacy geslaagd. De betaal/dashboardbatch is structureel geïsoleerd door testdatabase-only cleanup van `rate_limit_buckets`; volledige batch `3 passed`.
-- [ ] Bestaande-data-migratie uitvoeren met synthetische representatieve brondata — geblokkeerd: aantoonbaar oud schema ontbreekt; zie `migratiebron.md`.
+- [ ] Bestaande-data-migratie uitvoeren met synthetische representatieve brondata — geblokkeerd: aantoonbaar oud schema ontbreekt; exact benodigde bronnen staan in `accountmigratie.md` en `migratiebron.md`.
 - [x] Databasebackup herstellen naar afzonderlijke testdatabase: runner `dnd_portal_test_run_1233620261027092517`; `schema_migrations=7`, relaties `7`, financiële nettosom `14100`, row counts gelijk.
 - [x] Resterende mockgebonden adminloader vervangen door API-backed loader met behoud van bestaande componenten en autorisatie; anonieme adminnavigatie blijft data-loos en eindigt in `Admin access required`.
 
@@ -39,10 +39,10 @@ Deze lijst is de actuele bron voor de resterende lokale afronding binnen de afge
 
 ## Productbesluiten met aanbeveling
 
-- [ ] RSVP-deadlines en wijzigingen na de deadline — aanbeveling: behoud de bestaande `rsvp_deadline_at`-controle en leg alleen vast of beheerders na de deadline mogen corrigeren.
-- [ ] `responded_without_option` — aanbeveling: houd de huidige semantiek (geen stemrij = niet gereageerd) totdat product expliciet een derde toestand nodig heeft.
+- [x] RSVP na deadline: speler geweigerd; managercorrectie en afzonderlijke attendance toegestaan en beide auditgelogd.
+- [ ] `responded_without_option`: productimplementatie aanwezig, maar integratiebewijs geblokkeerd door testfixture-CSRF (`POST .../respond-without-option` geeft 419; geen mockfallback).
 - [ ] Financieel beleid voor negatieve correcties/verrekeningen — aanbeveling: gebruik uitsluitend append-only reversals binnen dezelfde verplichting/valuta; voeg verrekening pas toe na expliciete keuze.
-- [ ] Dashboardactiviteit — aanbeveling: houd actorinformatie voorlopig weg; eventtype/tijd voldoen aan de bestaande privacy-inrichting.
+- [x] Dashboardactiviteit: alleen portaladmin-response-allowlist bevat actornaam/actie; geen secrets of emailadressen.
 
 ## Uitsluitend InfinityFree-validatie
 

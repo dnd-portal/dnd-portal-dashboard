@@ -83,6 +83,7 @@ try {
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/http_auth_flow.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/campaign_restore.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/session_availability_matrix.php'))
+    Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/approved_policies.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/poll_access_validations.php'))
     Invoke-Native 'php' @((Join-Path $Backend 'tests/integration/payment_validations.php'))
