@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
     import { api, ApiRequestError } from '#lib/api/index.js';
     import Tooltip from '#lib/components/shared/Tooltip.svelte';
 
@@ -47,6 +48,7 @@
                 password_confirmation: password
             });
             accountCreated = true;
+            await goto('/dashboard/polls/current');
         } catch (error) {
             inviteError = error instanceof ApiRequestError ? error.message : 'Registration failed.';
         } finally {

@@ -15,7 +15,7 @@
             await api.post('/api/v1/auth/login', { identifier, password });
             api.invalidateCsrf();
             const returnTo = page.url.searchParams.get('returnTo');
-            await goto(returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/dashboard');
+            await goto(returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/dashboard/polls/current');
         } catch (caught) {
             loginError = caught instanceof ApiRequestError ? caught.message : 'Unable to sign in.';
         } finally {
