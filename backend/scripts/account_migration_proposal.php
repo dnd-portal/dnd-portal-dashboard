@@ -20,7 +20,12 @@ $archive->close();
 if (!preg_match('/INSERT INTO `users`.*?VALUES\s*(.*?);/s', $sql, $match)) {
     throw new RuntimeException('users INSERT block missing');
 }
-preg_match_all("/\((\\d+),\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)'/", $match[1], $matches, PREG_SET_ORDER);
+preg_match_all(
+    "/\((\\d+),\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)'/",
+    $match[1],
+    $matches,
+    PREG_SET_ORDER,
+);
 $source = [];
 foreach ($matches as $row) {
     $source[] = [
@@ -31,10 +36,23 @@ foreach ($matches as $row) {
         'role' => str_replace("''", "'", $row[5]),
     ];
 }
-$source = array_values(array_filter($source, static fn (array $row): bool => !in_array($row['legacy_id'], [1, 2, 5], true)));
-$plan = AccountMigrationPlanner::propose(array_map(static fn (array $row): array => [
-    'legacy_id' => $row['legacy_id'], 'name' => $row['name'], 'email' => $row['email'],
-], $source), 1);
+$source = array_values(
+    array_filter(
+        $source,
+        static fn(array $row): bool => !in_array($row['legacy_id'], [1, 2, 5], true),
+    ),
+);
+$plan = AccountMigrationPlanner::propose(
+    array_map(
+        static fn(array $row): array => [
+            'legacy_id' => $row['legacy_id'],
+            'name' => $row['name'],
+            'email' => $row['email'],
+        ],
+        $source,
+    ),
+    1,
+);
 $byId = [];
 foreach ($source as $row) {
     $byId[$row['legacy_id']] = $row;
@@ -42,7 +60,8 @@ foreach ($source as $row) {
 foreach ($plan as &$item) {
     $sourceRow = $byId[$item['legacy_id']];
     $item['name'] = $sourceRow['name'];
-    $item['password_hash_compatible'] = (password_get_info($sourceRow['hash'])['algoName'] ?? 'unknown') === 'bcrypt';
+    $item['password_hash_compatible'] =
+        (password_get_info($sourceRow['hash'])['algoName'] ?? 'unknown') === 'bcrypt';
     $item['password_reset_required'] = !$item['password_hash_compatible'];
     $item['admin_mapping'] = null;
     $item['campaign_membership_mapping'] = null;
@@ -59,7 +78,16 @@ $proposal = [
         'legacy IDs 1, 2 and 5 are explicitly excluded and are not proposed for migration',
     ],
 ];
-if (file_put_contents($outputPath, json_encode($proposal, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) === false) {
+if (
+    file_put_contents(
+        $outputPath,
+        json_encode($proposal, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+    ) === false
+) {
     throw new RuntimeException('proposal could not be written');
 }
-echo 'PROPOSAL_WRITTEN records=' . count($plan) . ' reset_required=' . count(array_filter($plan, static fn (array $row): bool => $row['password_reset_required'])) . PHP_EOL;
+echo 'PROPOSAL_WRITTEN records=' .
+    count($plan) .
+    ' reset_required=' .
+    count(array_filter($plan, static fn(array $row): bool => $row['password_reset_required'])) .
+    PHP_EOL;

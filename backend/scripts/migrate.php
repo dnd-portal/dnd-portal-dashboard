@@ -15,7 +15,13 @@ if ($env === 'production') {
     fwrite(STDERR, "Refusing migrations in APP_ENV=production.\n");
     exit(1);
 }
-if ($env === 'testing' && !preg_match('/^(dnd_portal_test|dnd_portal_test_run_[0-9]+|dnd_portal_migration_test_[0-9]+|test_[a-z0-9_]+)$/', $name)) {
+if (
+    $env === 'testing' &&
+    !preg_match(
+        '/^(dnd_portal_test|dnd_portal_test_run_[0-9]+|dnd_portal_migration_test_[0-9]+|test_[a-z0-9_]+)$/',
+        $name,
+    )
+) {
     fwrite(STDERR, "Refusing testing migrations outside an explicit test database.\n");
     exit(1);
 }
@@ -25,7 +31,9 @@ if ($env === 'local' && $name !== 'dnd_portal_development') {
 }
 
 $db = Connection::make();
-$db->exec('CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR(100) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at DATETIME(6) NOT NULL) ENGINE=InnoDB');
+$db->exec(
+    'CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR(100) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at DATETIME(6) NOT NULL) ENGINE=InnoDB',
+);
 $files = glob(dirname(__DIR__) . '/database/migrations/*.sql') ?: [];
 sort($files, SORT_STRING);
 foreach ($files as $file) {
@@ -48,7 +56,9 @@ foreach ($files as $file) {
     $db->beginTransaction();
     try {
         $db->exec($sql);
-        $q = $db->prepare('INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(?,?,?)');
+        $q = $db->prepare(
+            'INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(?,?,?)',
+        );
         $q->execute([$version, $checksum, gmdate('Y-m-d H:i:s.u')]);
         if ($db->inTransaction()) {
             $db->commit();

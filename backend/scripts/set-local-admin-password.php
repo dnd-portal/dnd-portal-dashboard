@@ -7,7 +7,11 @@ require dirname(__DIR__) . '/src/Config.php';
 require dirname(__DIR__) . '/src/Database/Connection.php';
 use DndPortal\Database\Connection;
 
-if (PHP_SAPI !== 'cli' || \DndPortal\Config::env('APP_ENV') !== 'local' || \DndPortal\Config::env('DB_NAME') !== 'dnd_portal_development') {
+if (
+    PHP_SAPI !== 'cli' ||
+    \DndPortal\Config::env('APP_ENV') !== 'local' ||
+    \DndPortal\Config::env('DB_NAME') !== 'dnd_portal_development'
+) {
     fwrite(STDERR, "Refused: local development database required.\n");
     exit(2);
 }

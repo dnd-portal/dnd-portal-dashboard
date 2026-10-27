@@ -30,32 +30,68 @@ $archive->close();
 if (!preg_match('/INSERT INTO `users`.*?VALUES\s*(.*?);/s', $sql, $match)) {
     throw new RuntimeException('users INSERT block missing');
 }
-preg_match_all("/\((\\d+),\s*'((?:''|[^'])*)',\s*'((?:''|[^'])*)',\s*'((?:''|[^'])*)',\s*'((?:''|[^'])*)'/", $match[1], $matches, PREG_SET_ORDER);
+preg_match_all(
+    "/\((\\d+),\s*'((?:''|[^'])*)',\s*'((?:''|[^'])*)',\s*'((?:''|[^'])*)',\s*'((?:''|[^'])*)'/",
+    $match[1],
+    $matches,
+    PREG_SET_ORDER,
+);
 $source = [];
 foreach ($matches as $row) {
-    $source[] = ['legacy_id' => (int) $row[1], 'name' => str_replace("''", "'", $row[2]),
-        'email' => strtolower(str_replace("''", "'", $row[3])), 'hash' => str_replace("''", "'", $row[4])];
+    $source[] = [
+        'legacy_id' => (int) $row[1],
+        'name' => str_replace("''", "'", $row[2]),
+        'email' => strtolower(str_replace("''", "'", $row[3])),
+        'hash' => str_replace("''", "'", $row[4]),
+    ];
 }
-$source = array_values(array_filter($source, static fn (array $row): bool => !in_array($row['legacy_id'], [1, 2, 5], true)));
-$plan = AccountMigrationPlanner::propose(array_map(static fn (array $row): array => [
-    'legacy_id' => $row['legacy_id'], 'name' => $row['name'], 'email' => $row['email'],
-], $source), 1);
+$source = array_values(
+    array_filter(
+        $source,
+        static fn(array $row): bool => !in_array($row['legacy_id'], [1, 2, 5], true),
+    ),
+);
+$plan = AccountMigrationPlanner::propose(
+    array_map(
+        static fn(array $row): array => [
+            'legacy_id' => $row['legacy_id'],
+            'name' => $row['name'],
+            'email' => $row['email'],
+        ],
+        $source,
+    ),
+    1,
+);
 $byLegacy = array_column($source, null, 'legacy_id');
 $db = Connection::make();
 $conflicts = AccountMigrationPlanner::conflicts(
     $plan,
-    array_map('strtolower', $db->query('SELECT
+    array_map(
+        'strtolower',
+        $db
+            ->query(
+                'SELECT
     email
 FROM
     users
 WHERE
-    email IS NOT NULL')->fetchAll(PDO::FETCH_COLUMN)),
-    array_map('strtolower', $db->query('SELECT
+    email IS NOT NULL',
+            )
+            ->fetchAll(PDO::FETCH_COLUMN),
+    ),
+    array_map(
+        'strtolower',
+        $db
+            ->query(
+                'SELECT
     username
 FROM
     users
 WHERE
-    username IS NOT NULL')->fetchAll(PDO::FETCH_COLUMN)),
+    username IS NOT NULL',
+            )
+            ->fetchAll(PDO::FETCH_COLUMN),
+    ),
 );
 
 $reused = 0;
@@ -79,7 +115,12 @@ WHERE
         $q->execute([$item['proposed_new_id']]);
         $existing = $q->fetch();
         if ($existing) {
-            if ($existing['display_name'] !== $row['name'] || strtolower((string) $existing['email']) !== $row['email'] || $existing['username'] !== $item['username'] || $existing['password_hash'] !== $row['hash']) {
+            if (
+                $existing['display_name'] !== $row['name'] ||
+                strtolower((string) $existing['email']) !== $row['email'] ||
+                $existing['username'] !== $item['username'] ||
+                $existing['password_hash'] !== $row['hash']
+            ) {
                 throw new RuntimeException('existing identifier conflict; no overwrite');
             }
             $reused++;
@@ -124,10 +165,40 @@ VALUES(?, ?, ?)');
     exit(1);
 }
 $counts = [];
-foreach (['users','user_credentials','user_roles','auth_sessions','password_reset_tokens','registration_invites'] as $table) {
-    $counts[$table] = (int) $db->query('SELECT
+foreach (
+    [
+        'users',
+        'user_credentials',
+        'user_roles',
+        'auth_sessions',
+        'password_reset_tokens',
+        'registration_invites',
+    ]
+    as $table
+) {
+    $counts[$table] = (int) $db
+        ->query(
+            'SELECT
     COUNT(*)
 FROM
-    `' . $table . '`')->fetchColumn();
+    `' .
+                $table .
+                '`',
+        )
+        ->fetchColumn();
 }
-echo 'IMPORT_OK excluded_legacy_ids=1,2,5 inserted=' . $inserted . ' reused=' . $reused . ' total_users=' . $counts['users'] . ' roles=' . $counts['user_roles'] . ' sessions=' . $counts['auth_sessions'] . ' reset_tokens=' . $counts['password_reset_tokens'] . ' invites=' . $counts['registration_invites'] . PHP_EOL;
+echo 'IMPORT_OK excluded_legacy_ids=1,2,5 inserted=' .
+    $inserted .
+    ' reused=' .
+    $reused .
+    ' total_users=' .
+    $counts['users'] .
+    ' roles=' .
+    $counts['user_roles'] .
+    ' sessions=' .
+    $counts['auth_sessions'] .
+    ' reset_tokens=' .
+    $counts['password_reset_tokens'] .
+    ' invites=' .
+    $counts['registration_invites'] .
+    PHP_EOL;

@@ -12,7 +12,9 @@ final class PollService {
 
     public function list(int $uid, int $campaign): never {
         $this->manage($uid, $campaign);
-        $q = $this->db->prepare('SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE campaign_id=? ORDER BY created_at DESC');
+        $q = $this->db->prepare(
+            'SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE campaign_id=? ORDER BY created_at DESC',
+        );
         $q->execute([$campaign]);
         Response::json(['data' => $q->fetchAll()]);
     }
@@ -32,15 +34,18 @@ WHERE
     poll_id = ? AND user_id = ?
 ORDER BY
     option_id');
-        $q->execute([$id,$uid]);
-        $poll['selected_option_ids'] = array_map('intval', array_column($q->fetchAll(), 'option_id'));
+        $q->execute([$id, $uid]);
+        $poll['selected_option_ids'] = array_map(
+            'intval',
+            array_column($q->fetchAll(), 'option_id'),
+        );
         $q = $this->db->prepare('SELECT
     response_state
 FROM
     poll_participants
 WHERE
     poll_id = ? AND user_id = ?');
-        $q->execute([$id,$uid]);
+        $q->execute([$id, $uid]);
         $poll['response_state'] = $q->fetchColumn() ?: 'pending';
         Response::json(['data' => $poll]);
     }
@@ -50,21 +55,41 @@ WHERE
         $title = trim((string) ($in['title'] ?? ''));
         $type = $in['choice_type'] ?? 'single';
         $options = $in['options'] ?? [];
-        if ($title === '' || !in_array($type, ['single','multiple'], true) || !is_array($options) || count($options) < 2) {
-            Response::error('validation_failed', 'A poll needs a title and at least two options.', 422);
+        if (
+            $title === '' ||
+            !in_array($type, ['single', 'multiple'], true) ||
+            !is_array($options) ||
+            count($options) < 2
+        ) {
+            Response::error(
+                'validation_failed',
+                'A poll needs a title and at least two options.',
+                422,
+            );
         }
-        $labels = array_values(array_unique(array_filter(array_map(static fn ($v) => trim((string) $v), $options), static fn ($v) => $v !== '')));
+        $labels = array_values(
+            array_unique(
+                array_filter(
+                    array_map(static fn($v) => trim((string) $v), $options),
+                    static fn($v) => $v !== '',
+                ),
+            ),
+        );
         if (count($labels) !== count($options)) {
             Response::error('validation_failed', 'Poll options must be non-empty and unique.', 422);
         }
         $this->db->beginTransaction();
         try {
-            $q = $this->db->prepare('INSERT INTO polls(campaign_id,title,choice_type,status,closes_at,created_by) VALUES(?,?,?,?,?,?)');
-            $q->execute([$campaign,$title,$type,'open',$in['closes_at'] ?? null,$uid]);
+            $q = $this->db->prepare(
+                'INSERT INTO polls(campaign_id,title,choice_type,status,closes_at,created_by) VALUES(?,?,?,?,?,?)',
+            );
+            $q->execute([$campaign, $title, $type, 'open', $in['closes_at'] ?? null, $uid]);
             $id = (int) $this->db->lastInsertId();
-            $o = $this->db->prepare('INSERT INTO poll_options(poll_id,label,position) VALUES(?,?,?)');
+            $o = $this->db->prepare(
+                'INSERT INTO poll_options(poll_id,label,position) VALUES(?,?,?)',
+            );
             foreach ($labels as $i => $label) {
-                $o->execute([$id,$label,$i + 1]);
+                $o->execute([$id, $label, $i + 1]);
             }
             $this->db->commit();
         } catch (\Throwable) {
@@ -82,7 +107,7 @@ WHERE
             Response::error('not_found', 'Poll not found.', 404);
         }
         $this->manage($uid, (int) $p['campaign_id']);
-        if (array_diff(array_keys($in), ['title','closes_at','status','version','options'])) {
+        if (array_diff(array_keys($in), ['title', 'closes_at', 'status', 'version', 'options'])) {
             Response::error('validation_failed', 'Unsupported fields.', 422);
         }
         $version = filter_var($in['version'] ?? null, FILTER_VALIDATE_INT);
@@ -91,7 +116,7 @@ WHERE
         }
         $fields = [];
         $values = [];
-        foreach (['title','closes_at','status'] as $field) {
+        foreach (['title', 'closes_at', 'status'] as $field) {
             if (array_key_exists($field, $in)) {
                 $fields[] = "$field=?";
                 $values[] = $field === 'title' ? trim((string) $in[$field]) : $in[$field];
@@ -120,7 +145,12 @@ ORDER BY
             foreach ($optionUpdates as $option) {
                 $optionId = filter_var($option['id'] ?? null, FILTER_VALIDATE_INT);
                 $label = trim((string) ($option['label'] ?? ''));
-                if ($optionId === false || $label === ' ' || $label === '' || in_array($optionId, $received, true)) {
+                if (
+                    $optionId === false ||
+                    $label === ' ' ||
+                    $label === '' ||
+                    in_array($optionId, $received, true)
+                ) {
                     Response::error('validation_failed', 'Poll options are invalid.', 422);
                 }
                 $received[] = (int) $optionId;
@@ -130,7 +160,11 @@ ORDER BY
             $sorted = $received;
             sort($sorted);
             if ($sorted !== $existing) {
-                Response::error('validation_failed', 'Options cannot be added or removed after poll creation.', 422);
+                Response::error(
+                    'validation_failed',
+                    'Options cannot be added or removed after poll creation.',
+                    422,
+                );
             }
             if (count($labels) !== count(array_unique($labels))) {
                 Response::error('validation_failed', 'Poll options must be unique.', 422);
@@ -143,7 +177,11 @@ WHERE
     poll_id = ?');
             $q->execute([$id]);
             if ((int) $q->fetchColumn() > 0 && $sorted !== $existing) {
-                Response::error('conflict', 'Voted poll options cannot be changed structurally.', 409);
+                Response::error(
+                    'conflict',
+                    'Voted poll options cannot be changed structurally.',
+                    409,
+                );
             }
         }
         $this->db->beginTransaction();
@@ -156,8 +194,9 @@ WHERE
             $q = $this->db->prepare(
                 'UPDATE
     polls
-SET ' . implode(',', $fields)
-                . ',updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=? AND version=?',
+SET ' .
+                    implode(',', $fields) .
+                    ',updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=? AND version=?',
             );
             $q->execute($values);
             if ($q->rowCount() !== 1) {
@@ -172,7 +211,7 @@ SET
 WHERE
     id = ? AND poll_id = ?');
                 foreach ($optionUpdates as $option) {
-                    $q->execute([trim((string) $option['label']),(int) $option['id'],$id]);
+                    $q->execute([trim((string) $option['label']), (int) $option['id'], $id]);
                 }
             }
             $this->db->commit();
@@ -192,7 +231,9 @@ WHERE
         }
         $this->db->beginTransaction();
         try {
-            $q = $this->db->prepare('SELECT campaign_id,choice_type,status,closes_at FROM polls WHERE id=? FOR UPDATE');
+            $q = $this->db->prepare(
+                'SELECT campaign_id,choice_type,status,closes_at FROM polls WHERE id=? FOR UPDATE',
+            );
             $q->execute([$poll]);
             $p = $q->fetch();
             if (!$p) {
@@ -206,12 +247,15 @@ FROM
     poll_participants
 WHERE
     poll_id = ? AND user_id = ?');
-            $q->execute([$poll,$uid]);
+            $q->execute([$poll, $uid]);
             if (!$q->fetchColumn()) {
                 $this->db->rollBack();
                 Response::error('forbidden', 'Poll participation required.', 403);
             }
-            if ($p['status'] !== 'open' || ($p['closes_at'] && strtotime($p['closes_at']) <= time())) {
+            if (
+                $p['status'] !== 'open' ||
+                ($p['closes_at'] && strtotime($p['closes_at']) <= time())
+            ) {
                 $this->db->rollBack();
                 Response::error('conflict', 'Poll is closed.', 409);
             }
@@ -220,7 +264,9 @@ WHERE
                 Response::error('validation_failed', 'Single-choice polls accept one option.', 422);
             }
             $place = implode(',', array_fill(0, count($ids), '?'));
-            $q = $this->db->prepare("SELECT id FROM poll_options WHERE poll_id=? AND id IN ($place)");
+            $q = $this->db->prepare(
+                "SELECT id FROM poll_options WHERE poll_id=? AND id IN ($place)",
+            );
             $q->execute(array_merge([$poll], array_map('intval', $ids)));
             if (count($q->fetchAll()) !== count($ids)) {
                 $this->db->rollBack();
@@ -231,18 +277,22 @@ FROM
     poll_votes
 WHERE
     poll_id = ? AND user_id = ?');
-            $q->execute([$poll,$uid]);
+            $q->execute([$poll, $uid]);
             $q = $this->db->prepare('INSERT INTO poll_votes(poll_id, user_id, option_id)
 VALUES(?, ?, ?)');
             foreach ($ids as $id) {
-                $q->execute([$poll,$uid,(int) $id]);
+                $q->execute([$poll, $uid, (int) $id]);
             }
-            $this->db->prepare('UPDATE
+            $this->db
+                ->prepare(
+                    'UPDATE
     poll_participants
 SET
     response_state = "voted"
 WHERE
-    poll_id = ? AND user_id = ?')->execute([$poll, $uid]);
+    poll_id = ? AND user_id = ?',
+                )
+                ->execute([$poll, $uid]);
             $this->db->commit();
         } catch (\Throwable) {
             if ($this->db->inTransaction()) {
@@ -268,22 +318,32 @@ FROM
     poll_participants
 WHERE
     poll_id = ? AND user_id = ?');
-        $q->execute([$poll,$uid]);
+        $q->execute([$poll, $uid]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Poll participation required.', 403);
         }
-        $this->db->prepare('DELETE
+        $this->db
+            ->prepare(
+                'DELETE
 FROM
     poll_votes
 WHERE
-    poll_id = ? AND user_id = ?')->execute([$poll, $uid]);
-        $this->db->prepare('UPDATE
+    poll_id = ? AND user_id = ?',
+            )
+            ->execute([$poll, $uid]);
+        $this->db
+            ->prepare(
+                'UPDATE
     poll_participants
 SET
     response_state = "responded_without_option"
 WHERE
-    poll_id = ? AND user_id = ?')->execute([$poll,$uid]);
-        Response::json(['data' => ['poll_id' => $poll,'response_state' => 'responded_without_option']]);
+    poll_id = ? AND user_id = ?',
+            )
+            ->execute([$poll, $uid]);
+        Response::json([
+            'data' => ['poll_id' => $poll, 'response_state' => 'responded_without_option'],
+        ]);
     }
 
     public function results(int $uid, int $id): never {
@@ -309,7 +369,7 @@ GROUP BY
 ORDER BY
     o.position');
         $q->execute([$id]);
-        Response::json(['data' => ['poll_id' => $id,'options' => $q->fetchAll()]]);
+        Response::json(['data' => ['poll_id' => $id, 'options' => $q->fetchAll()]]);
     }
 
     public function setParticipant(int $uid, int $id, int $target, array $in): never {
@@ -333,20 +393,22 @@ WHERE
             $q = $this->db->prepare('INSERT IGNORE
 INTO poll_participants(poll_id, user_id)
 VALUES(?, ?)');
-            $q->execute([$id,$target]);
+            $q->execute([$id, $target]);
         } else {
             $q = $this->db->prepare('DELETE
 FROM
     poll_participants
 WHERE
     poll_id = ? AND user_id = ?');
-            $q->execute([$id,$target]);
+            $q->execute([$id, $target]);
         }
         Response::json(['data' => ['poll_id' => $id, 'user_id' => $target, 'active' => $add]]);
     }
 
     private function find(int $id): ?array {
-        $q = $this->db->prepare('SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE id=?');
+        $q = $this->db->prepare(
+            'SELECT id,campaign_id,title,choice_type,status,closes_at,created_at,updated_at,version FROM polls WHERE id=?',
+        );
         $q->execute([$id]);
         return $q->fetch() ?: null;
     }
@@ -375,7 +437,7 @@ FROM
     campaign_memberships
 WHERE
     user_id = ? AND campaign_id = ? AND left_at IS NULL');
-        $q->execute([$uid,$campaign]);
+        $q->execute([$uid, $campaign]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Campaign membership required.', 403);
         }
@@ -400,7 +462,7 @@ WHERE
     WHERE
         user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
 )");
-        $q->execute([$uid,$uid,$campaign]);
+        $q->execute([$uid, $uid, $campaign]);
         if (!$q->fetchColumn()) {
             Response::error('forbidden', 'Campaign management required.', 403);
         }

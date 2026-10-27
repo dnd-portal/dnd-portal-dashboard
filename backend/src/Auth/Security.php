@@ -10,11 +10,21 @@ use DndPortal\Http\Response;
 
 final class Security {
     private static function cookieOptions(int $expires): array {
-        return ['expires' => $expires,'path' => '/','secure' => Config::isProduction(),'httponly' => true,'samesite' => Config::env('AUTH_COOKIE_SAMESITE', 'Lax')];
+        return [
+            'expires' => $expires,
+            'path' => '/',
+            'secure' => Config::isProduction(),
+            'httponly' => true,
+            'samesite' => Config::env('AUTH_COOKIE_SAMESITE', 'Lax'),
+        ];
     }
 
     public static function cookie(string $value, int $maxAge): void {
-        setcookie(Config::env('AUTH_COOKIE', 'dnd_session'), $value, self::cookieOptions(time() + $maxAge));
+        setcookie(
+            Config::env('AUTH_COOKIE', 'dnd_session'),
+            $value,
+            self::cookieOptions(time() + $maxAge),
+        );
     }
 
     public static function clearCookie(): void {

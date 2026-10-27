@@ -62,7 +62,7 @@ WHERE
         WHERE
             v.poll_id = p.id AND v.user_id = ?
     )');
-        $q->execute([$uid,$uid]);
+        $q->execute([$uid, $uid]);
         $openPolls = (int) $q->fetchColumn();
         $q = $this->db->prepare('SELECT
     o.currency,
@@ -93,7 +93,12 @@ GROUP BY
         foreach ($q->fetchAll() as $row) {
             $balances[$row['currency']] = (int) $row['outstanding_cents'];
         }
-        $data = ['next_session' => $next,'open_polls' => $openPolls,'open_contributions_cents' => $balances['EUR'] ?? 0,'open_contributions_by_currency' => $balances];
+        $data = [
+            'next_session' => $next,
+            'open_polls' => $openPolls,
+            'open_contributions_cents' => $balances['EUR'] ?? 0,
+            'open_contributions_by_currency' => $balances,
+        ];
         if ($this->isAdmin($uid)) {
             $data['admin'] = $this->adminTotals();
         }
@@ -110,7 +115,7 @@ JOIN roles r ON
 WHERE
     ur.user_id = ? AND r.role_key = 'portal_admin'");
         $q->execute([$uid]);
-        return(bool) $q->fetchColumn();
+        return (bool) $q->fetchColumn();
     }
 
     private function adminTotals(): array {
@@ -126,9 +131,13 @@ FROM
 WHERE
     archived_at IS NULL');
         $campaigns = (int) $q->fetchColumn();
-        $q = $this->db->query('SELECT COUNT(*) FROM game_sessions WHERE status="planned" AND session_date>=UTC_DATE()');
+        $q = $this->db->query(
+            'SELECT COUNT(*) FROM game_sessions WHERE status="planned" AND session_date>=UTC_DATE()',
+        );
         $sessions = (int) $q->fetchColumn();
-        $q = $this->db->query('SELECT COUNT(*) FROM polls WHERE status="open" AND (closes_at IS NULL OR closes_at>UTC_TIMESTAMP())');
+        $q = $this->db->query(
+            'SELECT COUNT(*) FROM polls WHERE status="open" AND (closes_at IS NULL OR closes_at>UTC_TIMESTAMP())',
+        );
         $polls = (int) $q->fetchColumn();
         $q = $this->db->query('SELECT
     COUNT(*)
@@ -163,7 +172,15 @@ ORDER BY
     a.occurred_at
 DESC
 LIMIT 5');
-        $activity = array_map(static fn (array $row): array => ['id' => (int) $row['id'],'event_type' => $row['event_type'],'occurred_at' => $row['occurred_at'],'actor_name' => $row['actor_name']], $q->fetchAll());
+        $activity = array_map(
+            static fn(array $row): array => [
+                'id' => (int) $row['id'],
+                'event_type' => $row['event_type'],
+                'occurred_at' => $row['occurred_at'],
+                'actor_name' => $row['actor_name'],
+            ],
+            $q->fetchAll(),
+        );
         return compact('users', 'campaigns', 'sessions', 'polls', 'payments', 'activity');
     }
 }

@@ -14,7 +14,10 @@ if ($zipPath === '' || !is_readable($zipPath)) {
     exit(2);
 }
 Config::loadDotEnv(dirname(__DIR__, 2) . '/.env');
-if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', Config::env('DB_NAME'))) {
+if (
+    Config::env('APP_ENV') !== 'testing' ||
+    !preg_match('/^dnd_portal_test_run_[0-9]+$/', Config::env('DB_NAME'))
+) {
     fwrite(STDERR, "REFUSED: dedicated migration test database required.\n");
     exit(2);
 }
@@ -31,7 +34,12 @@ if (!preg_match('/INSERT INTO `users`.*?VALUES\s*(.*?);/s', $sql, $match)) {
     exit(2);
 }
 $rows = [];
-preg_match_all("/\((\\d+),\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)'/", $match[1], $matches, PREG_SET_ORDER);
+preg_match_all(
+    "/\((\\d+),\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)'/",
+    $match[1],
+    $matches,
+    PREG_SET_ORDER,
+);
 foreach ($matches as $row) {
     $rows[] = [
         'email' => str_replace("''", "'", $row[3]),
@@ -45,7 +53,15 @@ if (count($rows) === 0) {
 }
 
 $db = Connection::make();
-$requiredTables = ['users', 'user_credentials', 'roles', 'user_roles', 'auth_sessions', 'password_reset_tokens', 'registration_invites'];
+$requiredTables = [
+    'users',
+    'user_credentials',
+    'roles',
+    'user_roles',
+    'auth_sessions',
+    'password_reset_tokens',
+    'registration_invites',
+];
 $tables = $db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
 foreach ($requiredTables as $table) {
     if (!in_array($table, $tables, true)) {
@@ -88,17 +104,40 @@ LIMIT 1');
 }
 
 $emptyState = [];
-foreach (['users', 'user_credentials', 'auth_sessions', 'password_reset_tokens', 'registration_invites', 'user_roles'] as $table) {
-    $emptyState[$table] = (int) $db->query('SELECT
+foreach (
+    [
+        'users',
+        'user_credentials',
+        'auth_sessions',
+        'password_reset_tokens',
+        'registration_invites',
+        'user_roles',
+    ]
+    as $table
+) {
+    $emptyState[$table] = (int) $db
+        ->query(
+            'SELECT
     COUNT(*)
 FROM
-    `' . $table . '`')->fetchColumn();
+    `' .
+                $table .
+                '`',
+        )
+        ->fetchColumn();
 }
-echo 'DRY_RUN records=' . count($rows)
-    . ' email_conflicts=' . $emailConflicts
-    . ' username_sources_missing=' . $usernameMissing
-    . ' bcrypt_compatible=' . $hashCompatible
-    . ' password_reset_required=' . $hashIncompatible
-    . ' admin_roles_withheld=' . $adminWithheld
-    . ' imported=0' . PHP_EOL;
+echo 'DRY_RUN records=' .
+    count($rows) .
+    ' email_conflicts=' .
+    $emailConflicts .
+    ' username_sources_missing=' .
+    $usernameMissing .
+    ' bcrypt_compatible=' .
+    $hashCompatible .
+    ' password_reset_required=' .
+    $hashIncompatible .
+    ' admin_roles_withheld=' .
+    $adminWithheld .
+    ' imported=0' .
+    PHP_EOL;
 echo 'DRY_RUN protected_tables_empty=' . (array_sum($emptyState) === 0 ? 'yes' : 'no') . PHP_EOL;

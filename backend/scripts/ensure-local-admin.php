@@ -70,7 +70,7 @@ try {
     account_status
 )
 VALUES(?, ?, ?, "active")');
-    $q->execute([$name,$email,$username]);
+    $q->execute([$name, $email, $username]);
     $id = (int) $db->lastInsertId();
     $q = $db->prepare('INSERT INTO user_credentials(
     user_id,
@@ -78,7 +78,7 @@ VALUES(?, ?, ?, "active")');
     password_algo
 )
 VALUES(?, ?, ?)');
-    $q->execute([$id,password_hash($password, PASSWORD_DEFAULT),PASSWORD_DEFAULT]);
+    $q->execute([$id, password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
     $q = $db->prepare('INSERT INTO user_roles(user_id, role_id)
 SELECT
     ?,

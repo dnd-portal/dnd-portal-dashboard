@@ -9,7 +9,10 @@ use DndPortal\Config;
 use DndPortal\Database\Connection;
 
 Config::loadDotEnv(dirname(__DIR__, 2) . '/.env');
-if (Config::env('APP_ENV') !== 'testing' || !preg_match('/^dnd_portal_test_run_[0-9]+$/', Config::env('DB_NAME'))) {
+if (
+    Config::env('APP_ENV') !== 'testing' ||
+    !preg_match('/^dnd_portal_test_run_[0-9]+$/', Config::env('DB_NAME'))
+) {
     throw new RuntimeException('Refusing backup test outside an isolated test database.');
 }
 
@@ -19,17 +22,28 @@ if (!preg_match('/^[a-zA-Z0-9_]+$/', $targetName)) {
     throw new RuntimeException('Invalid restore database name.');
 }
 $root = new PDO(
-    sprintf('mysql:host=%s;port=%s;charset=utf8mb4', Config::env('DB_HOST'), Config::env('DB_PORT', '3306')),
+    sprintf(
+        'mysql:host=%s;port=%s;charset=utf8mb4',
+        Config::env('DB_HOST'),
+        Config::env('DB_PORT', '3306'),
+    ),
     'root',
     Config::env('TEST_DB_ROOT_PASSWORD'),
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
 );
 $root->exec('DROP DATABASE IF EXISTS `' . $targetName . '`');
-$root->exec('CREATE DATABASE `' . $targetName . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+$root->exec(
+    'CREATE DATABASE `' . $targetName . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci',
+);
 $root->exec("GRANT ALL PRIVILEGES ON `$targetName`.* TO 'dnd_test'@'%'");
 $root->exec('FLUSH PRIVILEGES');
 $restore = new PDO(
-    sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', Config::env('DB_HOST'), Config::env('DB_PORT', '3306'), $targetName),
+    sprintf(
+        'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+        Config::env('DB_HOST'),
+        Config::env('DB_PORT', '3306'),
+        $targetName,
+    ),
     Config::env('DB_USER'),
     Config::env('DB_PASSWORD'),
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
@@ -47,14 +61,26 @@ foreach ($tables as $table) {
 $restore->exec('SET FOREIGN_KEY_CHECKS=1');
 
 foreach ($tables as $table) {
-    $sourceCount = (int) $source->query('SELECT
+    $sourceCount = (int) $source
+        ->query(
+            'SELECT
     COUNT(*)
 FROM
-    `' . $table . '`')->fetchColumn();
-    $restoreCount = (int) $restore->query('SELECT
+    `' .
+                $table .
+                '`',
+        )
+        ->fetchColumn();
+    $restoreCount = (int) $restore
+        ->query(
+            'SELECT
     COUNT(*)
 FROM
-    `' . $table . '`')->fetchColumn();
+    `' .
+                $table .
+                '`',
+        )
+        ->fetchColumn();
     if ($sourceCount !== $restoreCount) {
         throw new RuntimeException("Row count mismatch for $table.");
     }
@@ -72,7 +98,8 @@ JOIN campaigns c ON
     c.id = m.campaign_id
 JOIN users u ON
     u.id = m.user_id',
-    'financial_sums' => "SELECT COALESCE(SUM(CASE WHEN entry_kind='payment' THEN amount_cents WHEN entry_kind='reversal' THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE status='confirmed'",
+    'financial_sums' =>
+        "SELECT COALESCE(SUM(CASE WHEN entry_kind='payment' THEN amount_cents WHEN entry_kind='reversal' THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE status='confirmed'",
 ];
 foreach ($checks as $label => $sql) {
     $left = (string) $source->query($sql)->fetchColumn();
