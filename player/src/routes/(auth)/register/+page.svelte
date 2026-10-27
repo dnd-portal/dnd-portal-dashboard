@@ -1,5 +1,6 @@
 <script lang="ts">
     import { api, ApiRequestError } from '#lib/api/index.js';
+    import Tooltip from '#lib/components/shared/Tooltip.svelte';
 
     const invitePattern = /^[A-Za-z0-9_-]{32,}$/;
     let inviteCode = $state('');
@@ -74,17 +75,19 @@
     {:else if !inviteAccepted}
         <div class="p-field">
             <label class="p-field__label" for="invite-code">Invite code</label>
-            <input
-                class="p-input"
-                id="invite-code"
-                bind:value={inviteCode}
-                onkeydown={(event) => event.key === 'Enter' && checkInvite()}
-                placeholder="ABCD-1234-ABCD-1234-AB12"
-                autocomplete="off"
-                spellcheck="false"
-            />
+            <Tooltip id="invite-code-help" text="Letters and numbers separated by hyphens">
+                <input
+                    class="p-input"
+                    id="invite-code"
+                    aria-describedby="invite-code-help"
+                    bind:value={inviteCode}
+                    onkeydown={(event) => event.key === 'Enter' && checkInvite()}
+                    placeholder="ABCD-1234-ABCD-1234-AB12"
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+            </Tooltip>
         </div>
-        <p class="format-hint">Letters and numbers separated by hyphens</p>
         {#if inviteError}<p class="error-message">{inviteError}</p>{/if}
         <button class="p-button" disabled={!inviteCode.trim() || busy} onclick={checkInvite}
             >Continue <span>→</span></button

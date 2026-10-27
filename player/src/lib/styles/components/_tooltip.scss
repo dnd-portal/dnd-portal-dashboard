@@ -1,0 +1,30 @@
+.p-tooltip {
+    position: relative;
+    display: block;
+}
+.p-tooltip__content {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 2;
+    width: max-content;
+    max-width: min(320px, 100%);
+    padding: 8px 10px;
+    border: 1px solid var(--p-border);
+    border-radius: var(--p-control-radius);
+    background: var(--p-raised);
+    color: var(--p-text);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease;
+}
+.p-tooltip:focus-within .p-tooltip__content,
+.p-tooltip:hover .p-tooltip__content {
+    opacity: 1;
+    transform: translateY(0);
+}
