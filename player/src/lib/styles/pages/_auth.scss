@@ -74,6 +74,22 @@
     margin-top: 24px;
     color: var(--p-accent);
 }
+.p-public-home__panel h1 {
+    margin-bottom: 0;
+}
+.p-public-home__description {
+    max-width: 680px;
+    margin: 16px auto 32px;
+    color: var(--p-secondary);
+    font-size: 1.125rem;
+    line-height: 1.55;
+}
+.p-public-home__actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 @media (max-width: 700px) {
     .public-navigation {
         gap: 12px 16px;

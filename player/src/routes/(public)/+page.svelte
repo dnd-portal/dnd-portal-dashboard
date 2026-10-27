@@ -18,10 +18,10 @@
 </svelte:head>
 
 <PublicLayout {signedIn}>
-    <section class="p-card p-public-home__panel">
+    <section class="p-public-home__panel">
         <p class="p-eyebrow">D&amp;D PORTAL</p>
         <h1>Everything your campaign needs, in one place.</h1>
-        <p class="p-card__description">
+        <p class="p-public-home__description">
             Keep sessions, party coordination, polls and shared expenses together without losing the story.
         </p>
         <div class="p-public-home__actions">
