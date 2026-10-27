@@ -48,6 +48,10 @@
 }
 .p-public-error h1 {
     margin: 12px 0 16px;
+    line-height: 1.05;
+}
+.p-public-error__status--404 {
+    color: var(--p-danger);
 }
 .p-public-error > p:not(.p-eyebrow) {
     max-width: 620px;

@@ -32,7 +32,7 @@
 
 <PublicLayout>
     <section class="p-public-error" aria-labelledby="error-title">
-        <p class="p-eyebrow">ERROR {status}</p>
+        <p class:p-public-error__status--404={status === 404} class="p-eyebrow">ERROR {status}</p>
         <h1 id="error-title">{message.title}</h1>
         <p>{message.description}</p>
         <div class="p-public-error__actions">
@@ -51,6 +51,5 @@
                     >Open dashboard</a
                 >{/if}
         </div>
-        <a class="p-public-error__home" href="/">Return to the portal</a>
     </section>
 </PublicLayout>
