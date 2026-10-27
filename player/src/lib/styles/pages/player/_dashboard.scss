@@ -1172,7 +1172,7 @@
         box-sizing: border-box;
     }
     .welcome h1 {
-        font-size: 2rem;
+        font-size: 32px;
         line-height: 1.2;
         letter-spacing: normal;
     }
@@ -1189,17 +1189,24 @@
         padding: 22px;
     }
     .panel h3 {
-        font-size: 1.25rem;
+        font-size: 20px;
         line-height: 1.2;
     }
     .stats-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        margin: 24px 0;
+    }
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: 24px;
     }
     .stat-card {
         padding: 22px;
     }
     .stat-card > strong {
-        font-size: 1.5rem;
+        font-size: 28px;
+        font-weight: 700;
     }
     .login-input {
         min-height: 46px;
@@ -1231,6 +1238,31 @@
         color: $portal-text;
         background: transparent;
         font: 600 1rem $font-sans;
+    }
+    .nav-label,
+    .eyebrow,
+    .stat-top,
+    .session-status,
+    .date-block span {
+        font: 400 12px $font-sans;
+        letter-spacing: 0.04em;
+    }
+    .hero-card p,
+    .session-info span,
+    .party-row span,
+    .stat-card p {
+        font: 400 14px $font-sans;
+        line-height: 1.45;
+    }
+    .session-row,
+    .party-row {
+        min-height: 72px;
+    }
+    .full-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
     }
     a {
         color: $portal-accent;

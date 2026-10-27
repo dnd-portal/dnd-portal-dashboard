@@ -3,6 +3,7 @@
     import { page } from '$app/state';
     import { api, ApiRequestError } from '#lib/api/index.js';
     import PlayerShell from '#lib/components/player/PlayerShell.svelte';
+    import { formatPortalDate, formatPortalDateTime } from '#lib/player/date.js';
     type User = { id: number; display_name: string; username: string | null; roles?: string[] };
     type Session = {
         id: number;
@@ -54,9 +55,13 @@
                 </p>{:else if !session}<p role="status">Loading session…</p>{:else}<h1>{session.title}</h1>
                 <dl>
                     <dt>Date</dt>
-                    <dd>{session.session_date}</dd>
+                    <dd>{formatPortalDate(session.session_date)}</dd>
                     <dt>Time</dt>
-                    <dd>{session.starts_at ?? 'To be announced'}{session.ends_at ? ` – ${session.ends_at}` : ''}</dd>
+                    <dd>
+                        {formatPortalDateTime(session.starts_at)}{session.ends_at
+                            ? ` – ${formatPortalDateTime(session.ends_at)}`
+                            : ''}
+                    </dd>
                     <dt>Location</dt>
                     <dd>{session.location ?? 'To be announced'}</dd>
                     <dt>Status</dt>

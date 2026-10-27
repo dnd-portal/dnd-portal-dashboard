@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
     import PlayerShell from '#lib/components/player/PlayerShell.svelte';
+    import { formatPortalDate, formatPortalTime } from '#lib/player/date.js';
     type User = { display_name: string; username: string | null; roles?: string[] };
     type Campaign = { id: number; name: string };
     type Session = {
@@ -36,8 +37,9 @@
                     No sessions available.
                 </p>{:else}<ul>
                     {#each rows as row}<li>
-                            <a href={`/sessions/${row.id}`}>{row.title}</a> — {row.session_date} — {row.location ??
-                                'Location to be announced'}
+                            <a href={`/sessions/${row.id}`}>{row.title}</a> — {formatPortalDate(row.session_date)} · {formatPortalTime(
+                                row.starts_at
+                            )} · {row.location ?? 'Location to be announced'}
                         </li>{/each}
                 </ul>{/if}
         </section></PlayerShell

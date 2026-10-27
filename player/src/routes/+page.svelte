@@ -3,6 +3,7 @@
     import { api, ApiRequestError } from '#lib/api/index.js';
     import AuthLayout from '#lib/components/player/AuthLayout.svelte';
     import PlayerShell from '#lib/components/player/PlayerShell.svelte';
+    import { formatPortalDate, formatPortalTime } from '#lib/player/date.js';
 
     type User = { display_name: string; email: string | null; username: string | null; roles?: string[] };
     type Campaign = { id: number; name: string; membership_role: string | null };
@@ -30,6 +31,13 @@
     let password = $state('');
     let loginError = $state('');
     let busy = $state(false);
+    const nextSession = $derived(
+        sessions
+            .filter((session) => session.session_date >= new Date().toISOString().slice(0, 10))
+            .sort((a, b) =>
+                `${a.session_date}${a.starts_at ?? ''}`.localeCompare(`${b.session_date}${b.starts_at ?? ''}`)
+            )[0] ?? null
+    );
 
     async function load() {
         loading = true;
@@ -120,17 +128,17 @@
                     <p class="subcopy">Your campaign information comes from the portal.</p>
                 </div>
             </section>
-            {#if dashboard?.next_session}<section class="hero-card">
+            {#if nextSession}<section class="hero-card">
                     <div class="hero-copy">
                         <div class="session-status"><span class="live-dot"></span> NEXT SESSION</div>
-                        <h2>{dashboard.next_session.title}</h2>
-                        <p>{dashboard.next_session.location ?? 'Location to be announced.'}</p>
+                        <h2>{nextSession.title}</h2>
+                        <p>{nextSession.location ?? 'Location to be announced.'}</p>
                         <div class="hero-meta">
-                            <span>◷ <b>{dashboard.next_session.session_date}</b></span><span
-                                >◷ <b>{dashboard.next_session.starts_at ?? 'Time to be announced'}</b></span
+                            <span>◷ <b>{formatPortalDate(nextSession.session_date)}</b></span><span
+                                >◷ <b>{formatPortalTime(nextSession.starts_at)}</b></span
                             >
                         </div>
-                        <a class="secondary-button" href={`/sessions/${dashboard.next_session.id}`}
+                        <a class="secondary-button" href={`/sessions/${nextSession.id}`}
                             >View session details <span>→</span></a
                         >
                     </div>
@@ -177,7 +185,7 @@
                                     </div>
                                     <div class="session-info">
                                         <strong>{session.title}</strong><span
-                                            >{session.starts_at ?? 'Time to be announced'} · {session.location ??
+                                            >{formatPortalTime(session.starts_at)} · {session.location ??
                                                 'Location to be announced'}</span
                                         >
                                     </div>
