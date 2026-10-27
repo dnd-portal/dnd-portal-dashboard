@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require dirname(__DIR__) . '/src/Config.php';
@@ -54,7 +55,9 @@ foreach ($files as $file) {
         }
         echo "APPLY $version\n";
     } catch (Throwable $e) {
-        if ($db->inTransaction()) $db->rollBack();
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
         throw $e;
     }
 }
