@@ -15,22 +15,22 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            title,
-            description,
-            amount_cents,
-            currency,
-            status,
-            due_date,
-            external_url,
-            created_at,
-            updated_at,
-            version
+                id,
+                title,
+                description,
+                amount_cents,
+                currency,
+                status,
+                due_date,
+                external_url,
+                created_at,
+                updated_at,
+                version
             FROM payment_requests
             WHERE
-            campaign_id = ?
+                campaign_id = ?
             ORDER BY
-            created_at DESC
+                created_at DESC
             SQL
             ,
         );
@@ -42,14 +42,12 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            r.*,
-            c.id campaign_id
-            FROM
-            payment_requests r
-            JOIN campaigns c ON
-            c.id = r.campaign_id
+                r.*,
+                c.id campaign_id
+            FROM payment_requests r
+            JOIN campaigns c ON c.id = r.campaign_id
             WHERE
-            r.id = ?
+                r.id = ?
             SQL
             ,
         );
@@ -62,30 +60,36 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            o.id,
-            o.user_id,
-            o.amount_cents,
-            o.currency,
-            o.status,
-            COALESCE(
-            SUM(
-            CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
-            END
-            ),
-            0
-            ) paid_cents,
-            MAX(
-            CASE WHEN e.entry_kind = "payment" AND e.status = "confirmed" THEN e.id ELSE NULL
-            END
-            ) last_payment_entry_id
-            FROM
-            payment_obligations o
-            LEFT JOIN payment_entries e ON
-            e.obligation_id = o.id
+                o.id,
+                o.user_id,
+                o.amount_cents,
+                o.currency,
+                o.status,
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN e.status = "confirmed"
+                            AND e.entry_kind = "payment" THEN e.amount_cents
+                            WHEN e.status = "confirmed"
+                            AND e.entry_kind = "reversal" THEN - e.amount_cents
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) paid_cents,
+                MAX(
+                    CASE
+                        WHEN e.entry_kind = "payment"
+                        AND e.status = "confirmed" THEN e.id
+                        ELSE NULL
+                    END
+                ) last_payment_entry_id
+            FROM payment_obligations o
+                LEFT JOIN payment_entries e ON e.obligation_id = o.id
             WHERE
-            o.payment_request_id = ?
+                o.payment_request_id = ?
             GROUP BY
-            o.id
+                o.id
             SQL
             ,
         );
@@ -121,17 +125,18 @@ final class PaymentService {
         }
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO payment_requests(
-            campaign_id,
-            created_by,
-            title,
-            description,
-            amount_cents,
-            currency,
-            external_url,
-            due_date
-            )
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO payment_requests (
+                    campaign_id,
+                    created_by,
+                    title,
+                    description,
+                    amount_cents,
+                    currency,
+                    external_url,
+                    due_date
+                )
+            VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?)
             SQL
             ,
         );
@@ -152,12 +157,11 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            campaign_id,
-            currency
-            FROM
-            payment_requests
+                campaign_id,
+                currency
+            FROM payment_requests
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -179,13 +183,14 @@ final class PaymentService {
         }
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO payment_obligations(
-            payment_request_id,
-            user_id,
-            amount_cents,
-            currency
-            )
-            VALUES(?, ?, ?, ?)
+            INSERT INTO payment_obligations (
+                    payment_request_id,
+                    user_id,
+                    amount_cents,
+                    currency
+                )
+            VALUES
+                (?, ?, ?, ?)
             SQL
             ,
         );
@@ -232,20 +237,20 @@ final class PaymentService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 SELECT
-                COALESCE(
-                SUM(
-                CASE
-                WHEN entry_kind = "payment" THEN amount_cents
-                WHEN entry_kind = "reversal" THEN - amount_cents
-                ELSE 0
-                END
-                ),
-                0
-                )
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN entry_kind = "payment" THEN amount_cents
+                                WHEN entry_kind = "reversal" THEN - amount_cents
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    )
                 FROM payment_entries
                 WHERE
-                obligation_id = ?
-                AND status = "confirmed"
+                    obligation_id = ?
+                    AND status = "confirmed"
                 SQL
                 ,
             );
@@ -282,11 +287,11 @@ final class PaymentService {
                 $q = $this->db->prepare(
                     <<<'SQL'
                     SELECT
-                    1
-                    FROM
-                    payment_entries
+                        1
+                    FROM payment_entries
                     WHERE
-                    obligation_id = ? AND external_reference = ?
+                        obligation_id = ?
+                        AND external_reference = ?
                     SQL
                     ,
                 );
@@ -299,17 +304,17 @@ final class PaymentService {
                 $q = $this->db->prepare(
                     <<<'SQL'
                     INSERT INTO payment_entries (
-                    obligation_id,
-                    amount_cents,
-                    currency,
-                    status,
-                    entry_kind,
-                    external_reference,
-                    entered_by,
-                    correction_of_entry_id
-                    )
+                            obligation_id,
+                            amount_cents,
+                            currency,
+                            status,
+                            entry_kind,
+                            external_reference,
+                            entered_by,
+                            correction_of_entry_id
+                        )
                     VALUES
-                    (?, ?, ?, ?, ?, ?, ?, ?)
+                        (?, ?, ?, ?, ?, ?, ?, ?)
                     SQL
                     ,
                 );
@@ -337,9 +342,9 @@ final class PaymentService {
                     <<<'SQL'
                     UPDATE payment_obligations
                     SET
-                    status = ?
+                        status = ?
                     WHERE
-                    id = ?
+                        id = ?
                     SQL
                     ,
                 )
@@ -368,33 +373,42 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            o.id,
-            o.payment_request_id,
-            o.amount_cents,
-            o.currency,
-            o.status,
-            COALESCE(
-            SUM(
-            CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
-            END
-            ),
-            0
-            ) paid_cents,
-            o.amount_cents - COALESCE(
-            SUM(
-            CASE WHEN e.status = "confirmed" AND e.entry_kind = "payment" THEN e.amount_cents WHEN e.status = "confirmed" AND e.entry_kind = "reversal" THEN - e.amount_cents ELSE 0
-            END
-            ),
-            0
-            ) outstanding_cents
-            FROM
-            payment_obligations o
-            LEFT JOIN payment_entries e ON
-            e.obligation_id = o.id
+                o.id,
+                o.payment_request_id,
+                o.amount_cents,
+                o.currency,
+                o.status,
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN e.status = "confirmed"
+                            AND e.entry_kind = "payment" THEN e.amount_cents
+                            WHEN e.status = "confirmed"
+                            AND e.entry_kind = "reversal" THEN - e.amount_cents
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) paid_cents,
+                o.amount_cents - COALESCE(
+                    SUM(
+                        CASE
+                            WHEN e.status = "confirmed"
+                            AND e.entry_kind = "payment" THEN e.amount_cents
+                            WHEN e.status = "confirmed"
+                            AND e.entry_kind = "reversal" THEN - e.amount_cents
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) outstanding_cents
+            FROM payment_obligations o
+                LEFT JOIN payment_entries e ON e.obligation_id = o.id
             WHERE
-            o.user_id = ? AND o.status = "open"
+                o.user_id = ?
+                AND o.status = "open"
             GROUP BY
-            o.id
+                o.id
             SQL
             ,
         );
@@ -415,23 +429,25 @@ final class PaymentService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            EXISTS(
-            SELECT
-            1
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
-            WHERE
-            ur.user_id = ? AND r.role_key = 'portal_admin'
-            ) OR EXISTS(
-            SELECT
-            1
-            FROM
-            campaign_memberships
-            WHERE
-            user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
-            )
+                EXISTS (
+                    SELECT
+                        1
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+                    WHERE
+                        ur.user_id = ?
+                        AND r.role_key = 'portal_admin'
+                )
+                OR EXISTS (
+                    SELECT
+                        1
+            FROM campaign_memberships
+                    WHERE
+                        user_id = ?
+                        AND campaign_id = ?
+                        AND membership_role = 'dm'
+                        AND left_at IS NULL
+                )
             SQL
             ,
         );

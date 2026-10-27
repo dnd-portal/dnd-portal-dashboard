@@ -84,12 +84,12 @@ foreach ($rows as $row) {
     $q = $db->prepare(
         <<<'SQL'
         SELECT
-        1
-        FROM
-        users
+            1
+        FROM users
         WHERE
-        email = ?
-        LIMIT 1
+            email = ?
+        LIMIT
+            1
         SQL
         ,
     );

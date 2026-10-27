@@ -107,12 +107,11 @@ $expiredOption = (int) $b['data']['options'][0]['id'];
 $db = Connection::make();
 $db->prepare(
     <<<'SQL'
-    UPDATE
-    polls
+    UPDATE polls
     SET
-    closes_at = UTC_TIMESTAMP(6) - INTERVAL 1 MINUTE
+        closes_at = UTC_TIMESTAMP(6) - INTERVAL 1 MINUTE
     WHERE
-    id = ?
+        id = ?
     SQL
     ,
 )->execute([$expired]);

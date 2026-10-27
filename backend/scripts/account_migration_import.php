@@ -72,11 +72,10 @@ $conflicts = AccountMigrationPlanner::conflicts(
             ->query(
                 <<<'SQL'
                 SELECT
-                email
-                FROM
-                users
+                    email
+                FROM users
                 WHERE
-                email IS NOT NULL
+                    email IS NOT NULL
                 SQL
                 ,
             )
@@ -88,11 +87,10 @@ $conflicts = AccountMigrationPlanner::conflicts(
             ->query(
                 <<<'SQL'
                 SELECT
-                username
-                FROM
-                users
+                    username
+                FROM users
                 WHERE
-                username IS NOT NULL
+                    username IS NOT NULL
                 SQL
                 ,
             )
@@ -109,17 +107,15 @@ try {
         $q = $db->prepare(
             <<<'SQL'
             SELECT
-            u.id,
-            u.display_name,
-            u.email,
-            u.username,
-            c.password_hash
-            FROM
-            users u
-            JOIN user_credentials c ON
-            c.user_id = u.id
+                u.id,
+                u.display_name,
+                u.email,
+                u.username,
+                c.password_hash
+            FROM users u
+            JOIN user_credentials c ON c.user_id = u.id
             WHERE
-            u.id = ?
+                u.id = ?
             SQL
             ,
         );
@@ -140,12 +136,13 @@ try {
         $q = $db->prepare(
             <<<'SQL'
             SELECT
-            id
-            FROM
-            users
+                id
+            FROM users
             WHERE
-            email = ? OR username = ?
-            LIMIT 1
+                email = ?
+                OR username = ?
+            LIMIT
+                1
             SQL
             ,
         );
@@ -155,27 +152,25 @@ try {
         }
         $q = $db->prepare(
             <<<'SQL'
-            INSERT INTO users(
-            id,
-            display_name,
-            email,
-            username,
-            account_status,
-            timezone
-            )
-            VALUES(?, ?, ?, ?, "active", "UTC")
+            INSERT INTO users (
+                    id,
+                    display_name,
+                    email,
+                    username,
+                    account_status,
+                    timezone
+                )
+            VALUES
+                (?, ?, ?, ?, "active", "UTC")
             SQL
             ,
         );
         $q->execute([$item['proposed_new_id'], $row['name'], $row['email'], $item['username']]);
         $q = $db->prepare(
             <<<'SQL'
-            INSERT INTO user_credentials(
-            user_id,
-            password_hash,
-            password_algo
-            )
-            VALUES(?, ?, ?)
+            INSERT INTO user_credentials (user_id, password_hash, password_algo)
+            VALUES
+                (?, ?, ?)
             SQL
             ,
         );

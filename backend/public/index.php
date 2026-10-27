@@ -109,12 +109,12 @@ $router->post('/api/v1/admin/invites/revoke', static function ($r) {
     $a->requireRole('portal_admin');
     $q = $db->prepare(
         <<<'SQL'
-        UPDATE
-        registration_invites
+        UPDATE registration_invites
         SET
-        consumed_at = ?
+            consumed_at = ?
         WHERE
-        id = ? AND consumed_at IS NULL
+            id = ?
+            AND consumed_at IS NULL
         SQL
         ,
     );
@@ -128,12 +128,12 @@ $router->post('/api/v1/admin/password-reset-codes/revoke', static function ($r) 
     $a->requireRole('portal_admin');
     $q = $db->prepare(
         <<<'SQL'
-        UPDATE
-        password_reset_tokens
+        UPDATE password_reset_tokens
         SET
-        used_at = ?
+            used_at = ?
         WHERE
-        id = ? AND used_at IS NULL
+            id = ?
+            AND used_at IS NULL
         SQL
         ,
     );

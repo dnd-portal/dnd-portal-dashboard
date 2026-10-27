@@ -25,15 +25,14 @@ $db = Connection::make();
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    u.id
-    FROM
-    users u
-    JOIN user_roles ur ON
-    ur.user_id = u.id
-    JOIN roles r ON
-    r.id = ur.role_id
+        u.id
+    FROM users u
+    JOIN user_roles ur ON ur.user_id = u.id
+    JOIN roles r ON r.id = ur.role_id
     WHERE
-    u.username = ? AND u.account_status = "active" AND r.role_key = "portal_admin"
+        u.username = ?
+        AND u.account_status = "active"
+        AND r.role_key = "portal_admin"
     SQL
     ,
 );
@@ -47,26 +46,25 @@ $db->beginTransaction();
 try {
     $q = $db->prepare(
         <<<'SQL'
-        UPDATE
-        user_credentials
+        UPDATE user_credentials
         SET
-        password_hash = ?,
-        password_algo = ?,
-        password_changed_at = UTC_TIMESTAMP(6)
+            password_hash = ?,
+            password_algo = ?,
+            password_changed_at = UTC_TIMESTAMP(6)
         WHERE
-        user_id = ?
+            user_id = ?
         SQL
         ,
     );
     $q->execute([password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT, $id]);
     $q = $db->prepare(
         <<<'SQL'
-        UPDATE
-        auth_sessions
+        UPDATE auth_sessions
         SET
-        revoked_at = UTC_TIMESTAMP(6)
+            revoked_at = UTC_TIMESTAMP(6)
         WHERE
-        user_id = ? AND revoked_at IS NULL
+            user_id = ?
+            AND revoked_at IS NULL
         SQL
         ,
     );

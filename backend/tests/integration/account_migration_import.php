@@ -46,9 +46,8 @@ $ok(
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            users
+                COUNT(*)
+            FROM users
             SQL
             ,
         )
@@ -60,9 +59,8 @@ $ok(
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            users
+                COUNT(*)
+            FROM users
             SQL
             ,
         )
@@ -74,9 +72,8 @@ $ok(
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            user_roles
+                COUNT(*)
+            FROM user_roles
             SQL
             ,
         )
@@ -88,9 +85,8 @@ $ok(
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            auth_sessions
+                COUNT(*)
+            FROM auth_sessions
             SQL
             ,
         )
@@ -102,9 +98,8 @@ $ok(
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            password_reset_tokens
+                COUNT(*)
+            FROM password_reset_tokens
             SQL
             ,
         )
@@ -116,9 +111,8 @@ $ok(
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            registration_invites
+                COUNT(*)
+            FROM registration_invites
             SQL
             ,
         )
@@ -129,11 +123,10 @@ $stored = $db
     ->query(
         <<<'SQL'
         SELECT
-        password_hash
-        FROM
-        user_credentials
+            password_hash
+        FROM user_credentials
         ORDER BY
-        user_id
+            user_id
         SQL
         ,
     )

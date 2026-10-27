@@ -74,61 +74,44 @@ $admin = (int) $b['data']['id'];
 $playerName = 'session-player-' . bin2hex(random_bytes(3));
 $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES("Session Player", ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        ("Session Player", ?, ?, "active")
     SQL
     ,
 )->execute([$playerName . '@example.test', $playerName]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO user_credentials (user_id, password_hash, password_algo)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 )->execute([$player, password_hash('SessionPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 $outsiderName = 'session-outsider-' . bin2hex(random_bytes(3));
 $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES("Session Outsider", ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        ("Session Outsider", ?, ?, "active")
     SQL
     ,
 )->execute([$outsiderName . '@example.test', $outsiderName]);
 $outsider = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO user_credentials (user_id, password_hash, password_algo)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 )->execute([$outsider, password_hash('SessionOutsider2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 $db->prepare(
     <<<'SQL'
-    INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-    )
-    VALUES(?, ?, "member")
+    INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+    VALUES
+        (?, ?, "member")
     SQL
     ,
 )->execute([$campaign, $player]);

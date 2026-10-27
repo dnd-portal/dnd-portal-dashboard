@@ -20,15 +20,16 @@ final class SessionStore {
         );
         $stmt = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO auth_sessions(
-            session_id_hash,
-            user_id,
-            session_data,
-            created_at,
-            last_seen_at,
-            expires_at
-            )
-            VALUES(?, ?, ?, ?, ?, ?)
+            INSERT INTO auth_sessions (
+                    session_id_hash,
+                    user_id,
+                    session_data,
+                    created_at,
+                    last_seen_at,
+                    expires_at
+                )
+            VALUES
+                (?, ?, ?, ?, ?, ?)
             SQL
             ,
         );
@@ -50,13 +51,15 @@ final class SessionStore {
         $stmt = $this->db->prepare(
             <<<'SQL'
             SELECT
-            s.user_id
-            FROM
-            auth_sessions s
-            JOIN users u ON
-            u.id = s.user_id
+                s.user_id
+            FROM auth_sessions s
+            JOIN users u ON u.id = s.user_id
             WHERE
-            s.session_id_hash = ? AND s.revoked_at IS NULL AND s.expires_at > ? AND s.last_seen_at > ? AND u.account_status = "active"
+                s.session_id_hash = ?
+                AND s.revoked_at IS NULL
+                AND s.expires_at > ?
+                AND s.last_seen_at > ?
+                AND u.account_status = "active"
             SQL
             ,
         );
@@ -72,12 +75,12 @@ final class SessionStore {
     public function revoke(string $raw): void {
         $stmt = $this->db->prepare(
             <<<'SQL'
-            UPDATE
-            auth_sessions
+            UPDATE auth_sessions
             SET
-            revoked_at = ?
+                revoked_at = ?
             WHERE
-            session_id_hash = ? AND revoked_at IS NULL
+                session_id_hash = ?
+                AND revoked_at IS NULL
             SQL
             ,
         );
@@ -87,12 +90,12 @@ final class SessionStore {
     public function revokeUser(int $userId): void {
         $stmt = $this->db->prepare(
             <<<'SQL'
-            UPDATE
-            auth_sessions
+            UPDATE auth_sessions
             SET
-            revoked_at = ?
+                revoked_at = ?
             WHERE
-            user_id = ? AND revoked_at IS NULL
+                user_id = ?
+                AND revoked_at IS NULL
             SQL
             ,
         );

@@ -20,11 +20,10 @@ $role = (int) $db
     ->query(
         <<<'SQL'
         SELECT
-        id
-        FROM
-        roles
+            id
+        FROM roles
         WHERE
-        role_key = 'portal_admin'
+            role_key = 'portal_admin'
         SQL
         ,
     )
@@ -41,13 +40,10 @@ $run = static function (string $label, string $left, string $right) use (
     $prefix = 'matrix_' . bin2hex(random_bytes(4));
     $q = $db->prepare(
         <<<'SQL'
-        INSERT INTO users(
-        display_name,
-        email,
-        username,
-        account_status
-        )
-        VALUES(?, ?, ?, "active"),(?, ?, ?, "active")
+        INSERT INTO users (display_name, email, username, account_status)
+        VALUES
+            (?, ?, ?, "active"),
+            (?, ?, ?, "active")
         SQL
         ,
     );
@@ -63,8 +59,10 @@ $run = static function (string $label, string $left, string $right) use (
     $second = $first + 1;
     $db->prepare(
         <<<'SQL'
-        INSERT INTO user_roles(user_id, role_id)
-        VALUES(?, ?),(?, ?)
+        INSERT INTO user_roles (user_id, role_id)
+        VALUES
+            (?, ?),
+            (?, ?)
         SQL
         ,
     )->execute([$first, $role, $second, $role]);
@@ -100,15 +98,13 @@ $run = static function (string $label, string $left, string $right) use (
         ->query(
             <<<'SQL'
             SELECT
-            COUNT(*)
-            FROM
-            users u
-            JOIN user_roles ur ON
-            ur.user_id = u.id
-            JOIN roles r ON
-            r.id = ur.role_id
+                COUNT(*)
+            FROM users u
+            JOIN user_roles ur ON ur.user_id = u.id
+            JOIN roles r ON r.id = ur.role_id
             WHERE
-            r.role_key = 'portal_admin' AND u.account_status = 'active'
+                r.role_key = 'portal_admin'
+                AND u.account_status = 'active'
             SQL
             ,
         )
@@ -119,21 +115,17 @@ $run = static function (string $label, string $left, string $right) use (
     echo "PASS: $label active_admins=$remaining responses=$outOne|$outTwo\n";
     $db->prepare(
         <<<'SQL'
-        DELETE
-        FROM
-        user_roles
+        DELETE FROM user_roles
         WHERE
-        user_id IN(?, ?)
+            user_id IN (?, ?)
         SQL
         ,
     )->execute([$first, $second]);
     $db->prepare(
         <<<'SQL'
-        DELETE
-        FROM
-        users
+        DELETE FROM users
         WHERE
-        id IN(?, ?)
+            id IN (?, ?)
         SQL
         ,
     )->execute([$first, $second]);

@@ -81,35 +81,26 @@ $campaign = (int) $body['data']['id'];
 $admin = (int) $body['data']['id'];
 $db->prepare(
     <<<'SQL'
-    INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-    )
-    VALUES(?, ?, "dm")
-    ON DUPLICATE KEY
-    UPDATE
-    left_at = NULL,
-    membership_role = "dm"
+    INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+    VALUES
+        (?, ?, "dm")
+    ON DUPLICATE KEY UPDATE
+        left_at = NULL,
+        membership_role = "dm"
     SQL
     ,
 )->execute([$campaign, $admin]);
 $db->prepare(
     <<<'SQL'
-    INSERT INTO game_sessions(
-    campaign_id,
-    title,
-    session_date,
-    starts_at,
-    created_by
-    )
-    VALUES(
-    ?,
-    ?,
-    "2026-10-27",
-    "2026-10-27 00:00:00",
-    ?
-    )
+    INSERT INTO game_sessions (
+            campaign_id,
+            title,
+            session_date,
+            starts_at,
+            created_by
+        )
+    VALUES
+        (?, ?, "2026-10-27", "2026-10-27 00:00:00", ?)
     SQL
     ,
 )->execute([$campaign, 'Dashboard exact session', $admin]);
@@ -118,36 +109,26 @@ for ($i = 1; $i <= 3; $i++) {
     $username = 'dashboard-player-' . bin2hex(random_bytes(3));
     $db->prepare(
         <<<'SQL'
-        INSERT INTO users(
-        display_name,
-        email,
-        username,
-        account_status
-        )
-        VALUES(?, ?, ?, "active")
+        INSERT INTO users (display_name, email, username, account_status)
+        VALUES
+            (?, ?, ?, "active")
         SQL
         ,
     )->execute(["Dashboard Player $i", $username . '@example.test', $username]);
     $player = (int) $db->lastInsertId();
     $db->prepare(
         <<<'SQL'
-        INSERT INTO campaign_memberships(
-        campaign_id,
-        user_id,
-        membership_role
-        )
-        VALUES(?, ?, "member")
+        INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+        VALUES
+            (?, ?, "member")
         SQL
         ,
     )->execute([$campaign, $player]);
     $db->prepare(
         <<<'SQL'
-        INSERT INTO session_participants(
-        session_id,
-        user_id,
-        rsvp_status
-        )
-        VALUES(?, ?, ?)
+        INSERT INTO session_participants (session_id, user_id, rsvp_status)
+        VALUES
+            (?, ?, ?)
         SQL
         ,
     )->execute([$session, $player, $i < 3 ? 'accepted' : 'pending']);
@@ -163,25 +144,18 @@ $cookie = '';
 $empty = 'dashboard-empty-' . bin2hex(random_bytes(3));
 $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES("Dashboard Empty", ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        ("Dashboard Empty", ?, ?, "active")
     SQL
     ,
 )->execute([$empty . '@example.test', $empty]);
 $emptyId = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO user_credentials (user_id, password_hash, password_algo)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 )->execute([$emptyId, password_hash('EmptyDashboard2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);

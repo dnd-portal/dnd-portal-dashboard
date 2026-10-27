@@ -178,13 +178,9 @@ $prefix = 'access_' . bin2hex(random_bytes(4));
 $db = Connection::make();
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES(?, ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        (?, ?, ?, "active")
     SQL
     ,
 );
@@ -192,14 +188,13 @@ $q->execute([$prefix . ' player', $prefix . '@example.test', $prefix]);
 $playerId = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO user_roles(user_id, role_id)
+    INSERT INTO user_roles (user_id, role_id)
     SELECT
-    ?,
-    id
-    FROM
-    roles
+        ?,
+        id
+    FROM roles
     WHERE
-    role_key = "campaign_member"
+        role_key = "campaign_member"
     SQL
     ,
 );

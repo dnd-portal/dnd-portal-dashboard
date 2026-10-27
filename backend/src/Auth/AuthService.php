@@ -37,9 +37,14 @@ final class AuthService {
                 c.password_hash,
                 c.password_algo
             FROM users u
-            LEFT JOIN user_credentials c ON c.user_id = u.id
-            WHERE (u.email = ? OR u.username = ?)
-            LIMIT 2
+                LEFT JOIN user_credentials c ON c.user_id = u.id
+            WHERE
+                (
+                    u.email = ?
+                    OR u.username = ?
+                )
+            LIMIT
+                2
             SQL
             ,
         );
@@ -58,14 +63,13 @@ final class AuthService {
             $h = password_hash($password, PASSWORD_DEFAULT);
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                user_credentials
+                UPDATE user_credentials
                 SET
-                password_hash = ?,
-                password_algo = ?,
-                password_changed_at = ?
+                    password_hash = ?,
+                    password_algo = ?,
+                    password_changed_at = ?
                 WHERE
-                user_id = ?
+                    user_id = ?
                 SQL
                 ,
             );
@@ -104,9 +108,16 @@ final class AuthService {
     public function profile(int $id): array {
         $q = $this->db->prepare(
             <<<'SQL'
-            SELECT id, display_name, email, username, account_status, version
+            SELECT
+                id,
+                display_name,
+                email,
+                username,
+                account_status,
+                version
             FROM users
-            WHERE id = ?
+            WHERE
+                id = ?
             SQL
             ,
         );
@@ -117,10 +128,12 @@ final class AuthService {
         }
         $r = $this->db->prepare(
             <<<'SQL'
-            SELECT r.role_key
+            SELECT
+                r.role_key
             FROM roles r
             JOIN user_roles ur ON ur.role_id = r.id
-            WHERE ur.user_id = ?
+            WHERE
+                ur.user_id = ?
             SQL
             ,
         );
@@ -169,7 +182,8 @@ final class AuthService {
                     $q = $this->db->prepare(
                         <<<'SQL'
                         INSERT INTO users (display_name, email, account_status)
-                        VALUES (?, ?, "invited")
+                        VALUES
+                            (?, ?, "invited")
                         SQL
                         ,
                     );
@@ -180,19 +194,27 @@ final class AuthService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 UPDATE registration_invites
-                SET consumed_at = ?
-                WHERE invited_user_id = ?
-                  AND consumed_at IS NULL
-                  AND expires_at > ?
+                SET
+                    consumed_at = ?
+                WHERE
+                    invited_user_id = ?
+                    AND consumed_at IS NULL
+                    AND expires_at > ?
                 SQL
                 ,
             );
             $q->execute([gmdate('Y-m-d H:i:s.u'), $target, gmdate('Y-m-d H:i:s.u')]);
             $q = $this->db->prepare(
                 <<<'SQL'
-                INSERT INTO registration_invites
-                    (invited_user_id, invited_email, code_hash, created_by, expires_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO registration_invites (
+                        invited_user_id,
+                        invited_email,
+                        code_hash,
+                        created_by,
+                        expires_at
+                    )
+                VALUES
+                    (?, ?, ?, ?, ?)
                 SQL
                 ,
             );
@@ -227,12 +249,13 @@ final class AuthService {
         try {
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                password_reset_tokens
+                UPDATE password_reset_tokens
                 SET
-                used_at = ?
+                    used_at = ?
                 WHERE
-                user_id = ? AND used_at IS NULL AND expires_at > ?
+                    user_id = ?
+                    AND used_at IS NULL
+                    AND expires_at > ?
                 SQL
                 ,
             );
@@ -240,7 +263,8 @@ final class AuthService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
-                VALUES (?, ?, ?)
+                VALUES
+                    (?, ?, ?)
                 SQL
                 ,
             );
@@ -300,16 +324,16 @@ final class AuthService {
             $uid = (int) $invite['invited_user_id'];
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                users
+                UPDATE users
                 SET
-                email = ?,
-                username = ?,
-                display_name = ?,
-                account_status = "active",
-                updated_at = ?
+                    email = ?,
+                    username = ?,
+                    display_name = ?,
+                    account_status = "active",
+                    updated_at = ?
                 WHERE
-                id = ? AND account_status = "invited"
+                    id = ?
+                    AND account_status = "invited"
                 SQL
                 ,
             );
@@ -323,19 +347,19 @@ final class AuthService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO user_credentials (user_id, password_hash, password_algo)
-                VALUES (?, ?, ?)
+                VALUES
+                    (?, ?, ?)
                 SQL
                 ,
             );
             $q->execute([$uid, password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                registration_invites
+                UPDATE registration_invites
                 SET
-                consumed_at = ?
+                    consumed_at = ?
                 WHERE
-                id = ?
+                    id = ?
                 SQL
                 ,
             );
@@ -355,11 +379,12 @@ final class AuthService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id
-            FROM
-            registration_invites
+                id
+            FROM registration_invites
             WHERE
-            code_hash = ? AND consumed_at IS NULL AND expires_at > ?
+                code_hash = ?
+                AND consumed_at IS NULL
+                AND expires_at > ?
             SQL
             ,
         );
@@ -376,13 +401,17 @@ final class AuthService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            u.id
-            FROM
-            password_reset_tokens t
-            JOIN users u ON
-            u.id = t.user_id
+                u.id
+            FROM password_reset_tokens t
+            JOIN users u ON u.id = t.user_id
             WHERE
-            t.token_hash = ? AND t.used_at IS NULL AND t.expires_at > ? AND(u.email = ? OR u.username = ?)
+                t.token_hash = ?
+                AND t.used_at IS NULL
+                AND t.expires_at > ?
+                AND (
+                    u.email = ?
+                    OR u.username = ?
+                )
             SQL
             ,
         );
@@ -434,14 +463,13 @@ final class AuthService {
             }
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                user_credentials
+                UPDATE user_credentials
                 SET
-                password_hash = ?,
-                password_algo = ?,
-                password_changed_at = ?
+                    password_hash = ?,
+                    password_algo = ?,
+                    password_changed_at = ?
                 WHERE
-                user_id = ?
+                    user_id = ?
                 SQL
                 ,
             );
@@ -453,12 +481,12 @@ final class AuthService {
             ]);
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                password_reset_tokens
+                UPDATE password_reset_tokens
                 SET
-                used_at = ?
+                    used_at = ?
                 WHERE
-                id = ? AND used_at IS NULL
+                    id = ?
+                    AND used_at IS NULL
                 SQL
                 ,
             );
@@ -487,19 +515,19 @@ final class AuthService {
         $q = $this->db->query(
             <<<'SQL'
             SELECT
-            id,
-            display_name,
-            email,
-            username,
-            account_status,
-            version,
-            created_at,
-            updated_at
-            FROM
-            users
+                id,
+                display_name,
+                email,
+                username,
+                account_status,
+                version,
+                created_at,
+                updated_at
+            FROM users
             ORDER BY
-            id ASC
-            LIMIT 100
+                id ASC
+            LIMIT
+                100
             SQL
             ,
         );
@@ -508,13 +536,11 @@ final class AuthService {
             $r = $this->db->prepare(
                 <<<'SQL'
                 SELECT
-                r.role_key
-                FROM
-                roles r
-                JOIN user_roles ur ON
-                ur.role_id = r.id
+                    r.role_key
+                FROM roles r
+                JOIN user_roles ur ON ur.role_id = r.id
                 WHERE
-                ur.user_id = ?
+                    ur.user_id = ?
                 SQL
                 ,
             );
@@ -561,16 +587,11 @@ final class AuthService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 SELECT
-                id,
-                role_key
-                FROM
-                roles
+                    id,
+                    role_key
+                FROM roles
                 WHERE
-                role_key IN(
-                "portal_admin",
-                "campaign_dm",
-                "campaign_member"
-                )
+                    role_key IN ("portal_admin", "campaign_dm", "campaign_member")
                 SQL
                 ,
             );
@@ -598,15 +619,13 @@ final class AuthService {
                 $q = $this->db->query(
                     <<<'SQL'
                     SELECT
-                    COUNT(*)
-                    FROM
-                    user_roles ur
-                    JOIN roles r ON
-                    r.id = ur.role_id
-                    JOIN users u ON
-                    u.id = ur.user_id
+                        COUNT(*)
+                    FROM user_roles ur
+                    JOIN roles r ON r.id = ur.role_id
+                    JOIN users u ON u.id = ur.user_id
                     WHERE
-                    r.role_key = 'portal_admin' AND u.account_status = 'active'
+                        r.role_key = 'portal_admin'
+                        AND u.account_status = 'active'
                     SQL
                     ,
                 );
@@ -631,11 +650,9 @@ final class AuthService {
             ]);
             $q = $this->db->prepare(
                 <<<'SQL'
-                DELETE
-                FROM
-                user_roles
+                DELETE FROM user_roles
                 WHERE
-                user_id = ?
+                    user_id = ?
                 SQL
                 ,
             );
@@ -643,9 +660,12 @@ final class AuthService {
             $ins = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO user_roles (user_id, role_id)
-                SELECT ?, id
+                SELECT
+                    ?,
+                    id
                 FROM roles
-                WHERE role_key = ?
+                WHERE
+                    role_key = ?
                 SQL
                 ,
             );
@@ -754,8 +774,9 @@ final class AuthService {
     private function audit(int $uid, string $event): void {
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO audit_events(actor_user_id, event_type)
-            VALUES(?, ?)
+            INSERT INTO audit_events (actor_user_id, event_type)
+            VALUES
+                (?, ?)
             SQL
             ,
         );

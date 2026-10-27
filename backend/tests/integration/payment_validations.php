@@ -71,41 +71,30 @@ $campaign = (int) $b['data']['id'];
 $admin = (int) $me['data']['id'];
 $db->prepare(
     <<<'SQL'
-    INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-    )
-    VALUES(?, ?, "dm")
-    ON DUPLICATE KEY
-    UPDATE
-    membership_role = "dm",
-    left_at = NULL
+    INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+    VALUES
+        (?, ?, "dm")
+    ON DUPLICATE KEY UPDATE
+        membership_role = "dm",
+        left_at = NULL
     SQL
     ,
 )->execute([$campaign, $admin]);
 $username = 'payplayer-' . bin2hex(random_bytes(3));
 $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES("Payment Player", ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        ("Payment Player", ?, ?, "active")
     SQL
     ,
 )->execute([$username . '@example.test', $username]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO user_credentials (user_id, password_hash, password_algo)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 )->execute([$player, password_hash('PayPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
@@ -160,11 +149,11 @@ $ok($s === 409, 'duplicate payment reference rejected');
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    payment_entries
+        COUNT(*)
+    FROM payment_entries
     WHERE
-    obligation_id = ? AND external_reference = ?
+        obligation_id = ?
+        AND external_reference = ?
     SQL
     ,
 );

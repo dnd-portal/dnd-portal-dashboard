@@ -20,20 +20,17 @@ $d = Connection::make();
 // Clear only the isolated test database before this browser group.
 $d->exec(
     <<<'SQL'
-    DELETE
-    FROM
-    rate_limit_buckets
+    DELETE FROM rate_limit_buckets
     SQL
     ,
 );
 $q = $d->prepare(
     <<<'SQL'
     SELECT
-    id
-    FROM
-    users
+        id
+    FROM users
     WHERE
-    username = "paybrowser"
+        username = "paybrowser"
     SQL
     ,
 );
@@ -42,43 +39,35 @@ $id = $q->fetchColumn();
 if ($id === false) {
     $d->prepare(
         <<<'SQL'
-        INSERT INTO users(
-        display_name,
-        email,
-        username,
-        account_status
-        )
-        VALUES(
-        "Payment Browser",
-        "pay-browser@example.test",
-        "paybrowser",
-        "active"
-        )
+        INSERT INTO users (display_name, email, username, account_status)
+        VALUES
+            (
+                "Payment Browser",
+                "pay-browser@example.test",
+                "paybrowser",
+                "active"
+            )
         SQL
         ,
     )->execute();
     $id = (int) $d->lastInsertId();
     $d->prepare(
         <<<'SQL'
-        INSERT INTO user_credentials(
-        user_id,
-        password_hash,
-        password_algo
-        )
-        VALUES(?, ?, ?)
+        INSERT INTO user_credentials (user_id, password_hash, password_algo)
+        VALUES
+            (?, ?, ?)
         SQL
         ,
     )->execute([$id, password_hash('PayBrowser2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
     $d->prepare(
         <<<'SQL'
-        INSERT INTO user_roles(user_id, role_id)
+        INSERT INTO user_roles (user_id, role_id)
         SELECT
-        ?,
-        id
-        FROM
-        roles
+            ?,
+            id
+        FROM roles
         WHERE
-        role_key = "campaign_member"
+            role_key = "campaign_member"
         SQL
         ,
     )->execute([$id]);
@@ -86,23 +75,21 @@ if ($id === false) {
     $id = (int) $id;
     $d->prepare(
         <<<'SQL'
-        UPDATE
-        users
+        UPDATE users
         SET
-        account_status = "active"
+            account_status = "active"
         WHERE
-        id = ?
+            id = ?
         SQL
         ,
     )->execute([$id]);
     $d->prepare(
         <<<'SQL'
-        UPDATE
-        user_credentials
+        UPDATE user_credentials
         SET
-        password_hash = ?
+            password_hash = ?
         WHERE
-        user_id = ?
+            user_id = ?
         SQL
         ,
     )->execute([password_hash('PayBrowser2026!', PASSWORD_DEFAULT), $id]);
@@ -111,28 +98,23 @@ $campaign = (int) $d
     ->query(
         <<<'SQL'
         SELECT
-        id
-        FROM
-        campaigns
+            id
+        FROM campaigns
         ORDER BY
-        id
-        DESC
-        LIMIT 1
+            id DESC
+        LIMIT
+            1
         SQL
         ,
     )
     ->fetchColumn();
 $d->prepare(
     <<<'SQL'
-    INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-    )
-    VALUES(?, ?, "member")
-    ON DUPLICATE KEY
-    UPDATE
-    left_at = NULL
+    INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+    VALUES
+        (?, ?, "member")
+    ON DUPLICATE KEY UPDATE
+        left_at = NULL
     SQL
     ,
 )->execute([$campaign, $id]);

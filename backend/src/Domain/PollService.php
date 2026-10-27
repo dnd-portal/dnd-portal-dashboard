@@ -15,20 +15,20 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            campaign_id,
-            title,
-            choice_type,
-            status,
-            closes_at,
-            created_at,
-            updated_at,
-            version
+                id,
+                campaign_id,
+                title,
+                choice_type,
+                status,
+                closes_at,
+                created_at,
+                updated_at,
+                version
             FROM polls
             WHERE
-            campaign_id = ?
+                campaign_id = ?
             ORDER BY
-            created_at DESC
+                created_at DESC
             SQL
             ,
         );
@@ -46,13 +46,13 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            option_id
-            FROM
-            poll_votes
+                option_id
+            FROM poll_votes
             WHERE
-            poll_id = ? AND user_id = ?
+                poll_id = ?
+                AND user_id = ?
             ORDER BY
-            option_id
+                option_id
             SQL
             ,
         );
@@ -64,11 +64,11 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            response_state
-            FROM
-            poll_participants
+                response_state
+            FROM poll_participants
             WHERE
-            poll_id = ? AND user_id = ?
+                poll_id = ?
+                AND user_id = ?
             SQL
             ,
         );
@@ -110,15 +110,15 @@ final class PollService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 INSERT INTO polls (
-                campaign_id,
-                title,
-                choice_type,
-                status,
-                closes_at,
-                created_by
-                )
+                        campaign_id,
+                        title,
+                        choice_type,
+                        status,
+                        closes_at,
+                        created_by
+                    )
                 VALUES
-                (?, ?, ?, ?, ?, ?)
+                    (?, ?, ?, ?, ?, ?)
                 SQL
                 ,
             );
@@ -128,7 +128,7 @@ final class PollService {
                 <<<'SQL'
                 INSERT INTO poll_options (poll_id, label, position)
                 VALUES
-                (?, ?, ?)
+                    (?, ?, ?)
                 SQL
                 ,
             );
@@ -177,13 +177,12 @@ final class PollService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 SELECT
-                id
-                FROM
-                poll_options
+                    id
+                FROM poll_options
                 WHERE
-                poll_id = ?
+                    poll_id = ?
                 ORDER BY
-                id
+                    id
                 SQL
                 ,
             );
@@ -221,11 +220,10 @@ final class PollService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 SELECT
-                COUNT(*)
-                FROM
-                poll_votes
+                    COUNT(*)
+                FROM poll_votes
                 WHERE
-                poll_id = ?
+                    poll_id = ?
                 SQL
                 ,
             );
@@ -247,8 +245,7 @@ final class PollService {
             $values[] = $version;
             $q = $this->db->prepare(
                 <<<'SQL'
-                UPDATE
-                polls
+                UPDATE polls
                 SET
                 SQL
                 .
@@ -263,12 +260,12 @@ final class PollService {
             if ($optionUpdates !== null) {
                 $q = $this->db->prepare(
                     <<<'SQL'
-                    UPDATE
-                    poll_options
+                    UPDATE poll_options
                     SET
-                    label = ?
+                        label = ?
                     WHERE
-                    id = ? AND poll_id = ?
+                        id = ?
+                        AND poll_id = ?
                     SQL
                     ,
                 );
@@ -306,11 +303,11 @@ final class PollService {
             $q = $this->db->prepare(
                 <<<'SQL'
                 SELECT
-                1
-                FROM
-                poll_participants
+                    1
+                FROM poll_participants
                 WHERE
-                poll_id = ? AND user_id = ?
+                    poll_id = ?
+                    AND user_id = ?
                 SQL
                 ,
             );
@@ -341,19 +338,19 @@ final class PollService {
             }
             $q = $this->db->prepare(
                 <<<'SQL'
-                DELETE
-                FROM
-                poll_votes
+                DELETE FROM poll_votes
                 WHERE
-                poll_id = ? AND user_id = ?
+                    poll_id = ?
+                    AND user_id = ?
                 SQL
                 ,
             );
             $q->execute([$poll, $uid]);
             $q = $this->db->prepare(
                 <<<'SQL'
-                INSERT INTO poll_votes(poll_id, user_id, option_id)
-                VALUES(?, ?, ?)
+                INSERT INTO poll_votes (poll_id, user_id, option_id)
+                VALUES
+                    (?, ?, ?)
                 SQL
                 ,
             );
@@ -363,12 +360,12 @@ final class PollService {
             $this->db
                 ->prepare(
                     <<<'SQL'
-                    UPDATE
-                    poll_participants
+                    UPDATE poll_participants
                     SET
-                    response_state = "voted"
+                        response_state = "voted"
                     WHERE
-                    poll_id = ? AND user_id = ?
+                        poll_id = ?
+                        AND user_id = ?
                     SQL
                     ,
                 )
@@ -395,11 +392,11 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            1
-            FROM
-            poll_participants
+                1
+            FROM poll_participants
             WHERE
-            poll_id = ? AND user_id = ?
+                poll_id = ?
+                AND user_id = ?
             SQL
             ,
         );
@@ -410,11 +407,10 @@ final class PollService {
         $this->db
             ->prepare(
                 <<<'SQL'
-                DELETE
-                FROM
-                poll_votes
+                DELETE FROM poll_votes
                 WHERE
-                poll_id = ? AND user_id = ?
+                    poll_id = ?
+                    AND user_id = ?
                 SQL
                 ,
             )
@@ -422,12 +418,12 @@ final class PollService {
         $this->db
             ->prepare(
                 <<<'SQL'
-                UPDATE
-                poll_participants
+                UPDATE poll_participants
                 SET
-                response_state = "responded_without_option"
+                    response_state = "responded_without_option"
                 WHERE
-                poll_id = ? AND user_id = ?
+                    poll_id = ?
+                    AND user_id = ?
                 SQL
                 ,
             )
@@ -446,21 +442,20 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            o.id,
-            o.label,
-            COUNT(v.user_id) AS vote_count
-            FROM
-            poll_options o
-            LEFT JOIN poll_votes v ON
-            v.poll_id = o.poll_id AND v.option_id = o.id
+                o.id,
+                o.label,
+                COUNT(v.user_id) AS vote_count
+            FROM poll_options o
+                LEFT JOIN poll_votes v ON v.poll_id = o.poll_id
+                AND v.option_id = o.id
             WHERE
-            o.poll_id = ?
+                o.poll_id = ?
             GROUP BY
-            o.id,
-            o.label,
-            o.position
+                o.id,
+                o.label,
+                o.position
             ORDER BY
-            o.position
+                o.position
             SQL
             ,
         );
@@ -477,11 +472,11 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id
-            FROM
-            users
+                id
+            FROM users
             WHERE
-            id = ? AND account_status = "active"
+                id = ?
+                AND account_status = "active"
             SQL
             ,
         );
@@ -493,9 +488,10 @@ final class PollService {
         if ($add) {
             $q = $this->db->prepare(
                 <<<'SQL'
-                INSERT IGNORE
-                INTO poll_participants(poll_id, user_id)
-                VALUES(?, ?)
+                INSERT IGNORE INTO
+                    poll_participants (poll_id, user_id)
+                VALUES
+                    (?, ?)
                 SQL
                 ,
             );
@@ -503,11 +499,10 @@ final class PollService {
         } else {
             $q = $this->db->prepare(
                 <<<'SQL'
-                DELETE
-                FROM
-                poll_participants
+                DELETE FROM poll_participants
                 WHERE
-                poll_id = ? AND user_id = ?
+                    poll_id = ?
+                    AND user_id = ?
                 SQL
                 ,
             );
@@ -520,18 +515,18 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            campaign_id,
-            title,
-            choice_type,
-            status,
-            closes_at,
-            created_at,
-            updated_at,
-            version
+                id,
+                campaign_id,
+                title,
+                choice_type,
+                status,
+                closes_at,
+                created_at,
+                updated_at,
+                version
             FROM polls
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -544,15 +539,14 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            label,
-            position
-            FROM
-            poll_options
+                id,
+                label,
+                position
+            FROM poll_options
             WHERE
-            poll_id = ?
+                poll_id = ?
             ORDER BY
-            position
+                position
             SQL
             ,
         );
@@ -565,11 +559,12 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            1
-            FROM
-            campaign_memberships
+                1
+            FROM campaign_memberships
             WHERE
-            user_id = ? AND campaign_id = ? AND left_at IS NULL
+                user_id = ?
+                AND campaign_id = ?
+                AND left_at IS NULL
             SQL
             ,
         );
@@ -583,23 +578,25 @@ final class PollService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            EXISTS(
-            SELECT
-            1
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
-            WHERE
-            ur.user_id = ? AND r.role_key = 'portal_admin'
-            ) OR EXISTS(
-            SELECT
-            1
-            FROM
-            campaign_memberships
-            WHERE
-            user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
-            )
+                EXISTS (
+                    SELECT
+                        1
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+                    WHERE
+                        ur.user_id = ?
+                        AND r.role_key = 'portal_admin'
+                )
+                OR EXISTS (
+                    SELECT
+                        1
+            FROM campaign_memberships
+                    WHERE
+                        user_id = ?
+                        AND campaign_id = ?
+                        AND membership_role = 'dm'
+                        AND left_at IS NULL
+                )
             SQL
             ,
         );

@@ -37,13 +37,9 @@ $db->beginTransaction();
 try {
     $q = $db->prepare(
         <<<'SQL'
-        INSERT INTO users(
-        display_name,
-        email,
-        username,
-        account_status
-        )
-        VALUES(?, ?, ?, "active")
+        INSERT INTO users (display_name, email, username, account_status)
+        VALUES
+            (?, ?, ?, "active")
         SQL
         ,
     );
@@ -51,26 +47,22 @@ try {
     $id = (int) $db->lastInsertId();
     $q = $db->prepare(
         <<<'SQL'
-        INSERT INTO user_credentials(
-        user_id,
-        password_hash,
-        password_algo
-        )
-        VALUES(?, ?, ?)
+        INSERT INTO user_credentials (user_id, password_hash, password_algo)
+        VALUES
+            (?, ?, ?)
         SQL
         ,
     );
     $q->execute([$id, password_hash($password, PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
     $q = $db->prepare(
         <<<'SQL'
-        INSERT INTO user_roles(user_id, role_id)
+        INSERT INTO user_roles (user_id, role_id)
         SELECT
-        ?,
-        id
-        FROM
-        roles
+            ?,
+            id
+        FROM roles
         WHERE
-        role_key = "portal_admin"
+            role_key = "portal_admin"
         SQL
         ,
     );

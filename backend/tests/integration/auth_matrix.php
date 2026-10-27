@@ -27,13 +27,10 @@ $assert = static function (bool $condition, string $label) use (&$ok): void {
 $now = gmdate('Y-m-d H:i:s.u');
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES(?, ?, ?, "active"),(?, ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        (?, ?, ?, "active"),
+        (?, ?, ?, "active")
     SQL
     ,
 );
@@ -50,11 +47,10 @@ $second = $admin + 1;
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    id
-    FROM
-    roles
+        id
+    FROM roles
     WHERE
-    role_key = "portal_admin"
+        role_key = "portal_admin"
     SQL
     ,
 );
@@ -62,22 +58,25 @@ $q->execute();
 $role = (int) $q->fetchColumn();
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO user_roles(user_id, role_id)
-    VALUES(?, ?),(?, ?)
+    INSERT INTO user_roles (user_id, role_id)
+    VALUES
+        (?, ?),
+        (?, ?)
     SQL
     ,
 );
 $q->execute([$admin, $role, $second, $role]);
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO registration_invites(
-    invited_user_id,
-    invited_email,
-    code_hash,
-    created_by,
-    expires_at
-    )
-    VALUES(?, ?, ?, ?, ?)
+    INSERT INTO registration_invites (
+            invited_user_id,
+            invited_email,
+            code_hash,
+            created_by,
+            expires_at
+        )
+    VALUES
+        (?, ?, ?, ?, ?)
     SQL
     ,
 );
@@ -91,12 +90,11 @@ $q->execute([
 $invite = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
-    UPDATE
-    registration_invites
+    UPDATE registration_invites
     SET
-    consumed_at = ?
+        consumed_at = ?
     WHERE
-    id = ?
+        id = ?
     SQL
     ,
 );
@@ -104,11 +102,10 @@ $q->execute([$now, $invite]);
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    consumed_at
-    FROM
-    registration_invites
+        consumed_at
+    FROM registration_invites
     WHERE
-    id = ?
+        id = ?
     SQL
     ,
 );
@@ -116,12 +113,10 @@ $q->execute([$invite]);
 $assert($q->fetchColumn() !== null, 'used invite is not reusable');
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO password_reset_tokens(
-    user_id,
-    token_hash,
-    expires_at
-    )
-    VALUES(?, ?, ?),(?, ?, ?)
+    INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+    VALUES
+        (?, ?, ?),
+        (?, ?, ?)
     SQL
     ,
 );
@@ -139,11 +134,12 @@ $live = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    password_reset_tokens
+        COUNT(*)
+    FROM password_reset_tokens
     WHERE
-    id = ? AND used_at IS NULL AND expires_at > UTC_TIMESTAMP(6)
+        id = ?
+        AND used_at IS NULL
+        AND expires_at > UTC_TIMESTAMP(6)
     SQL
     ,
 );
@@ -151,12 +147,11 @@ $q->execute([$expired]);
 $assert((int) $q->fetchColumn() === 0, 'expired reset is rejected');
 $q = $db->prepare(
     <<<'SQL'
-    UPDATE
-    password_reset_tokens
+    UPDATE password_reset_tokens
     SET
-    used_at = ?
+        used_at = ?
     WHERE
-    id = ?
+        id = ?
     SQL
     ,
 );
@@ -164,11 +159,10 @@ $q->execute([$now, $live]);
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    used_at
-    FROM
-    password_reset_tokens
+        used_at
+    FROM password_reset_tokens
     WHERE
-    id = ?
+        id = ?
     SQL
     ,
 );
@@ -176,13 +170,9 @@ $q->execute([$live]);
 $assert($q->fetchColumn() !== null, 'revoked reset is rejected');
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES(?, ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        (?, ?, ?, "active")
     SQL
     ,
 );
@@ -191,12 +181,11 @@ $u = (int) $db->lastInsertId();
 try {
     $q = $db->prepare(
         <<<'SQL'
-        UPDATE
-        users
+        UPDATE users
         SET
-        email = ?
+            email = ?
         WHERE
-        id = ?
+            id = ?
         SQL
         ,
     );
@@ -207,15 +196,16 @@ try {
 }
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO auth_sessions(
-    session_id_hash,
-    user_id,
-    session_data,
-    created_at,
-    last_seen_at,
-    expires_at
-    )
-    VALUES(?, ?, ?, ?, ?, ?)
+    INSERT INTO auth_sessions (
+            session_id_hash,
+            user_id,
+            session_data,
+            created_at,
+            last_seen_at,
+            expires_at
+        )
+    VALUES
+        (?, ?, ?, ?, ?, ?)
     SQL
     ,
 );
@@ -231,12 +221,12 @@ $q->execute([
 $sid = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
-    UPDATE
-    auth_sessions
+    UPDATE auth_sessions
     SET
-    revoked_at = ?
+        revoked_at = ?
     WHERE
-    user_id = ? AND revoked_at IS NULL
+        user_id = ?
+        AND revoked_at IS NULL
     SQL
     ,
 );
@@ -244,11 +234,10 @@ $q->execute([$now, $admin]);
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    revoked_at
-    FROM
-    auth_sessions
+        revoked_at
+    FROM auth_sessions
     WHERE
-    id = ?
+        id = ?
     SQL
     ,
 );
@@ -266,12 +255,9 @@ try {
 $assert($blocked, 'rate limiter blocks after configured limit');
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO password_reset_tokens(
-    user_id,
-    token_hash,
-    expires_at
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 );

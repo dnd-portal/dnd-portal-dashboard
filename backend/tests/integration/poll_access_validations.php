@@ -16,9 +16,7 @@ if (
 $db = Connection::make();
 $db->exec(
     <<<'SQL'
-    DELETE
-    FROM
-    rate_limit_buckets
+    DELETE FROM rate_limit_buckets
     SQL
     ,
 );
@@ -89,49 +87,38 @@ $username = 'poll-access-' . bin2hex(random_bytes(3));
 $email = $username . '@example.test';
 $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES(?, ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        (?, ?, ?, "active")
     SQL
     ,
 )->execute(['Poll Access Player', $email, $username]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO user_credentials (user_id, password_hash, password_algo)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 )->execute([$player, password_hash('PollAccess2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_roles(user_id, role_id)
+    INSERT INTO user_roles (user_id, role_id)
     SELECT
-    ?,
-    id
-    FROM
-    roles
+        ?,
+        id
+    FROM roles
     WHERE
-    role_key = "campaign_member"
+        role_key = "campaign_member"
     SQL
     ,
 )->execute([$player]);
 $db->prepare(
     <<<'SQL'
-    INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-    )
-    VALUES(?, ?, "member")
+    INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+    VALUES
+        (?, ?, "member")
     SQL
     ,
 )->execute([$campaign, $player]);

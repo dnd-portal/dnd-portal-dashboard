@@ -16,13 +16,13 @@ final class RateLimiter {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            window_started_at,
-            request_count,
-            blocked_until
-            FROM
-            rate_limit_buckets
+                window_started_at,
+                request_count,
+                blocked_until
+            FROM rate_limit_buckets
             WHERE
-            bucket_key_hash = ? AND bucket_type = ?
+                bucket_key_hash = ?
+                AND bucket_type = ?
             SQL
             ,
         );
@@ -38,20 +38,19 @@ final class RateLimiter {
         $blocked = $count > $limit ? gmdate('Y-m-d H:i:s', $now + $window) : null;
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO rate_limit_buckets(
-            bucket_key_hash,
-            bucket_type,
-            window_started_at,
-            request_count,
-            blocked_until
-            )
-            VALUES(?, ?, ?, ?, ?)
-            ON DUPLICATE KEY
-            UPDATE
-            window_started_at =
-            VALUES(window_started_at), request_count =
-            VALUES(request_count), blocked_until =
-            VALUES(blocked_until)
+            INSERT INTO rate_limit_buckets (
+                    bucket_key_hash,
+                    bucket_type,
+                    window_started_at,
+                    request_count,
+                    blocked_until
+                )
+            VALUES
+                (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                window_started_at = VALUES(window_started_at),
+                request_count = VALUES(request_count),
+                blocked_until = VALUES(blocked_until)
             SQL
             ,
         );

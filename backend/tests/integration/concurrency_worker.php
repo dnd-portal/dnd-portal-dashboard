@@ -28,12 +28,12 @@ file_put_contents($barrier . '.' . $id, 'locked');
 usleep(250000);
 $q = $db->prepare(
     <<<'SQL'
-    UPDATE
-    password_reset_tokens
+    UPDATE password_reset_tokens
     SET
-    used_at = UTC_TIMESTAMP(6)
+        used_at = UTC_TIMESTAMP(6)
     WHERE
-    id = ? AND used_at IS NULL
+        id = ?
+        AND used_at IS NULL
     SQL
     ,
 );

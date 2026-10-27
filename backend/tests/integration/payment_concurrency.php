@@ -38,19 +38,19 @@ if (($argv[1] ?? '') === 'worker') {
         $q = $db->prepare(
             <<<'SQL'
             SELECT
-            COALESCE(
-            SUM(
-            CASE
-            WHEN entry_kind = "payment" THEN amount_cents
-            ELSE - amount_cents
-            END
-            ),
-            0
-            )
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN entry_kind = "payment" THEN amount_cents
+                            ELSE - amount_cents
+                        END
+                    ),
+                    0
+                )
             FROM payment_entries
             WHERE
-            obligation_id = ?
-            AND status = "confirmed"
+                obligation_id = ?
+                AND status = "confirmed"
             SQL
             ,
         );
@@ -62,15 +62,15 @@ if (($argv[1] ?? '') === 'worker') {
         $q = $db->prepare(
             <<<'SQL'
             INSERT INTO payment_entries (
-            obligation_id,
-            amount_cents,
-            currency,
-            status,
-            entry_kind,
-            external_reference
-            )
+                    obligation_id,
+                    amount_cents,
+                    currency,
+                    status,
+                    entry_kind,
+                    external_reference
+                )
             VALUES
-            (?, ?, "EUR", "confirmed", ?, ?)
+                (?, ?, "EUR", "confirmed", ?, ?)
             SQL
             ,
         );
@@ -89,7 +89,7 @@ $q = $db->prepare(
     <<<'SQL'
     INSERT INTO campaigns (name, slug, type, created_by)
     VALUES
-    ('Concurrency payment', ?, 'campaign', 1)
+        ('Concurrency payment', ?, 'campaign', 1)
     SQL
     ,
 );
@@ -97,14 +97,15 @@ $q->execute(['concurrency-' . bin2hex(random_bytes(3))]);
 $campaign = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO payment_requests(
-    campaign_id,
-    created_by,
-    title,
-    amount_cents,
-    currency
-    )
-    VALUES(?, 1, "Concurrency", 10000, "EUR")
+    INSERT INTO payment_requests (
+            campaign_id,
+            created_by,
+            title,
+            amount_cents,
+            currency
+        )
+    VALUES
+        (?, 1, "Concurrency", 10000, "EUR")
     SQL
     ,
 );
@@ -112,13 +113,14 @@ $q->execute([$campaign]);
 $rid = (int) $db->lastInsertId();
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO payment_obligations(
-    payment_request_id,
-    user_id,
-    amount_cents,
-    currency
-    )
-    VALUES(?, 1, 10000, "EUR")
+    INSERT INTO payment_obligations (
+            payment_request_id,
+            user_id,
+            amount_cents,
+            currency
+        )
+    VALUES
+        (?, 1, 10000, "EUR")
     SQL
     ,
 );
@@ -127,15 +129,15 @@ $oid = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
     INSERT INTO payment_entries (
-    obligation_id,
-    amount_cents,
-    currency,
-    status,
-    entry_kind,
-    external_reference
-    )
+            obligation_id,
+            amount_cents,
+            currency,
+            status,
+            entry_kind,
+            external_reference
+        )
     VALUES
-    (?, 10000, "EUR", "confirmed", "payment", "seed")
+        (?, 10000, "EUR", "confirmed", "payment", "seed")
     SQL
     ,
 )->execute([$oid]);
@@ -216,11 +218,11 @@ $runMixed = function () use ($oid): array {
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    payment_entries
+        COUNT(*)
+    FROM payment_entries
     WHERE
-    obligation_id = ? AND external_reference = ?
+        obligation_id = ?
+        AND external_reference = ?
     SQL
     ,
 );
@@ -233,12 +235,11 @@ echo "PASS: concurrent duplicate reference [$a|$b]\n";
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COALESCE(SUM(amount_cents),
-    0)
-    FROM
-    payment_entries
+        COALESCE(SUM(amount_cents), 0)
+    FROM payment_entries
     WHERE
-    obligation_id = ? AND entry_kind = "reversal"
+        obligation_id = ?
+        AND entry_kind = "reversal"
     SQL
     ,
 );
@@ -251,20 +252,20 @@ echo "PASS: concurrent reversals bounded [$a|$b]\n";
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COALESCE(
-    SUM(
-    CASE
-    WHEN entry_kind = "payment" THEN amount_cents
-    WHEN entry_kind = "reversal" THEN - amount_cents
-    ELSE 0
-    END
-    ),
-    0
-    )
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN entry_kind = "payment" THEN amount_cents
+                    WHEN entry_kind = "reversal" THEN - amount_cents
+                    ELSE 0
+                END
+            ),
+            0
+        )
     FROM payment_entries
     WHERE
-    obligation_id = ?
-    AND status = "confirmed"
+        obligation_id = ?
+        AND status = "confirmed"
     SQL
     ,
 );

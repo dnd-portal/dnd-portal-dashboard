@@ -16,9 +16,7 @@ if (
 $db = Connection::make();
 $db->exec(
     <<<'SQL'
-    DELETE
-    FROM
-    rate_limit_buckets
+    DELETE FROM rate_limit_buckets
     SQL
     ,
 );
@@ -109,63 +107,49 @@ $ok(
 $username = 'policy-player-' . bin2hex(random_bytes(3));
 $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES("Policy Player", ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        ("Policy Player", ?, ?, "active")
     SQL
     ,
 )->execute([$username . '@example.test', $username]);
 $player = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO user_credentials(
-    user_id,
-    password_hash,
-    password_algo
-    )
-    VALUES(?, ?, ?)
+    INSERT INTO user_credentials (user_id, password_hash, password_algo)
+    VALUES
+        (?, ?, ?)
     SQL
     ,
 )->execute([$player, password_hash('PolicyPlayer2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 $db->prepare(
     <<<'SQL'
-    INSERT INTO campaign_memberships(
-    campaign_id,
-    user_id,
-    membership_role
-    )
-    VALUES(?, ?, "member")
+    INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+    VALUES
+        (?, ?, "member")
     SQL
     ,
 )->execute([$campaign, $player]);
 $db->prepare(
     <<<'SQL'
-    INSERT INTO game_sessions(
-    campaign_id,
-    title,
-    session_date,
-    rsvp_deadline_at,
-    created_by
-    )
-    VALUES(
-    ?,
-    ?,
-    "2026-12-01",
-    "2026-01-01 00:00:00",
-    ?
-    )
+    INSERT INTO game_sessions (
+            campaign_id,
+            title,
+            session_date,
+            rsvp_deadline_at,
+            created_by
+        )
+    VALUES
+        (?, ?, "2026-12-01", "2026-01-01 00:00:00", ?)
     SQL
     ,
 )->execute([$campaign, 'Past RSVP deadline', $admin]);
 $session = (int) $db->lastInsertId();
 $db->prepare(
     <<<'SQL'
-    INSERT INTO session_participants(session_id, user_id)
-    VALUES(?, ?)
+    INSERT INTO session_participants (session_id, user_id)
+    VALUES
+        (?, ?)
     SQL
     ,
 )->execute([$session, $player]);
@@ -204,14 +188,14 @@ $ok($s === 200, 'manager correction and attendance');
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    audit_events
+        COUNT(*)
+    FROM audit_events
     WHERE
-    actor_user_id = ? AND event_type IN(
-    'session_rsvp_corrected',
-    'session_attendance_corrected'
-    )
+        actor_user_id = ?
+        AND event_type IN (
+            'session_rsvp_corrected',
+            'session_attendance_corrected'
+        )
     SQL
     ,
 );
@@ -246,11 +230,11 @@ $ok(
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    response_state
-    FROM
-    poll_participants
+        response_state
+    FROM poll_participants
     WHERE
-    poll_id = ? AND user_id = ?
+        poll_id = ?
+        AND user_id = ?
     SQL
     ,
 );
@@ -262,11 +246,11 @@ $ok(
 $q = $db->prepare(
     <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    poll_votes
+        COUNT(*)
+    FROM poll_votes
     WHERE
-    poll_id = ? AND user_id = ?
+        poll_id = ?
+        AND user_id = ?
     SQL
     ,
 );

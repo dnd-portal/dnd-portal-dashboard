@@ -15,7 +15,7 @@ $db->beginTransaction();
 $db->query(
     <<<'SQL'
     SELECT
-    GET_LOCK('dnd_portal_admin_invariant', 10)
+        GET_LOCK('dnd_portal_admin_invariant', 10)
     SQL
     ,
 )->fetchColumn();
@@ -55,7 +55,7 @@ if (count($q->fetchAll()) <= 1) {
     $db->query(
         <<<'SQL'
         SELECT
-        RELEASE_LOCK('dnd_portal_admin_invariant')
+            RELEASE_LOCK('dnd_portal_admin_invariant')
         SQL
         ,
     );
@@ -67,14 +67,12 @@ $q =
     $mode === 'demote'
         ? $db->prepare(
             <<<'SQL'
-            DELETE
-            ur
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
+            DELETE ur
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
             WHERE
-            ur.user_id = ? AND r.role_key = "portal_admin"
+                ur.user_id = ?
+                AND r.role_key = "portal_admin"
             SQL
             ,
         )
@@ -86,7 +84,7 @@ $db->commit();
 $db->query(
     <<<'SQL'
     SELECT
-    RELEASE_LOCK('dnd_portal_admin_invariant')
+        RELEASE_LOCK('dnd_portal_admin_invariant')
     SQL
     ,
 );

@@ -14,34 +14,35 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            c.id,
-            c.name,
-            c.slug,
-            c.type,
-            c.location,
-            c.timezone,
-            c.archived_at,
-            c.version,
-            cm.membership_role
-            FROM
-            campaigns c
-            LEFT JOIN campaign_memberships cm ON
-            cm.campaign_id = c.id AND cm.user_id = ? AND cm.left_at IS NULL
+                c.id,
+                c.name,
+                c.slug,
+                c.type,
+                c.location,
+                c.timezone,
+                c.archived_at,
+                c.version,
+                cm.membership_role
+            FROM campaigns c
+                LEFT JOIN campaign_memberships cm ON cm.campaign_id = c.id
+                AND cm.user_id = ?
+                AND cm.left_at IS NULL
             WHERE
-            (c.archived_at IS NULL) AND(
-            cm.user_id IS NOT NULL OR EXISTS(
-            SELECT
-            1
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
-            WHERE
-            ur.user_id = ? AND r.role_key = 'portal_admin'
-            )
-            )
+                (c.archived_at IS NULL)
+                AND (
+                    cm.user_id IS NOT NULL
+                    OR EXISTS (
+                        SELECT
+                            1
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+                        WHERE
+                            ur.user_id = ?
+                            AND r.role_key = 'portal_admin'
+                    )
+                )
             ORDER BY
-            c.name
+                c.name
             SQL
             ,
         );
@@ -53,21 +54,21 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            c.id,
-            c.name,
-            c.slug,
-            c.type,
-            c.location,
-            c.timezone,
-            c.archived_at,
-            c.version,
-            cm.membership_role
-            FROM
-            campaigns c
-            LEFT JOIN campaign_memberships cm ON
-            cm.campaign_id = c.id AND cm.user_id = ? AND cm.left_at IS NULL
+                c.id,
+                c.name,
+                c.slug,
+                c.type,
+                c.location,
+                c.timezone,
+                c.archived_at,
+                c.version,
+                cm.membership_role
+            FROM campaigns c
+                LEFT JOIN campaign_memberships cm ON cm.campaign_id = c.id
+                AND cm.user_id = ?
+                AND cm.left_at IS NULL
             WHERE
-            c.id = ?
+                c.id = ?
             SQL
             ,
         );
@@ -89,7 +90,7 @@ final class CampaignService {
             <<<'SQL'
             INSERT INTO campaigns (name, slug, type, location, timezone, created_by)
             VALUES
-            (?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?)
             SQL
             ,
         );
@@ -104,12 +105,9 @@ final class CampaignService {
         $id = (int) $this->db->lastInsertId();
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO campaign_memberships(
-            campaign_id,
-            user_id,
-            membership_role
-            )
-            VALUES(?, ?, 'dm')
+            INSERT INTO campaign_memberships (campaign_id, user_id, membership_role)
+            VALUES
+                (?, ?, 'dm')
             SQL
             ,
         );
@@ -160,11 +158,10 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            1
-            FROM
-            campaigns
+                1
+            FROM campaigns
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -175,11 +172,10 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            1
-            FROM
-            users
+                1
+            FROM users
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -189,17 +185,12 @@ final class CampaignService {
         }
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO campaign_memberships(
-            campaign_id,
-            user_id,
-            membership_role,
-            left_at
-            )
-            VALUES(?, ?, ?, NULL)
-            ON DUPLICATE KEY
-            UPDATE
-            membership_role =
-            VALUES(membership_role), left_at = NULL
+            INSERT INTO campaign_memberships (campaign_id, user_id, membership_role, left_at)
+            VALUES
+                (?, ?, ?, NULL)
+            ON DUPLICATE KEY UPDATE
+                membership_role = VALUES(membership_role),
+                left_at = NULL
             SQL
             ,
         );
@@ -207,20 +198,19 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            cm.campaign_id,
-            cm.user_id,
-            cm.membership_role,
-            cm.joined_at,
-            cm.left_at,
-            u.display_name,
-            u.email,
-            u.username
-            FROM
-            campaign_memberships cm
-            JOIN users u ON
-            u.id = cm.user_id
+                cm.campaign_id,
+                cm.user_id,
+                cm.membership_role,
+                cm.joined_at,
+                cm.left_at,
+                u.display_name,
+                u.email,
+                u.username
+            FROM campaign_memberships cm
+            JOIN users u ON u.id = cm.user_id
             WHERE
-            cm.campaign_id = ? AND cm.user_id = ?
+                cm.campaign_id = ?
+                AND cm.user_id = ?
             SQL
             ,
         );
@@ -237,20 +227,18 @@ final class CampaignService {
         $manager = $this->canManage($uid, $campaign);
         $sql = <<<'SQL'
         SELECT
-        cm.campaign_id,
-        cm.user_id,
-        cm.membership_role,
-        cm.joined_at,
-        cm.left_at,
-        u.display_name,
-        u.email,
-        u.username
-        FROM
-        campaign_memberships cm
-        JOIN users u ON
-        u.id = cm.user_id
+            cm.campaign_id,
+            cm.user_id,
+            cm.membership_role,
+            cm.joined_at,
+            cm.left_at,
+            u.display_name,
+            u.email,
+            u.username
+        FROM campaign_memberships cm
+        JOIN users u ON u.id = cm.user_id
         WHERE
-        cm.campaign_id = ?
+            cm.campaign_id = ?
         SQL;
         $params = [$campaign];
         if (!$manager) {
@@ -268,12 +256,13 @@ final class CampaignService {
         $this->assertManage($uid, $campaign);
         $q = $this->db->prepare(
             <<<'SQL'
-            UPDATE
-            campaign_memberships
+            UPDATE campaign_memberships
             SET
-            left_at = ?
+                left_at = ?
             WHERE
-            campaign_id = ? AND user_id = ? AND left_at IS NULL
+                campaign_id = ?
+                AND user_id = ?
+                AND left_at IS NULL
             SQL
             ,
         );
@@ -286,21 +275,21 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            campaign_id,
-            title,
-            session_date,
-            starts_at,
-            ends_at,
-            rsvp_deadline_at,
-            location,
-            status,
-            version
+                id,
+                campaign_id,
+                title,
+                session_date,
+                starts_at,
+                ends_at,
+                rsvp_deadline_at,
+                location,
+                status,
+                version
             FROM game_sessions
             WHERE
-            campaign_id = ?
+                campaign_id = ?
             ORDER BY
-            session_date
+                session_date
             SQL
             ,
         );
@@ -320,19 +309,17 @@ final class CampaignService {
         $manager = $this->canManage($uid, $campaign);
         $sql = <<<'SQL'
         SELECT
-        sp.session_id,
-        sp.user_id,
-        sp.rsvp_status,
-        sp.attendance_status,
-        sp.responded_at,
-        sp.attendance_recorded_at,
-        u.display_name
-        FROM
-        session_participants sp
-        JOIN users u ON
-        u.id = sp.user_id
+            sp.session_id,
+            sp.user_id,
+            sp.rsvp_status,
+            sp.attendance_status,
+            sp.responded_at,
+            sp.attendance_recorded_at,
+            u.display_name
+        FROM session_participants sp
+        JOIN users u ON u.id = sp.user_id
         WHERE
-        sp.session_id = ?
+            sp.session_id = ?
         SQL;
         $params = [$session];
         if (!$manager) {
@@ -351,17 +338,18 @@ final class CampaignService {
         $this->validateSession($in);
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO game_sessions(
-            campaign_id,
-            title,
-            session_date,
-            starts_at,
-            ends_at,
-            rsvp_deadline_at,
-            location,
-            created_by
-            )
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO game_sessions (
+                    campaign_id,
+                    title,
+                    session_date,
+                    starts_at,
+                    ends_at,
+                    rsvp_deadline_at,
+                    location,
+                    created_by
+                )
+            VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?)
             SQL
             ,
         );
@@ -432,12 +420,12 @@ final class CampaignService {
         $existing = $this->db->prepare(
             <<<'SQL'
             SELECT
-            rsvp_status,
-            attendance_status
-            FROM
-            session_participants
+                rsvp_status,
+                attendance_status
+            FROM session_participants
             WHERE
-            session_id = ? AND user_id = ?
+                session_id = ?
+                AND user_id = ?
             SQL
             ,
         );
@@ -450,43 +438,38 @@ final class CampaignService {
         $a = $in['attendance_status'] ?? $current['attendance_status'];
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO session_participants(
-            session_id,
-            user_id,
-            rsvp_status,
-            attendance_status,
-            responded_at,
-            attendance_recorded_at
-            )
-            VALUES(
-            ?,
-            ?,
-            ?,
-            ?,
-            IF(
-            ? IS NULL,
-            NULL,
-            UTC_TIMESTAMP(6)
-            ),
-            IF(
-            ? IS NULL,
-            NULL,
-            UTC_TIMESTAMP(6)
-            )
-            )
-            ON DUPLICATE KEY
-            UPDATE
-            rsvp_status =
-            VALUES(rsvp_status), attendance_status =
-            VALUES(attendance_status), responded_at = IF(
-            ? IS NULL,
-            responded_at,
-            VALUES(responded_at)
-            ), attendance_recorded_at = IF(
-            ? IS NULL,
-            attendance_recorded_at,
-            VALUES(attendance_recorded_at)
-            )
+            INSERT INTO session_participants (
+                    session_id,
+                    user_id,
+                    rsvp_status,
+                    attendance_status,
+                    responded_at,
+                    attendance_recorded_at
+                )
+            VALUES
+                (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    IF(? IS NULL, NULL, UTC_TIMESTAMP(6)),
+                    IF(? IS NULL, NULL, UTC_TIMESTAMP(6))
+                )
+            ON DUPLICATE KEY UPDATE
+                rsvp_status = VALUES(rsvp_status),
+                attendance_status = VALUES(attendance_status),
+                responded_at = IF(
+                    ? IS NULL,
+                    responded_at,
+                    VALUES
+                        (responded_at)
+                ),
+                attendance_recorded_at = IF(
+                    ? IS NULL,
+                    attendance_recorded_at,
+                    VALUES
+                        (attendance_recorded_at)
+                )
             SQL
             ,
         );
@@ -527,20 +510,19 @@ final class CampaignService {
             $q = $this->db->query(
                 <<<'SQL'
                 SELECT
-                a.user_id,
-                a.availability_date,
-                a.status,
-                a.note,
-                a.updated_at,
-                u.display_name
-                FROM
-                user_availability a
-                JOIN users u ON
-                u.id = a.user_id
+                    a.user_id,
+                    a.availability_date,
+                    a.status,
+                    a.note,
+                    a.updated_at,
+                    u.display_name
+                FROM user_availability a
+                JOIN users u ON u.id = a.user_id
                 WHERE
-                a.availability_date BETWEEN UTC_DATE() - INTERVAL 366 DAY AND UTC_DATE() + INTERVAL 366 DAY
+                    a.availability_date BETWEEN UTC_DATE() - INTERVAL 366 DAY AND UTC_DATE() + INTERVAL 366 DAY
                 ORDER BY
-                a.availability_date, u.display_name
+                    a.availability_date,
+                    u.display_name
                 SQL
                 ,
             );
@@ -549,15 +531,15 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            availability_date,
-            status,
-            note,
-            updated_at
+                availability_date,
+                status,
+                note,
+                updated_at
             FROM user_availability
             WHERE
-            user_id = ?
+                user_id = ?
             ORDER BY
-            availability_date
+                availability_date
             SQL
             ,
         );
@@ -581,11 +563,11 @@ final class CampaignService {
             <<<'SQL'
             INSERT INTO user_availability (user_id, availability_date, status, note)
             VALUES
-            (?, ?, ?, ?)
+                (?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-            status = VALUES(status),
-            note = VALUES(note),
-            updated_at = UTC_TIMESTAMP(6)
+                status = VALUES(status),
+                note = VALUES(note),
+                updated_at = UTC_TIMESTAMP(6)
             SQL
             ,
         );
@@ -599,11 +581,10 @@ final class CampaignService {
         }
         $q = $this->db->prepare(
             <<<'SQL'
-            DELETE
-            FROM
-            user_availability
+            DELETE FROM user_availability
             WHERE
-            user_id = ? AND availability_date = ?
+                user_id = ?
+                AND availability_date = ?
             SQL
             ,
         );
@@ -615,17 +596,17 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            name,
-            slug,
-            type,
-            location,
-            timezone,
-            archived_at,
-            version
+                id,
+                name,
+                slug,
+                type,
+                location,
+                timezone,
+                archived_at,
+                version
             FROM campaigns
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -637,19 +618,19 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            id,
-            campaign_id,
-            title,
-            session_date,
-            starts_at,
-            ends_at,
-            rsvp_deadline_at,
-            location,
-            status,
-            version
+                id,
+                campaign_id,
+                title,
+                session_date,
+                starts_at,
+                ends_at,
+                rsvp_deadline_at,
+                location,
+                status,
+                version
             FROM game_sessions
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -661,11 +642,10 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            campaign_id
-            FROM
-            game_sessions
+                campaign_id
+            FROM game_sessions
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -681,23 +661,25 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            EXISTS(
-            SELECT
-            1
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
-            WHERE
-            ur.user_id = ? AND r.role_key = 'portal_admin'
-            ) OR EXISTS(
-            SELECT
-            1
-            FROM
-            campaign_memberships
-            WHERE
-            user_id = ? AND campaign_id = ? AND membership_role = 'dm' AND left_at IS NULL
-            )
+                EXISTS (
+                    SELECT
+                        1
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+                    WHERE
+                        ur.user_id = ?
+                        AND r.role_key = 'portal_admin'
+                )
+                OR EXISTS (
+                    SELECT
+                        1
+            FROM campaign_memberships
+                    WHERE
+                        user_id = ?
+                        AND campaign_id = ?
+                        AND membership_role = 'dm'
+                        AND left_at IS NULL
+                )
             SQL
             ,
         );
@@ -709,16 +691,15 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            EXISTS(
-            SELECT
-            1
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
-            WHERE
-            ur.user_id = ? AND r.role_key = 'portal_admin'
-            )
+                EXISTS (
+                    SELECT
+                        1
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+                    WHERE
+                        ur.user_id = ?
+                        AND r.role_key = 'portal_admin'
+                )
             SQL
             ,
         );
@@ -730,16 +711,15 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            EXISTS(
-            SELECT
-            1
-            FROM
-            user_roles ur
-            JOIN roles r ON
-            r.id = ur.role_id
-            WHERE
-            ur.user_id = ? AND r.role_key = 'portal_admin'
-            )
+                EXISTS (
+                    SELECT
+                        1
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+                    WHERE
+                        ur.user_id = ?
+                        AND r.role_key = 'portal_admin'
+                )
             SQL
             ,
         );
@@ -753,11 +733,12 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            1
-            FROM
-            campaign_memberships
+                1
+            FROM campaign_memberships
             WHERE
-            user_id = ? AND campaign_id = ? AND left_at IS NULL
+                user_id = ?
+                AND campaign_id = ?
+                AND left_at IS NULL
             SQL
             ,
         );
@@ -777,11 +758,10 @@ final class CampaignService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-            rsvp_deadline_at
-            FROM
-            game_sessions
+                rsvp_deadline_at
+            FROM game_sessions
             WHERE
-            id = ?
+                id = ?
             SQL
             ,
         );
@@ -829,12 +809,9 @@ final class CampaignService {
     private function audit(int $uid, string $event, array $payload): void {
         $q = $this->db->prepare(
             <<<'SQL'
-            INSERT INTO audit_events(
-            actor_user_id,
-            event_type,
-            payload_json
-            )
-            VALUES(?, ?, ?)
+            INSERT INTO audit_events (actor_user_id, event_type, payload_json)
+            VALUES
+                (?, ?, ?)
             SQL
             ,
         );

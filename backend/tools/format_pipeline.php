@@ -7,6 +7,12 @@ declare(strict_types=1);
  * static PHP string literals without changing PHP syntax or control flow.
  */
 $check = in_array('--check', $argv, true);
+$requestedFile = null;
+foreach ($argv as $argument) {
+    if (str_starts_with($argument, '--file=')) {
+        $requestedFile = realpath(substr($argument, 7));
+    }
+}
 $root = dirname(__DIR__);
 require_once $root . '/vendor/autoload.php';
 $files = [];
@@ -22,6 +28,9 @@ if (is_file($root . '/router.php')) {
     $files[] = $root . '/router.php';
 }
 sort($files);
+if ($requestedFile !== null) {
+    $files = array_values(array_filter($files, static fn (string $file): bool => realpath($file) === $requestedFile));
+}
 
 foreach ($files as $file) {
     $source = file_get_contents($file);
@@ -42,7 +51,24 @@ function formatSqlLiterals(string $source, string $file): string
     $tokens = token_get_all($source);
     $lines = explode("\n", $source);
     $output = '';
-    foreach ($tokens as $token) {
+    for ($index = 0, $count = count($tokens); $index < $count; $index++) {
+        $token = $tokens[$index];
+        if (is_array($token) && $token[0] === T_START_HEREDOC) {
+            $bodyToken = $tokens[$index + 1] ?? null;
+            $endToken = $tokens[$index + 2] ?? null;
+            if (
+                is_array($bodyToken)
+                && $bodyToken[0] === T_ENCAPSED_AND_WHITESPACE
+                && is_array($endToken)
+                && $endToken[0] === T_END_HEREDOC
+            ) {
+                $output .= $token[1];
+                $output .= formatSqlNowdocBody($bodyToken[1], $file, $token[2]);
+                $output .= $endToken[1];
+                $index += 2;
+                continue;
+            }
+        }
         $text = is_array($token) ? $token[1] : $token;
         if (is_array($token) && $token[0] === T_CONSTANT_ENCAPSED_STRING) {
             $line = $token[2];
@@ -52,6 +78,30 @@ function formatSqlLiterals(string $source, string $file): string
         $output .= $text;
     }
     return $output;
+}
+
+function formatSqlNowdocBody(string $body, string $file, int $line): string
+{
+    $sql = trim($body);
+    if (!preg_match('/^(SELECT|INSERT|UPDATE|DELETE)\b/i', $sql)) {
+        return $body;
+    }
+    preg_match('/(?:^|\n)([ \t]*)\S/', $body, $indentMatch);
+    $indent = $indentMatch[1] ?? '';
+    try {
+        $formatted = formatWithSqlFormatter($sql);
+        if (sqlTokenSignature($sql) !== sqlTokenSignature($formatted)) {
+            fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL token preservation failed; nowdoc unchanged\n", $file, $line));
+            return $body;
+        }
+        return implode("\n", array_map(
+            static fn (string $formattedLine): string => $indent . $formattedLine,
+            explode("\n", trim($formatted)),
+        )) . "\n";
+    } catch (Throwable $exception) {
+        fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL parser skipped nowdoc (%s)\n", $file, $line, $exception->getMessage()));
+        return $body;
+    }
 }
 
 function formatSqlLiteral(string $literal, string $file, int $line, string $indent): string
@@ -137,7 +187,7 @@ function sqlTokenSignature(string $sql): array
             PhpMyAdmin\SqlParser\Token::TYPE_KEYWORD,
             PhpMyAdmin\SqlParser\Token::TYPE_BOOL,
         ], true) ? strtolower($token->value) : $token->value;
-        $signature[] = [$token->type, $value];
+        $signature[] = $value;
     }
 
     return $signature;

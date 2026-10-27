@@ -46,10 +46,10 @@ foreach ($files as $file) {
     $q = $db->prepare(
         <<<'SQL'
         SELECT
-        checksum
+            checksum
         FROM schema_migrations
         WHERE
-        version = ?
+            version = ?
         SQL
         ,
     );
@@ -69,7 +69,7 @@ foreach ($files as $file) {
             <<<'SQL'
             INSERT INTO schema_migrations (version, checksum, applied_at)
             VALUES
-            (?, ?, ?)
+                (?, ?, ?)
             SQL
             ,
         );

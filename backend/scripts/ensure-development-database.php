@@ -22,11 +22,11 @@ $pdo = new PDO("mysql:host=$host;port=$port;charset=utf8mb4", 'root', $rootPassw
 ]);
 $q = $pdo->prepare(
     <<<'SQL'
-    SELECT SCHEMA_NAME
-    FROM
-    INFORMATION_SCHEMA.SCHEMATA
-    WHERE SCHEMA_NAME
-    = ?
+    SELECT
+        SCHEMA_NAME
+    FROM INFORMATION_SCHEMA.SCHEMATA
+    WHERE
+        SCHEMA_NAME = ?
     SQL
     ,
 );

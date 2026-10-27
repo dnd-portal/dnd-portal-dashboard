@@ -24,7 +24,7 @@ try {
     $db->query(
         <<<'SQL'
         SELECT
-        1
+            1
         SQL
         ,
     )->fetchColumn();
@@ -46,13 +46,9 @@ $db->beginTransaction();
 try {
     $q = $db->prepare(
         <<<'SQL'
-        INSERT INTO users(
-        display_name,
-        email,
-        username,
-        account_status
-        )
-        VALUES(?, ?, ?, "invited")
+        INSERT INTO users (display_name, email, username, account_status)
+        VALUES
+            (?, ?, ?, "invited")
         SQL
         ,
     );
@@ -60,12 +56,9 @@ try {
     $uid = (int) $db->lastInsertId();
     $q = $db->prepare(
         <<<'SQL'
-        INSERT INTO password_reset_tokens(
-        user_id,
-        token_hash,
-        expires_at
-        )
-        VALUES(?, ?, ?)
+        INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+        VALUES
+            (?, ?, ?)
         SQL
         ,
     );
@@ -82,11 +75,12 @@ try {
     $q = $db->prepare(
         <<<'SQL'
         SELECT
-        id
-        FROM
-        password_reset_tokens
+            id
+        FROM password_reset_tokens
         WHERE
-        id = ? AND used_at IS NULL AND expires_at > ?
+            id = ?
+            AND used_at IS NULL
+            AND expires_at > ?
         SQL
         ,
     );
@@ -94,12 +88,12 @@ try {
     $ok((int) $q->fetchColumn() === $tokenId, 'unused reset token is valid');
     $q = $db->prepare(
         <<<'SQL'
-        UPDATE
-        password_reset_tokens
+        UPDATE password_reset_tokens
         SET
-        used_at = ?
+            used_at = ?
         WHERE
-        id = ? AND used_at IS NULL
+            id = ?
+            AND used_at IS NULL
         SQL
         ,
     );

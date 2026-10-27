@@ -17,34 +17,28 @@ $p = 'adminrace_' . bin2hex(random_bytes(3));
 $q = $db->query(
     <<<'SQL'
     SELECT
-    id
-    FROM
-    roles
+        id
+    FROM roles
     WHERE
-    role_key = "portal_admin"
+        role_key = "portal_admin"
     SQL
     ,
 );
 $role = (int) $q->fetchColumn();
 $db->prepare(
     <<<'SQL'
-    DELETE
-    FROM
-    user_roles
+    DELETE FROM user_roles
     WHERE
-    role_id = ?
+        role_id = ?
     SQL
     ,
 )->execute([$role]);
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO users(
-    display_name,
-    email,
-    username,
-    account_status
-    )
-    VALUES(?, ?, ?, "active"),(?, ?, ?, "active")
+    INSERT INTO users (display_name, email, username, account_status)
+    VALUES
+        (?, ?, ?, "active"),
+        (?, ?, ?, "active")
     SQL
     ,
 );
@@ -53,8 +47,10 @@ $a = (int) $db->lastInsertId();
 $b = $a + 1;
 $q = $db->prepare(
     <<<'SQL'
-    INSERT INTO user_roles(user_id, role_id)
-    VALUES(?, ?),(?, ?)
+    INSERT INTO user_roles (user_id, role_id)
+    VALUES
+        (?, ?),
+        (?, ?)
     SQL
     ,
 );
@@ -96,15 +92,13 @@ if ($success !== 1) {
 $q = $db->query(
     <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    users u
-    JOIN user_roles ur ON
-    ur.user_id = u.id
-    JOIN roles r ON
-    r.id = ur.role_id
+        COUNT(*)
+    FROM users u
+    JOIN user_roles ur ON ur.user_id = u.id
+    JOIN roles r ON r.id = ur.role_id
     WHERE
-    r.role_key = 'portal_admin' AND u.account_status = 'active'
+        r.role_key = 'portal_admin'
+        AND u.account_status = 'active'
     SQL
     ,
 );
@@ -117,11 +111,10 @@ if ($runnerEmail) {
     $q = $db->prepare(
         <<<'SQL'
         SELECT
-        id
-        FROM
-        users
+            id
+        FROM users
         WHERE
-        email = ?
+            email = ?
         SQL
         ,
     );
@@ -130,9 +123,10 @@ if ($runnerEmail) {
     if ($runner) {
         $q = $db->prepare(
             <<<'SQL'
-            INSERT IGNORE
-            INTO user_roles(user_id, role_id)
-            VALUES(?, ?)
+            INSERT IGNORE INTO
+                user_roles (user_id, role_id)
+            VALUES
+                (?, ?)
             SQL
             ,
         );

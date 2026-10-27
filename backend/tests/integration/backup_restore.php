@@ -94,37 +94,33 @@ foreach ($tables as $table) {
 $checks = [
     'schema_migrations' => <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    schema_migrations
+        COUNT(*)
+    FROM schema_migrations
     SQL
     ,
     'relations' => <<<'SQL'
     SELECT
-    COUNT(*)
-    FROM
-    campaign_memberships m
-    JOIN campaigns c ON
-    c.id = m.campaign_id
-    JOIN users u ON
-    u.id = m.user_id
+        COUNT(*)
+    FROM campaign_memberships m
+    JOIN campaigns c ON c.id = m.campaign_id
+    JOIN users u ON u.id = m.user_id
     SQL
     ,
     'financial_sums' => <<<'SQL'
     SELECT
-    COALESCE(
-    SUM(
-    CASE
-    WHEN entry_kind = 'payment' THEN amount_cents
-    WHEN entry_kind = 'reversal' THEN - amount_cents
-    ELSE 0
-    END
-    ),
-    0
-    )
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN entry_kind = 'payment' THEN amount_cents
+                    WHEN entry_kind = 'reversal' THEN - amount_cents
+                    ELSE 0
+                END
+            ),
+            0
+        )
     FROM payment_entries
     WHERE
-    status = 'confirmed'
+        status = 'confirmed'
     SQL
 ,
 ];
