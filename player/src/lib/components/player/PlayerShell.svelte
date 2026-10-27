@@ -2,26 +2,13 @@
     import { page } from '$app/state';
     import { api } from '#lib/api/index.js';
     import AdminIcon from '#lib/components/admin/AdminIcon.svelte';
+    import { playerLinks } from '#lib/navigation.js';
     import type { Snippet } from 'svelte';
 
     type User = { display_name: string; username: string | null; roles?: string[] };
-    let {
-        user,
-        campaignName = 'No campaign',
-        children
-    }: { user: User; campaignName?: string; children: Snippet } = $props();
+    let { user, campaignName, children }: { user: User; campaignName?: string; children: Snippet } = $props();
     let menuOpen = $state(false);
-    const active = $derived(
-        page.url.pathname === '/'
-            ? 'Overview'
-            : page.url.pathname.startsWith('/sessions')
-              ? 'Sessions'
-              : page.url.pathname.startsWith('/party')
-                ? 'The party'
-                : page.url.pathname.startsWith('/payments')
-                  ? 'Treasury'
-                  : 'Overview'
-    );
+    const active = $derived(playerLinks.find((link) => page.url.pathname.startsWith(link.href))?.label ?? 'Overview');
 
     async function logout() {
         await api.post('/api/v1/auth/logout', {});
@@ -56,37 +43,21 @@
     </header>
     <button class="p-shell__backdrop" type="button" aria-label="Close navigation" onclick={closeMenu}></button>
     <aside id="portal-navigation" class="p-shell__sidebar">
-        <button class="p-campaign-picker" type="button">
-            <span class="p-campaign-picker__mark">D&amp;D</span>
-            <span class="p-campaign-picker__copy"><strong>{campaignName}</strong><small>Player campaign</small></span>
-            <span class="p-campaign-picker__chevron" aria-hidden="true">⌄</span>
-        </button>
+        {#if campaignName}<button class="p-campaign-picker" type="button">
+                <span class="p-campaign-picker__mark">D&amp;D</span>
+                <span class="p-campaign-picker__copy"
+                    ><strong>{campaignName}</strong><small>Player campaign</small></span
+                >
+                <span class="p-campaign-picker__chevron" aria-hidden="true">⌄</span>
+            </button>{/if}
         <nav class="p-nav" aria-label="Campaign">
             <p class="p-nav__label">Campaign</p>
-            <a
-                class="p-nav__link"
-                href="/"
-                aria-current={active === 'Overview' ? 'page' : undefined}
-                onclick={closeMenu}><AdminIcon name="dashboard" size={20} /> <span>Overview</span></a
-            >
-            <a
-                class="p-nav__link"
-                href="/sessions"
-                aria-current={active === 'Sessions' ? 'page' : undefined}
-                onclick={closeMenu}><AdminIcon name="sessions" size={20} /> <span>Sessions</span></a
-            >
-            <a
-                class="p-nav__link"
-                href="/party"
-                aria-current={active === 'The party' ? 'page' : undefined}
-                onclick={closeMenu}><AdminIcon name="users" size={20} /> <span>The party</span></a
-            >
-            <a
-                class="p-nav__link"
-                href="/payments"
-                aria-current={active === 'Treasury' ? 'page' : undefined}
-                onclick={closeMenu}><AdminIcon name="payments" size={20} /> <span>Treasury</span></a
-            >
+            {#each playerLinks as link}<a
+                    class="p-nav__link"
+                    href={link.href}
+                    aria-current={active === link.label ? 'page' : undefined}
+                    onclick={closeMenu}><AdminIcon name={link.icon} size={20} /> <span>{link.label}</span></a
+                >{/each}
             <span class="p-nav__link" aria-disabled="true" title="Chronicle is not available in this portal build"
                 ><AdminIcon name="one-shots" size={20} /> <span>Chronicle</span></span
             >

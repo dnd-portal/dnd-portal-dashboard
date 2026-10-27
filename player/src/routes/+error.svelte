@@ -32,7 +32,7 @@
 
 <AuthLayout title={message.title} description={message.description}>
     <div class="error-actions">
-        {#if status === 401 || status === 419}<a class="primary-button" href="/">Sign in again</a>{:else}<button
+        {#if status === 401 || status === 419}<a class="primary-button" href="/login">Sign in again</a>{:else}<button
                 class="primary-button"
                 type="button"
                 onclick={() => location.reload()}>Try again</button

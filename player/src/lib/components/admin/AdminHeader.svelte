@@ -1,5 +1,6 @@
 <script lang="ts">
     import { adminPageMeta, type AdminPageKey } from '#lib/adminPageMeta.js';
+    import PageHeader from '#lib/components/shared/PageHeader.svelte';
 
     let {
         pageKey,
@@ -19,8 +20,4 @@
     let displayDescription = $derived(subtitle ?? metadata?.description ?? 'Manage your D&D Portal workspace.');
 </script>
 
-<header class="p-page-header admin-header">
-    <p class="p-eyebrow admin-header__eyebrow">{displayEyebrow}</p>
-    <h1 class="admin-header__title">{displayTitle}</h1>
-    <p class="admin-header__subtitle">{displayDescription}</p>
-</header>
+<PageHeader eyebrow={displayEyebrow} title={displayTitle} description={displayDescription} />

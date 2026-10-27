@@ -21,6 +21,10 @@
     gap: 12px;
     margin-bottom: 24px;
 }
+.auth-route-content {
+    display: grid;
+    gap: 20px;
+}
 .p-auth__header p,
 .p-auth__footer {
     color: var(--p-secondary);

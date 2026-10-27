@@ -1,6 +1,5 @@
 <script lang="ts">
     import { api, ApiRequestError } from '#lib/api/index.js';
-    import AuthLayout from '#lib/components/player/AuthLayout.svelte';
 
     const invitePattern = /^[A-Za-z0-9_-]{32,}$/;
     let inviteCode = $state('');
@@ -60,17 +59,18 @@
     <meta name="description" content="Register for the D&amp;D Portal Player Dashboard with an invite code." />
 </svelte:head>
 
-<AuthLayout
-    title={accountCreated ? 'You’re on the list' : inviteAccepted ? 'Create your account' : 'Enter your invite code'}
-    description={accountCreated
-        ? 'Your testing account has been created. You can now sign in to your campaign dashboard.'
-        : inviteAccepted
-          ? 'Your invite is valid. Choose the details you’ll use to sign in.'
-          : 'The D&D Portal is currently invite-only. Enter your code to continue.'}
->
+<section class="auth-route-content">
+    <h1>{accountCreated ? 'You’re on the list' : inviteAccepted ? 'Create your account' : 'Enter your invite code'}</h1>
+    <p>
+        {accountCreated
+            ? 'Your account has been created. You can now sign in.'
+            : inviteAccepted
+              ? 'Your invite is valid. Choose the details you’ll use to sign in.'
+              : 'The D&D Portal is currently invite-only. Enter your code to continue.'}
+    </p>
     {#if accountCreated}
         <div class="success-mark">✓</div>
-        <button class="primary-button" onclick={() => (window.location.href = '/?role=player')}
+        <button class="primary-button" onclick={() => (window.location.href = '/login')}
             >Go to sign in <span>→</span></button
         >
     {:else if !inviteAccepted}
@@ -125,5 +125,5 @@
             onclick={createAccount}>Create account <span>→</span></button
         >
     {/if}
-    <p class="footer-note">Already have an account? <a href="/?role=player">Sign in</a></p>
-</AuthLayout>
+    <p class="footer-note">Already have an account? <a href="/login">Sign in</a></p>
+</section>

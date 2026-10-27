@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 function files(directory) {
@@ -31,4 +31,33 @@ test('external SCSS has no legacy catch-all, Svelte global syntax or important o
         if (!file.endsWith('.scss')) continue;
         assert.doesNotMatch(readFileSync(file, 'utf8'), /:global\(|!important/, file);
     }
+});
+
+test('route groups keep public, auth, player and admin ownership explicit', () => {
+    const required = [
+        'src/routes/(public)/+page.svelte',
+        'src/routes/(logged-out)/+layout.svelte',
+        'src/routes/(logged-out)/login/+page.svelte',
+        'src/routes/(logged-in)/+layout.svelte',
+        'src/routes/(logged-in)/dashboard/+page.svelte',
+        'src/routes/(logged-in)/sessions/+page.svelte',
+        'src/routes/(logged-in)/party/+page.svelte',
+        'src/routes/(logged-in)/payments/+page.svelte',
+        'src/routes/(is-admin)/+layout.svelte',
+        'src/routes/(is-admin)/admin/+page.svelte'
+    ];
+    for (const file of required) assert.equal(existsSync(file), true, file);
+
+    const playerRoutes = files('src/routes/(logged-in)')
+        .filter((file) => file.endsWith('.svelte'))
+        .filter(
+            (file) => !file.endsWith('(logged-in)\\+layout.svelte') && !file.endsWith('(logged-in)/+layout.svelte')
+        );
+    for (const file of playerRoutes) {
+        const source = readFileSync(file, 'utf8');
+        assert.equal((source.match(/<PlayerShell/g) ?? []).length, 0, file);
+    }
+    assert.doesNotMatch(readFileSync('src/routes/(public)/+page.svelte', 'utf8'), /PlayerShell|admin-sidebar/);
+    assert.match(readFileSync('src/routes/(logged-in)/+layout.svelte', 'utf8'), /PlayerShell/);
+    assert.match(readFileSync('src/routes/(is-admin)/+layout.svelte', 'utf8'), /AdminShell/);
 });

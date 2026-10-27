@@ -1,7 +1,6 @@
 <script lang="ts">
     import { page } from '$app/state';
     import { api, ApiRequestError } from '#lib/api/index.js';
-    import AuthLayout from '#lib/components/player/AuthLayout.svelte';
 
     let code = $state(page.url.searchParams.get('code') ?? '');
     let identifier = $state('');
@@ -44,10 +43,9 @@
 
 <svelte:head><title>D&amp;D Portal · Reset password</title></svelte:head>
 
-<AuthLayout
-    title="Choose a new password"
-    description="Use the reset code from your organizer. The code is single-use and expires after 30 minutes."
->
+<section class="auth-route-content">
+    <h1>Choose a new password</h1>
+    <p>Use the reset code from your organizer. The code is single-use and expires after 30 minutes.</p>
     <div class="field-group">
         <label for="reset-identifier">Email or username</label><input
             id="reset-identifier"
@@ -88,5 +86,5 @@
         disabled={!verified || password.length < 8 || password !== confirmation}
         onclick={submit}>Set password <span>→</span></button
     >
-    <p class="footer-note"><a href="/">Return to sign in</a></p>
-</AuthLayout>
+    <p class="footer-note"><a href="/login">Return to sign in</a></p>
+</section>
