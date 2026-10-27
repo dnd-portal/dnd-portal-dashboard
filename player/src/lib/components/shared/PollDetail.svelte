@@ -13,6 +13,7 @@
         version: number;
         options: Option[];
         selected_option_ids: number[];
+        response_state: 'pending' | 'voted' | 'responded_without_option';
     };
     type Result = { id: number; label: string; vote_count: number };
     const id = Number(page.params.id);
@@ -58,6 +59,21 @@
             await load();
         } catch (e) {
             error = e instanceof ApiRequestError ? e.message : 'Unable to save vote.';
+        } finally {
+            busy = false;
+        }
+    }
+    async function respondWithoutOption() {
+        if (!poll) return;
+        busy = true;
+        error = '';
+        notice = '';
+        try {
+            await api.post(`/api/v1/polls/${id}/respond-without-option`, {});
+            notice = 'Response saved.';
+            await load();
+        } catch (e) {
+            error = e instanceof ApiRequestError ? e.message : 'Unable to save response.';
         } finally {
             busy = false;
         }
@@ -116,6 +132,7 @@
                     >{/each}
                 <button class="primary-button" disabled={busy || selected.length === 0} onclick={vote}>Save vote</button
                 >
+                <button class="secondary-button" disabled={busy} onclick={respondWithoutOption}>No option fits</button>
             </fieldset>{:else}<p role="status">This poll is closed or expired.</p>{/if}
         <button class="secondary-button" disabled={busy} onclick={showResults}>View results</button>
         {#if results.length}<ul>
