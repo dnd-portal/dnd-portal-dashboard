@@ -29,7 +29,9 @@ if (is_file($root . '/router.php')) {
 }
 sort($files);
 if ($requestedFile !== null) {
-    $files = array_values(array_filter($files, static fn (string $file): bool => realpath($file) === $requestedFile));
+    $files = array_values(
+        array_filter($files, static fn(string $file): bool => realpath($file) === $requestedFile),
+    );
 }
 
 foreach ($files as $file) {
@@ -46,8 +48,7 @@ foreach ($files as $file) {
         file_put_contents($file, $formatted, LOCK_EX);
     }
 }
-function formatSqlLiterals(string $source, string $file): string
-{
+function formatSqlLiterals(string $source, string $file): string {
     $tokens = token_get_all($source);
     $lines = explode("\n", $source);
     $output = '';
@@ -57,10 +58,10 @@ function formatSqlLiterals(string $source, string $file): string
             $bodyToken = $tokens[$index + 1] ?? null;
             $endToken = $tokens[$index + 2] ?? null;
             if (
-                is_array($bodyToken)
-                && $bodyToken[0] === T_ENCAPSED_AND_WHITESPACE
-                && is_array($endToken)
-                && $endToken[0] === T_END_HEREDOC
+                is_array($bodyToken) &&
+                $bodyToken[0] === T_ENCAPSED_AND_WHITESPACE &&
+                is_array($endToken) &&
+                $endToken[0] === T_END_HEREDOC
             ) {
                 $output .= $token[1];
                 $output .= formatSqlNowdocBody($bodyToken[1], $file, $token[2]);
@@ -80,8 +81,7 @@ function formatSqlLiterals(string $source, string $file): string
     return $output;
 }
 
-function formatSqlNowdocBody(string $body, string $file, int $line): string
-{
+function formatSqlNowdocBody(string $body, string $file, int $line): string {
     $sql = trim($body);
     if (!preg_match('/^(SELECT|INSERT|UPDATE|DELETE)\b/i', $sql)) {
         return $body;
@@ -91,21 +91,38 @@ function formatSqlNowdocBody(string $body, string $file, int $line): string
     try {
         $formatted = formatWithSqlFormatter($sql);
         if (sqlTokenSignature($sql) !== sqlTokenSignature($formatted)) {
-            fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL token preservation failed; nowdoc unchanged\n", $file, $line));
+            fwrite(
+                STDERR,
+                sprintf(
+                    "FORMAT NOTE %s:%d: SQL token preservation failed; nowdoc unchanged\n",
+                    $file,
+                    $line,
+                ),
+            );
             return $body;
         }
-        return implode("\n", array_map(
-            static fn (string $formattedLine): string => $indent . $formattedLine,
-            explode("\n", trim($formatted)),
-        )) . "\n";
+        return implode(
+            "\n",
+            array_map(
+                static fn(string $formattedLine): string => $indent . $formattedLine,
+                explode("\n", trim($formatted)),
+            ),
+        ) . "\n";
     } catch (Throwable $exception) {
-        fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL parser skipped nowdoc (%s)\n", $file, $line, $exception->getMessage()));
+        fwrite(
+            STDERR,
+            sprintf(
+                "FORMAT NOTE %s:%d: SQL parser skipped nowdoc (%s)\n",
+                $file,
+                $line,
+                $exception->getMessage(),
+            ),
+        );
         return $body;
     }
 }
 
-function formatSqlLiteral(string $literal, string $file, int $line, string $indent): string
-{
+function formatSqlLiteral(string $literal, string $file, int $line, string $indent): string {
     if (str_contains($literal, '\\')) {
         return $literal;
     }
@@ -127,7 +144,14 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
     try {
         $formatted = formatWithSqlFormatter($sql);
         if (sqlTokenSignature($sql) !== sqlTokenSignature($formatted)) {
-            fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL token preservation failed; literal unchanged\n", $file, $line));
+            fwrite(
+                STDERR,
+                sprintf(
+                    "FORMAT NOTE %s:%d: SQL token preservation failed; literal unchanged\n",
+                    $file,
+                    $line,
+                ),
+            );
             return $literal;
         }
 
@@ -136,29 +160,52 @@ function formatSqlLiteral(string $literal, string $file, int $line, string $inde
             return $quote . $formatted . $quote;
         }
         if (preg_match('/(^|\n)SQL(?:\r?\n|$)/', $formatted)) {
-            fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL delimiter occurs in literal; left unchanged\n", $file, $line));
+            fwrite(
+                STDERR,
+                sprintf(
+                    "FORMAT NOTE %s:%d: SQL delimiter occurs in literal; left unchanged\n",
+                    $file,
+                    $line,
+                ),
+            );
             return $literal;
         }
 
-        $body = implode("\n", array_map(
-            static fn (string $line): string => $indent . $line,
-            explode("\n", trim($formatted)),
-        ));
+        $body = implode(
+            "\n",
+            array_map(
+                static fn(string $line): string => $indent . $line,
+                explode("\n", trim($formatted)),
+            ),
+        );
         return "<<<'SQL'\n" . $body . "\n" . $indent . 'SQL';
     } catch (Throwable $exception) {
-        fwrite(STDERR, sprintf("FORMAT NOTE %s:%d: SQL parser skipped query (%s)\n", $file, $line, $exception->getMessage()));
+        fwrite(
+            STDERR,
+            sprintf(
+                "FORMAT NOTE %s:%d: SQL parser skipped query (%s)\n",
+                $file,
+                $line,
+                $exception->getMessage(),
+            ),
+        );
         return $literal;
     }
 }
 
-function formatWithSqlFormatter(string $sql): string
-{
-    $command = PHP_OS_FAMILY === 'Windows' ? 'node tools/format_sql.mjs' : 'node tools/format_sql.mjs';
-    $process = proc_open($command, [
-        0 => ['pipe', 'r'],
-        1 => ['pipe', 'w'],
-        2 => ['pipe', 'w'],
-    ], $pipes, dirname(__DIR__));
+function formatWithSqlFormatter(string $sql): string {
+    $command =
+        PHP_OS_FAMILY === 'Windows' ? 'node tools/format_sql.mjs' : 'node tools/format_sql.mjs';
+    $process = proc_open(
+        $command,
+        [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ],
+        $pipes,
+        dirname(__DIR__),
+    );
     if (!is_resource($process)) {
         throw new RuntimeException('SQL formatter process could not be started');
     }
@@ -175,18 +222,20 @@ function formatWithSqlFormatter(string $sql): string
     return (string) $result['sql'];
 }
 
-function sqlTokenSignature(string $sql): array
-{
+function sqlTokenSignature(string $sql): array {
     $tokens = PhpMyAdmin\SqlParser\Lexer::getTokens($sql)->tokens;
     $signature = [];
     foreach ($tokens as $token) {
         if ($token->type === PhpMyAdmin\SqlParser\Token::TYPE_WHITESPACE) {
             continue;
         }
-        $value = in_array($token->type, [
-            PhpMyAdmin\SqlParser\Token::TYPE_KEYWORD,
-            PhpMyAdmin\SqlParser\Token::TYPE_BOOL,
-        ], true) ? strtolower($token->value) : $token->value;
+        $value = in_array(
+            $token->type,
+            [PhpMyAdmin\SqlParser\Token::TYPE_KEYWORD, PhpMyAdmin\SqlParser\Token::TYPE_BOOL],
+            true,
+        )
+            ? strtolower($token->value)
+            : $token->value;
         $signature[] = $value;
     }
 
