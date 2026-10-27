@@ -21,11 +21,23 @@
     let busy = $state(false);
     let name = $state('');
     let slug = $state('');
+    let slugTouched = $state(false);
+    let fieldError = $state('');
     function updateName(event: Event) {
         name = (event.currentTarget as HTMLInputElement).value;
+        if (!slugTouched) slug = slugify(name);
+    }
+    function slugify(value: string) {
+        return value
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 120);
     }
     function updateSlug(event: Event) {
         slug = (event.currentTarget as HTMLInputElement).value;
+        slugTouched = true;
     }
     const columns: Column[] = [
         { key: 'id', label: 'ID', sortType: 'number' },
@@ -69,6 +81,12 @@
     async function create() {
         busy = true;
         error = '';
+        fieldError = '';
+        if (!name.trim() || !slug.trim()) {
+            fieldError = 'Enter a campaign name and slug.';
+            busy = false;
+            return;
+        }
         try {
             await api.post('/api/v1/campaigns', { name, slug, type });
             name = '';
@@ -88,13 +106,29 @@
 <AdminHeader pageKey={type === 'campaign' ? 'campaigns' : 'one-shots'} />
 <section class="admin-detail">
     <h2>Create {type === 'campaign' ? 'campaign' : 'one-shot'}</h2>
-    <div class="form-grid">
-        <label for="campaign-name">Name</label><input id="campaign-name" bind:value={name} oninput={updateName} /><label
-            for="campaign-slug">Slug</label
-        ><input id="campaign-slug" bind:value={slug} oninput={updateSlug} />
-    </div>
-    <button class="primary-button" disabled={busy || !name.trim() || !slug.trim()} onclick={create}>Create</button
-    >{#if error}<p class="error-message" role="alert">{error}</p>{/if}
+    <form
+        class="admin-form"
+        onsubmit={(event) => {
+            event.preventDefault();
+            void create();
+        }}
+    >
+        <div class="admin-form__field">
+            <label for="campaign-name">Name</label>
+            <input id="campaign-name" bind:value={name} oninput={updateName} autocomplete="off" required />
+            <small>Use a name your players will recognize.</small>
+        </div>
+        <div class="admin-form__field">
+            <label for="campaign-slug">Slug</label>
+            <input id="campaign-slug" bind:value={slug} oninput={updateSlug} autocomplete="off" required />
+            <small>Lowercase letters, numbers and hyphens.</small>
+        </div>
+        {#if fieldError}<p class="field-error" role="alert">{fieldError}</p>{/if}
+        {#if error}<p class="error-message" role="alert">{error}</p>{/if}
+        <button class="primary-button" type="submit" disabled={busy || !name.trim() || !slug.trim()}>
+            {busy ? 'Creating…' : 'Create campaign'}
+        </button>
+    </form>
 </section>
 {#snippet cell(row: EntityRow, key: string)}<EntityCell cell={row.cells[key]} />{/snippet}
 {#snippet actions(row: EntityRow)}<a class="secondary-button" href={row.actions[0]?.href}>View details</a>{/snippet}

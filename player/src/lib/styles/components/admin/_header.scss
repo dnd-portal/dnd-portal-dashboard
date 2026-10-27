@@ -7,7 +7,7 @@
     &__eyebrow {
         margin: 0;
         color: $color-text-subtle;
-        font: 500 10px $font-mono;
+        font: 700 12px $font-sans;
         letter-spacing: 0.1em;
         line-height: 1;
         overflow-wrap: anywhere;
@@ -31,7 +31,7 @@
 .admin-breadcrumbs {
     min-width: 0;
     color: $color-text-muted;
-    font-size: 12px;
+    font-size: 14px;
     &__list {
         display: flex;
         align-items: center;

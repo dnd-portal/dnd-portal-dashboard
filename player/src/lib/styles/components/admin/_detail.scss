@@ -1,11 +1,76 @@
 @use '../../variables' as *;
 .admin-detail {
+    h2 {
+        margin: 0 0 20px;
+        font-size: 24px;
+    }
+    .admin-form {
+        display: grid;
+        gap: 18px;
+        max-width: 620px;
+        padding: 24px;
+        border: 1px solid $color-border;
+        border-radius: $radius-panel;
+        background: $color-surface;
+        &__field {
+            display: grid;
+            gap: 7px;
+        }
+        label {
+            color: $color-text;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        input,
+        select,
+        textarea {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid $color-border;
+            border-radius: $radius-control;
+            padding: 10px 12px;
+            color: $color-text;
+            background: $color-surface-muted;
+            font: inherit;
+            &:focus {
+                border-color: $color-accent;
+                box-shadow: 0 0 0 3px rgba($color-accent, 0.18);
+                outline: 0;
+            }
+        }
+        small {
+            color: $color-text-muted;
+            font-size: 14px;
+        }
+    }
+    .primary-button,
+    .secondary-button {
+        min-height: 46px;
+        border-radius: $radius-control;
+        padding: 10px 16px;
+        font: inherit;
+        font-weight: 700;
+    }
+    .primary-button {
+        border: 1px solid $color-accent;
+        color: #102015;
+        background: $color-accent;
+    }
+    .primary-button:disabled {
+        opacity: 0.55;
+    }
+    .field-error,
+    .error-message {
+        margin: 0;
+        color: #e8a99b;
+        font-size: 15px;
+    }
     &__back {
         display: inline-block;
         margin-bottom: 20px;
         color: $color-link;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 16px;
         &:hover {
             text-decoration: underline;
         }
@@ -65,7 +130,7 @@
     &__actions {
         flex-shrink: 0;
         color: $color-text-muted;
-        font-size: 11px;
+        font-size: 14px;
         a {
             color: $color-link;
             text-decoration: none;
@@ -83,7 +148,7 @@
         gap: 16px;
         padding: 13px 0;
         border-top: 1px solid $color-border-muted;
-        font-size: 13px;
+        font-size: 16px;
         dt {
             color: $color-text-subtle;
         }

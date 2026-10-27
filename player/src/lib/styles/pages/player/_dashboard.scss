@@ -153,7 +153,7 @@
         text-align: left;
         padding: 11px 13px;
         margin: 2px 0;
-        font-size: 12px;
+        font-size: 15px;
         transition: 0.2s;
         color: #8ea4c3;
         border-radius: 5px;
@@ -429,7 +429,7 @@
     }
     .subcopy {
         color: #728099;
-        font-size: 13px;
+        font-size: 16px;
         margin: 7px 0 0;
     }
     .secondary-button {
@@ -483,7 +483,7 @@
     .hero-card p {
         max-width: 430px;
         color: #9aabc2;
-        font-size: 12px;
+        font-size: 16px;
         margin: 0 0 22px;
     }
     .hero-meta {
@@ -491,7 +491,7 @@
         flex-wrap: wrap;
         gap: 24px;
         color: #89a2c7;
-        font: 10px $font-mono;
+        font: 14px $font-sans;
     }
     .hero-meta b {
         color: #d7e2f3;
@@ -645,6 +645,7 @@
         border: 1px solid #2d405d;
         border-radius: 6px;
         padding: 12px 13px;
+        min-height: 46px;
         color: #eef4ff;
         background: #0b121d;
         caret-color: #b4caf0;
@@ -830,7 +831,7 @@
     .stat-card p {
         margin: 0;
         color: #718099;
-        font: 10px $font-mono;
+        font: 14px $font-sans;
     }
     .stat-card small {
         color: #66758b;
@@ -922,7 +923,7 @@
     .session-info span {
         display: block;
         color: #728198;
-        font: 10px $font-mono;
+        font: 14px $font-sans;
         margin-top: 5px;
     }
     .session-tag {
@@ -961,7 +962,7 @@
     }
     .party-row span {
         color: #77849a;
-        font: 10px $font-mono;
+        font: 14px $font-sans;
         margin-top: 3px;
     }
     .online-label {

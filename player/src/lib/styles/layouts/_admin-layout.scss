@@ -69,7 +69,7 @@
     &__label {
         margin: 0 10px 6px;
         color: $color-text-subtle;
-        font: 500 10px $font-mono;
+        font: 700 12px $font-sans;
         letter-spacing: 0.1em;
     }
     &__link {
@@ -82,7 +82,8 @@
         color: $color-text-muted;
         text-decoration: none;
         border-radius: $radius-control;
-        font-size: 13px;
+        min-height: 44px;
+        font-size: 16px;
         &:hover {
             background: $color-hover;
             color: $color-text;
@@ -130,7 +131,7 @@
     min-width: 0;
     min-height: 100svh;
     margin-left: $admin-sidebar-width;
-    padding: 96px 32px 48px;
+    padding: 104px 40px 64px;
     > .admin-shell {
         width: 100%;
         max-width: $content-width;

@@ -14,6 +14,35 @@
         background: linear-gradient(145deg, #121b29, #0e141e);
         box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
     }
+    .error-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+        .primary-button,
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            margin: 0;
+            padding: 0 16px;
+            border-radius: 8px;
+            font: inherit;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .primary-button {
+            border: 1px solid $color-accent;
+            color: #102015;
+            background: $color-accent;
+        }
+        .secondary-button {
+            border: 1px solid #2a3b53;
+            color: $color-link;
+            background: transparent;
+        }
+    }
     .brand-mark {
         display: grid;
         place-items: center;

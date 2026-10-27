@@ -1,14 +1,14 @@
-$color-background: #0c1018;
-$color-surface: #101721;
-$color-surface-muted: #0e151f;
-$color-border: #1d2b40;
-$color-border-muted: #1b283a;
+$color-background: #0c1110;
+$color-surface: #141c18;
+$color-surface-muted: #101713;
+$color-border: #29382f;
+$color-border-muted: #223028;
 $color-text: #edf2fb;
 $color-text-muted: #7888a0;
 $color-text-subtle: #677895;
-$color-accent: #5e81ba;
-$color-link: #91b4e9;
-$color-link-hover: #c0d5f5;
+$color-accent: #86b98a;
+$color-link: #a8d5ab;
+$color-link-hover: #d1ecd0;
 $color-success-text: #8bd1aa;
 $color-success-background: #173b32;
 // The wiki uses Atkinson Hyperlegible as its primary reading face. The remote
@@ -32,15 +32,15 @@ $font-sans:
 $font-mono: 'DM Mono', monospace;
 $content-width: 1200px;
 
-$color-sidebar: #0a0f18;
-$color-hover: #14243c;
-$color-selected: #1b2e4d;
+$color-sidebar: #0a0f0d;
+$color-hover: #1c2a21;
+$color-selected: #24392b;
 $color-status-neutral: #8c98aa;
 $color-warning: #d3b778;
 $color-overlay: rgba(0, 0, 0, 0.5);
 $shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.35);
-$radius-control: 6px;
-$radius-panel: 8px;
+$radius-control: 8px;
+$radius-panel: 12px;
 $admin-sidebar-width: 244px;
 $admin-topbar-height: 64px;
 $breakpoint-mobile: 760px;
