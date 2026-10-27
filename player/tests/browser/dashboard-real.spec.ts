@@ -49,3 +49,24 @@ test('dashboard renders an API-backed empty state and a visible API outage state
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Dashboard unavailable' })).toBeVisible();
 });
+
+test('player navigation replaces the main content and stays within the viewport', async ({ page }) => {
+    await login(page, process.env.PAYMENT_PLAYER_USERNAME!, process.env.PAYMENT_PLAYER_PASSWORD!);
+    await expect(page.getByText('Yori')).toHaveCount(0);
+    await expect(page.getByText('The Sunken Archive')).toHaveCount(0);
+
+    await page.getByRole('link', { name: /Sessions/ }).click();
+    await expect(page).toHaveURL(/\/sessions$/);
+    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
+    await page.goBack();
+    await page.getByRole('link', { name: /The party/ }).click();
+    await expect(page).toHaveURL(/\/party$/);
+    await expect(page.getByRole('heading', { name: 'Party roster' })).toBeVisible();
+    await page.getByRole('link', { name: /Dashboard/ }).click();
+    await page.getByRole('link', { name: /Treasury/ }).click();
+    await expect(page).toHaveURL(/\/payments$/);
+    await expect(page.getByRole('heading', { name: 'My payments' })).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

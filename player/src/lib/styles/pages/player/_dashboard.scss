@@ -1,6 +1,7 @@
 @use '../../variables' as *;
 
 .app-shell {
+    overflow-x: hidden;
     display: flex;
     min-height: 100vh;
     background: $color-background;
@@ -271,6 +272,17 @@
     .content {
         flex: 1;
         min-width: 0;
+        overflow-x: hidden;
+    }
+
+    .nav-item.is-disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .session-row {
+        text-decoration: none;
+        color: inherit;
     }
     .topbar {
         height: 70px;
