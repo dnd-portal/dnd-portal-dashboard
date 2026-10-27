@@ -39,7 +39,7 @@ foreach ($files as $file) {
     $q->execute([$version]);
     $old = $q->fetchColumn();
     if ($old !== false) {
-        if (!hash_equals((string)$old, $checksum)) {
+        if (!hash_equals((string) $old, $checksum)) {
             throw new RuntimeException("Checksum mismatch for applied migration $version");
         }
         echo "SKIP $version\n";

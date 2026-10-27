@@ -50,15 +50,53 @@ $csrf = $body['data']['token'] ?? '';
 $campaign = (int) $body['data']['id'];
 [$status, $body] = $request('GET', '/api/v1/auth/me');
 $admin = (int) $body['data']['id'];
-$db->prepare('INSERT INTO campaign_memberships(campaign_id,user_id,membership_role) VALUES(?,? ,"dm") ON DUPLICATE KEY UPDATE left_at=NULL,membership_role="dm"')->execute([$campaign, $admin]);
-$db->prepare('INSERT INTO game_sessions(campaign_id,title,session_date,starts_at,created_by) VALUES(?,?,"2026-10-27","2026-10-27 00:00:00",?)')->execute([$campaign, 'Dashboard exact session', $admin]);
+$db->prepare('INSERT INTO campaign_memberships(
+    campaign_id,
+    user_id,
+    membership_role
+)
+VALUES(?, ?, "dm")
+ON DUPLICATE KEY
+UPDATE
+    left_at = NULL,
+    membership_role = "dm"')->execute([$campaign, $admin]);
+$db->prepare('INSERT INTO game_sessions(
+    campaign_id,
+    title,
+    session_date,
+    starts_at,
+    created_by
+)
+VALUES(
+    ?,
+    ?,
+    "2026-10-27",
+    "2026-10-27 00:00:00",
+    ?
+)')->execute([$campaign, 'Dashboard exact session', $admin]);
 $session = (int) $db->lastInsertId();
 for ($i = 1; $i <= 3; $i++) {
     $username = 'dashboard-player-' . bin2hex(random_bytes(3));
-    $db->prepare('INSERT INTO users(display_name,email,username,account_status) VALUES(?,?,?,"active")')->execute(["Dashboard Player $i", $username . '@example.test', $username]);
+    $db->prepare('INSERT INTO users(
+    display_name,
+    email,
+    username,
+    account_status
+)
+VALUES(?, ?, ?, "active")')->execute(["Dashboard Player $i", $username . '@example.test', $username]);
     $player = (int) $db->lastInsertId();
-    $db->prepare('INSERT INTO campaign_memberships(campaign_id,user_id,membership_role) VALUES(?,? ,"member")')->execute([$campaign, $player]);
-    $db->prepare('INSERT INTO session_participants(session_id,user_id,rsvp_status) VALUES(?,?,?)')->execute([$session, $player, $i < 3 ? 'accepted' : 'pending']);
+    $db->prepare('INSERT INTO campaign_memberships(
+    campaign_id,
+    user_id,
+    membership_role
+)
+VALUES(?, ?, "member")')->execute([$campaign, $player]);
+    $db->prepare('INSERT INTO session_participants(
+    session_id,
+    user_id,
+    rsvp_status
+)
+VALUES(?, ?, ?)')->execute([$session, $player, $i < 3 ? 'accepted' : 'pending']);
 }
 [$status, $body] = $request('GET', '/api/v1/dashboard');
 $next = $body['data']['next_session'] ?? [];
@@ -66,9 +104,20 @@ $ok($status === 200 && (int) $next['participants'] === 3 && (int) $next['rsvp_ac
 [$status] = $request('POST', '/api/v1/auth/logout');
 $cookie = '';
 $empty = 'dashboard-empty-' . bin2hex(random_bytes(3));
-$db->prepare('INSERT INTO users(display_name,email,username,account_status) VALUES("Dashboard Empty",?,?,"active")')->execute([$empty . '@example.test', $empty]);
+$db->prepare('INSERT INTO users(
+    display_name,
+    email,
+    username,
+    account_status
+)
+VALUES("Dashboard Empty", ?, ?, "active")')->execute([$empty . '@example.test', $empty]);
 $emptyId = (int) $db->lastInsertId();
-$db->prepare('INSERT INTO user_credentials(user_id,password_hash,password_algo) VALUES(?,?,?)')->execute([$emptyId, password_hash('EmptyDashboard2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
+$db->prepare('INSERT INTO user_credentials(
+    user_id,
+    password_hash,
+    password_algo
+)
+VALUES(?, ?, ?)')->execute([$emptyId, password_hash('EmptyDashboard2026!', PASSWORD_DEFAULT), PASSWORD_DEFAULT]);
 [$status, $body] = $request('GET', '/api/v1/auth/csrf');
 $csrf = $body['data']['token'] ?? '';
 [$status] = $request('POST', '/api/v1/auth/login', ['identifier' => $empty, 'password' => 'EmptyDashboard2026!']);

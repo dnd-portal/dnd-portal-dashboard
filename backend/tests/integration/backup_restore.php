@@ -47,15 +47,31 @@ foreach ($tables as $table) {
 $restore->exec('SET FOREIGN_KEY_CHECKS=1');
 
 foreach ($tables as $table) {
-    $sourceCount = (int) $source->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
-    $restoreCount = (int) $restore->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
+    $sourceCount = (int) $source->query('SELECT
+    COUNT(*)
+FROM
+    `' . $table . '`')->fetchColumn();
+    $restoreCount = (int) $restore->query('SELECT
+    COUNT(*)
+FROM
+    `' . $table . '`')->fetchColumn();
     if ($sourceCount !== $restoreCount) {
         throw new RuntimeException("Row count mismatch for $table.");
     }
 }
 $checks = [
-    'schema_migrations' => 'SELECT COUNT(*) FROM schema_migrations',
-    'relations' => 'SELECT COUNT(*) FROM campaign_memberships m JOIN campaigns c ON c.id=m.campaign_id JOIN users u ON u.id=m.user_id',
+    'schema_migrations' => 'SELECT
+    COUNT(*)
+FROM
+    schema_migrations',
+    'relations' => 'SELECT
+    COUNT(*)
+FROM
+    campaign_memberships m
+JOIN campaigns c ON
+    c.id = m.campaign_id
+JOIN users u ON
+    u.id = m.user_id',
     'financial_sums' => "SELECT COALESCE(SUM(CASE WHEN entry_kind='payment' THEN amount_cents WHEN entry_kind='reversal' THEN -amount_cents ELSE 0 END),0) FROM payment_entries WHERE status='confirmed'",
 ];
 foreach ($checks as $label => $sql) {

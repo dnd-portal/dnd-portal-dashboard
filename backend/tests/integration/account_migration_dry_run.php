@@ -65,7 +65,13 @@ foreach ($rows as $row) {
         $emailConflicts++;
     }
     $seenEmails[$email] = true;
-    $q = $db->prepare('SELECT 1 FROM users WHERE email=? LIMIT 1');
+    $q = $db->prepare('SELECT
+    1
+FROM
+    users
+WHERE
+    email = ?
+LIMIT 1');
     $q->execute([$email]);
     if ($q->fetchColumn()) {
         $emailConflicts++;
@@ -83,7 +89,10 @@ foreach ($rows as $row) {
 
 $emptyState = [];
 foreach (['users', 'user_credentials', 'auth_sessions', 'password_reset_tokens', 'registration_invites', 'user_roles'] as $table) {
-    $emptyState[$table] = (int)$db->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
+    $emptyState[$table] = (int) $db->query('SELECT
+    COUNT(*)
+FROM
+    `' . $table . '`')->fetchColumn();
 }
 echo 'DRY_RUN records=' . count($rows)
     . ' email_conflicts=' . $emailConflicts

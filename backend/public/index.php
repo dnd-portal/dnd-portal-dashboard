@@ -141,8 +141,13 @@ $router->post(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $a->requireRole('portal_admin');
-        $q = $db->prepare('UPDATE registration_invites SET consumed_at=? WHERE id=? AND consumed_at IS NULL');
-        $q->execute([gmdate('Y-m-d H:i:s.u'),(int)($r->json()['id'] ?? 0)]);
+        $q = $db->prepare('UPDATE
+    registration_invites
+SET
+    consumed_at = ?
+WHERE
+    id = ? AND consumed_at IS NULL');
+        $q->execute([gmdate('Y-m-d H:i:s.u'),(int) ($r->json()['id'] ?? 0)]);
         Response::json(['data' => null]);
     },
 );
@@ -153,8 +158,13 @@ $router->post(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $a->requireRole('portal_admin');
-        $q = $db->prepare('UPDATE password_reset_tokens SET used_at=? WHERE id=? AND used_at IS NULL');
-        $q->execute([gmdate('Y-m-d H:i:s.u'),(int)($r->json()['id'] ?? 0)]);
+        $q = $db->prepare('UPDATE
+    password_reset_tokens
+SET
+    used_at = ?
+WHERE
+    id = ? AND used_at IS NULL');
+        $q->execute([gmdate('Y-m-d H:i:s.u'),(int) ($r->json()['id'] ?? 0)]);
         Response::json(['data' => null]);
     },
 );
@@ -163,7 +173,7 @@ $router->get(
     static function ($r) {
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
-        $a->getUser((int)basename($r->path()));
+        $a->getUser((int) basename($r->path()));
     },
 );
 $router->get('/api/v1/users', static function () {
@@ -176,7 +186,7 @@ $router->patch(
         Security::csrf($r, true);
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
-        $a->updateUser($a->requireRole('portal_admin'), (int)basename($r->path()), $r->json());
+        $a->updateUser($a->requireRole('portal_admin'), (int) basename($r->path()), $r->json());
     },
 );
 $router->post(
@@ -186,7 +196,7 @@ $router->post(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $parts = explode('/', trim($r->path(), '/'));
-        $a->disable($a->requireRole('portal_admin'), (int)($parts[3] ?? 0));
+        $a->disable($a->requireRole('portal_admin'), (int) ($parts[3] ?? 0));
     },
 );
 $router->get(
@@ -201,34 +211,34 @@ $router->get(
 $router->get('/api/v1/campaigns/{id}', static function ($r) {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->get($a->currentId(), (int)basename($r->path()));
+    (new CampaignService($db))->get($a->currentId(), (int) basename($r->path()));
 });
 $router->get('/api/v1/campaigns/{id}/members', static function ($r) {
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->members($a->currentId(), (int)($parts[3] ?? 0));
+    (new CampaignService($db))->members($a->currentId(), (int) ($parts[3] ?? 0));
 });
 $router->post('/api/v1/campaigns/{id}/members', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->addMember($a->currentId(), (int)($parts[3] ?? 0), (int)($r->json()['user_id'] ?? 0), $r->json());
+    (new CampaignService($db))->addMember($a->currentId(), (int) ($parts[3] ?? 0), (int) ($r->json()['user_id'] ?? 0), $r->json());
 });
 $router->patch('/api/v1/campaigns/{id}/members/{userId}', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->addMember($a->currentId(), (int)($parts[3] ?? 0), (int)($parts[5] ?? 0), $r->json());
+    (new CampaignService($db))->addMember($a->currentId(), (int) ($parts[3] ?? 0), (int) ($parts[5] ?? 0), $r->json());
 });
 $router->post('/api/v1/campaigns/{id}/members/{userId}/leave', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->leave($a->currentId(), (int)($parts[3] ?? 0), (int)($parts[5] ?? 0));
+    (new CampaignService($db))->leave($a->currentId(), (int) ($parts[3] ?? 0), (int) ($parts[5] ?? 0));
 });
 $router->post(
     '/api/v1/campaigns',
@@ -247,7 +257,7 @@ $router->patch(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $new = new CampaignService($db);
-        $new->update($a->currentId(), (int)basename($r->path()), $r->json());
+        $new->update($a->currentId(), (int) basename($r->path()), $r->json());
     },
 );
 $router->get(
@@ -257,14 +267,14 @@ $router->get(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $new = new CampaignService($db);
-        $new->sessions($a->currentId(), (int)($parts[3] ?? 0));
+        $new->sessions($a->currentId(), (int) ($parts[3] ?? 0));
     },
 );
 $router->get('/api/v1/sessions/{id}/participants', static function ($r) {
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->participants($a->currentId(), (int)($parts[3] ?? 0));
+    (new CampaignService($db))->participants($a->currentId(), (int) ($parts[3] ?? 0));
 });
 $router->post(
     '/api/v1/campaigns/{id}/sessions',
@@ -274,13 +284,13 @@ $router->post(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $new = new CampaignService($db);
-        $new->createSession($a->currentId(), (int)($parts[3] ?? 0), $r->json());
+        $new->createSession($a->currentId(), (int) ($parts[3] ?? 0), $r->json());
     },
 );
 $router->get('/api/v1/sessions/{id}', static function ($r) {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new CampaignService($db))->getSession($a->currentId(), (int)basename($r->path()));
+    (new CampaignService($db))->getSession($a->currentId(), (int) basename($r->path()));
 });
 $router->patch(
     '/api/v1/sessions/{id}',
@@ -289,7 +299,7 @@ $router->patch(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $new = new CampaignService($db);
-        $new->updateSession($a->currentId(), (int)basename($r->path()), $r->json());
+        $new->updateSession($a->currentId(), (int) basename($r->path()), $r->json());
     },
 );
 $router->patch(
@@ -300,7 +310,7 @@ $router->patch(
         $db = Connection::make();
         $a = new AuthService($db, new SessionStore($db));
         $new = new CampaignService($db);
-        $new->participant($a->currentId(), (int)$parts[3], (int)$parts[5], $r->json());
+        $new->participant($a->currentId(), (int) $parts[3], (int) $parts[5], $r->json());
     },
 );
 $router->get(
@@ -332,84 +342,84 @@ $router->get('/api/v1/campaigns/{id}/polls', static function ($r) {
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->list($a->currentId(), (int)($parts[3] ?? 0));
+    (new PollService($db))->list($a->currentId(), (int) ($parts[3] ?? 0));
 });
 $router->post('/api/v1/campaigns/{id}/polls', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->create($a->currentId(), (int)($parts[3] ?? 0), $r->json());
+    (new PollService($db))->create($a->currentId(), (int) ($parts[3] ?? 0), $r->json());
 });
 $router->get('/api/v1/polls/{id}', static function ($r) {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->get($a->currentId(), (int)basename($r->path()));
+    (new PollService($db))->get($a->currentId(), (int) basename($r->path()));
 });
 $router->patch('/api/v1/polls/{id}', static function ($r) {
     Security::csrf($r, true);
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->update($a->currentId(), (int)basename($r->path()), $r->json());
+    (new PollService($db))->update($a->currentId(), (int) basename($r->path()), $r->json());
 });
 $router->put('/api/v1/polls/{id}/vote', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->vote($a->currentId(), (int)($parts[3] ?? 0), $r->json());
+    (new PollService($db))->vote($a->currentId(), (int) ($parts[3] ?? 0), $r->json());
 });
 $router->post('/api/v1/polls/{id}/respond-without-option', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->respondWithoutOption($a->currentId(), (int)($parts[3] ?? 0));
+    (new PollService($db))->respondWithoutOption($a->currentId(), (int) ($parts[3] ?? 0));
 });
 $router->get('/api/v1/polls/{id}/results', static function ($r) {
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->results($a->currentId(), (int)($parts[3] ?? 0));
+    (new PollService($db))->results($a->currentId(), (int) ($parts[3] ?? 0));
 });
 $router->post('/api/v1/polls/{id}/participants/{userId}', static function ($r) {
     Security::csrf($r, true);
     $parts = explode('/', trim($r->path(), '/'));
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PollService($db))->setParticipant($a->currentId(), (int)$parts[3], (int)$parts[5], $r->json());
+    (new PollService($db))->setParticipant($a->currentId(), (int) $parts[3], (int) $parts[5], $r->json());
 });
 $router->get('/api/v1/campaigns/{id}/payment-requests', static function ($r) {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
     $parts = explode('/', trim($r->path(), '/'));
-    (new PaymentService($db))->list($a->currentId(), (int)$parts[3]);
+    (new PaymentService($db))->list($a->currentId(), (int) $parts[3]);
 });
 $router->post('/api/v1/campaigns/{id}/payment-requests', static function ($r) {
     Security::csrf($r, true);
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
     $parts = explode('/', trim($r->path(), '/'));
-    (new PaymentService($db))->create($a->currentId(), (int)$parts[3], $r->json());
+    (new PaymentService($db))->create($a->currentId(), (int) $parts[3], $r->json());
 });
 $router->get('/api/v1/payment-requests/{id}', static function ($r) {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
-    (new PaymentService($db))->get($a->currentId(), (int)basename($r->path()));
+    (new PaymentService($db))->get($a->currentId(), (int) basename($r->path()));
 });
 $router->post('/api/v1/payment-requests/{id}/obligations', static function ($r) {
     Security::csrf($r, true);
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
     $parts = explode('/', trim($r->path(), '/'));
-    (new PaymentService($db))->obligation($a->currentId(), (int)$parts[3], $r->json());
+    (new PaymentService($db))->obligation($a->currentId(), (int) $parts[3], $r->json());
 });
 $router->post('/api/v1/payment-obligations/{id}/entries', static function ($r) {
     Security::csrf($r, true);
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));
     $parts = explode('/', trim($r->path(), '/'));
-    (new PaymentService($db))->entry($a->currentId(), (int)$parts[3], $r->json());
+    (new PaymentService($db))->entry($a->currentId(), (int) $parts[3], $r->json());
 });
 $router->get('/api/v1/me/payment-obligations', static function () {
     $db = Connection::make();

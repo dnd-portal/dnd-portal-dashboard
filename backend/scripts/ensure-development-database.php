@@ -18,7 +18,11 @@ if ($name !== 'dnd_portal_development' || $rootPassword === '') {
 $host = \DndPortal\Config::env('DB_HOST', '127.0.0.1');
 $port = \DndPortal\Config::env('DB_PORT', '3307');
 $pdo = new PDO("mysql:host=$host;port=$port;charset=utf8mb4", 'root', $rootPassword, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-$q = $pdo->prepare('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=?');
+$q = $pdo->prepare('SELECT SCHEMA_NAME
+FROM
+    INFORMATION_SCHEMA.SCHEMATA
+WHERE SCHEMA_NAME
+    = ?');
 $q->execute([$name]);
 if ($q->fetchColumn() === false) {
     $pdo->exec('CREATE DATABASE `dnd_portal_development` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');

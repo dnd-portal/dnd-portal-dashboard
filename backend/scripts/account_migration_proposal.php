@@ -24,7 +24,7 @@ preg_match_all("/\((\\d+),\\s*'((?:''|[^'])*)',\\s*'((?:''|[^'])*)',\\s*'((?:''|
 $source = [];
 foreach ($matches as $row) {
     $source[] = [
-        'legacy_id' => (int)$row[1],
+        'legacy_id' => (int) $row[1],
         'name' => str_replace("''", "'", $row[2]),
         'email' => strtolower(str_replace("''", "'", $row[3])),
         'hash' => str_replace("''", "'", $row[4]),

@@ -37,6 +37,8 @@ return (new PhpCsFixer\Config())
         'single_line_empty_body' => true,
         'no_multiple_statements_per_line' => true,
         'binary_operator_spaces' => ['default' => 'single_space'],
+        'concat_space' => ['spacing' => 'one'],
+        'cast_spaces' => ['space' => 'single'],
         'type_declaration_spaces' => ['elements' => ['function', 'property']],
         'method_argument_space' => ['on_multiline' => 'ensure_fully_multiline'],
         'function_declaration' => ['trailing_comma_single_line' => false],
