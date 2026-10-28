@@ -29,15 +29,16 @@ $q = $db->prepare(
     FROM users u
     JOIN user_roles ur ON ur.user_id = u.id
     JOIN roles r ON r.id = ur.role_id
-    WHERE u.username = "v4admin"
-      AND u.account_status = "active"
+    WHERE u.account_status = "active"
       AND r.role_key = "portal_admin"
+    ORDER BY u.id
+    LIMIT 1
     SQL
 );
 $q->execute();
 $id = $q->fetchColumn();
 if ($id === false) {
-    fwrite(STDERR, "Refused: active v4admin portal admin not found.\n");
+    fwrite(STDERR, "Refused: active local portal admin not found.\n");
     exit(1);
 }
 
