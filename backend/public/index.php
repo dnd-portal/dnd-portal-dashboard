@@ -110,6 +110,9 @@ $router->post('/api/v1/admin/invites', static function ($r) {
 $router->post('/api/v1/admin/users/pending', static function ($r) {
     Security::csrf($r, true); $db=Connection::make();$a=new AuthService($db,new SessionStore($db));$a->createPending($a->requireRole('portal_admin'),$r->json());
 });
+$router->post('/api/v1/admin/users/import', static function ($r) {
+    Security::csrf($r, true); $db=Connection::make();$a=new AuthService($db,new SessionStore($db));$a->importUser($a->requireRole('portal_admin'),$r->json());
+});
 $router->get('/api/v1/admin/invites', static function () {
     $db=Connection::make();$a=new AuthService($db,new SessionStore($db));$a->listInvites($a->requireRole('portal_admin'));
 });

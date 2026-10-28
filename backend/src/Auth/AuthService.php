@@ -269,6 +269,41 @@ final class AuthService {
         Response::json(['data'=>$this->profile($id)],201);
     }
 
+    public function importUser(int $admin, array $in): never {
+        $name = trim((string) ($in['display_name'] ?? ''));
+        $username = $this->norm($in['username'] ?? null);
+        $email = $this->norm($in['email'] ?? null);
+        $role = (string) ($in['role'] ?? '');
+        $hash = trim((string) ($in['password_hash'] ?? ''));
+        $hashInfo = $hash === '' ? ['algo' => 0] : password_get_info($hash);
+        if ($name === '' || $username === null || $email === null || $hash === '' || strlen($hash) > 255 || (int) ($hashInfo['algo'] ?? 0) === 0 || !in_array($role, ['portal_admin', 'campaign_dm', 'campaign_member'], true)) {
+            Response::error('validation_failed', 'Display name, username, email, role and a supported password hash are required.', 422);
+        }
+        $this->db->beginTransaction();
+        try {
+            $q = $this->db->prepare('SELECT username, email FROM users WHERE username = ? OR email = ? LIMIT 2');
+            $q->execute([$username, $email]);
+            foreach ($q->fetchAll() as $existing) {
+                if ($existing['username'] === $username) Response::error('conflict', 'Username is already in use.', 409);
+                if ($existing['email'] === $email) Response::error('conflict', 'Email is already in use.', 409);
+            }
+            $q = $this->db->prepare('INSERT INTO users (display_name, email, username, account_status) VALUES (?, ?, ?, "active")');
+            $q->execute([$name, $email, $username]);
+            $id = (int) $this->db->lastInsertId();
+            $q = $this->db->prepare('INSERT INTO user_credentials (user_id, password_hash, password_algo) VALUES (?, ?, ?)');
+            $q->execute([$id, $hash, (string) ($hashInfo['algoName'] ?? 'unknown')]);
+            $q = $this->db->prepare('INSERT INTO user_roles (user_id, role_id) SELECT ?, id FROM roles WHERE role_key = ?');
+            $q->execute([$id, $role]);
+            if ($q->rowCount() !== 1) throw new \RuntimeException('Role not found.');
+            $this->audit($admin, 'user.imported');
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            Response::error('conflict', 'User could not be imported.', 409);
+        }
+        Response::json(['data' => $this->profile($id)], 201);
+    }
+
     public function listInvites(int $admin): never {
         $q=$this->db->query('SELECT i.id,i.invited_user_id,i.invited_email,i.created_at,i.expires_at,i.consumed_at,i.revoked_at,u.display_name,u.username FROM registration_invites i LEFT JOIN users u ON u.id=i.invited_user_id ORDER BY i.id DESC LIMIT 100');
         Response::json(['data'=>$q->fetchAll()]);

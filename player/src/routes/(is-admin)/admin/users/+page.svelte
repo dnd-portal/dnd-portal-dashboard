@@ -28,12 +28,20 @@
     let message = $state('');
     let busy = $state(false);
     let showAdd = $state(false);
+    let showImport = $state(false);
     let inviteUser = $state<User | null>(null);
     let generated = $state<{ name: string; username: string; url: string } | null>(null);
     let displayName = $state('');
     let username = $state('');
     let role = $state('campaign_member');
     let addTrigger = $state<HTMLButtonElement | null>(null);
+    let importTrigger = $state<HTMLButtonElement | null>(null);
+    let importDisplayName = $state('');
+    let importUsername = $state('');
+    let importEmail = $state('');
+    let importRole = $state('campaign_member');
+    let importHash = $state('');
+    let importError = $state('');
     const roles = ['portal_admin', 'campaign_dm', 'campaign_member'];
     const validInvite = (id: number) =>
         invites.find(
@@ -75,8 +83,38 @@
         showAdd = false;
         addTrigger?.focus();
     }
+    function closeImport() {
+        showImport = false;
+        importTrigger?.focus();
+    }
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === 'Escape' && showAdd) closeAdd();
+        if (event.key === 'Escape' && showImport) closeImport();
+    }
+    async function importUser() {
+        busy = true;
+        importError = '';
+        try {
+            const user = await api.post<User>('/api/v1/admin/users/import', {
+                display_name: importDisplayName,
+                username: importUsername,
+                email: importEmail,
+                role: importRole,
+                password_hash: importHash
+            });
+            users = [...users, user];
+            closeImport();
+            message = 'User imported successfully.';
+            importDisplayName = '';
+            importUsername = '';
+            importEmail = '';
+            importRole = 'campaign_member';
+            importHash = '';
+        } catch (e) {
+            importError = e instanceof ApiRequestError ? e.message : 'Unable to import user.';
+        } finally {
+            busy = false;
+        }
     }
     async function invite(user: User, replace = false) {
         busy = true;
@@ -120,6 +158,8 @@
         </div>
         <div class="admin-mvp-toolbar">
             <button bind:this={addTrigger} class="primary-button" onclick={() => (showAdd = true)}>Add user</button
+            ><button bind:this={importTrigger} class="secondary-button" onclick={() => (showImport = true)}
+                >Import user</button
             ><input class="p-input" placeholder="Search name or username" bind:value={search} /><select
                 class="p-input"
                 bind:value={filter}
@@ -191,6 +231,40 @@
                 disabled={busy || !displayName.trim() || !username.trim()}
                 onclick={() => void addUser()}>Create pending user</button
             ><button class="secondary-button" onclick={closeAdd}>Cancel</button>
+        </div>
+    </div>{/if}
+{#if showImport}<div class="admin-mvp-modal-backdrop">
+        <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true" aria-labelledby="import-user-title">
+            <h2 id="import-user-title">Import user</h2>
+            <p>Import an existing active account using its already-generated PHP password hash.</p>
+            {#if importError}<p class="error-message" role="alert">{importError}</p>{/if}
+            <label>Display name<input class="p-input" bind:value={importDisplayName} autocomplete="off" /></label>
+            <label>Username<input class="p-input" bind:value={importUsername} autocomplete="off" /></label>
+            <label>Email<input class="p-input" type="email" bind:value={importEmail} autocomplete="off" /></label>
+            <label
+                >Role<select class="p-input" bind:value={importRole}
+                    >{#each roles as item}<option value={item}>{item}</option>{/each}</select
+                ></label
+            >
+            <label
+                >Password hash<input
+                    class="p-input"
+                    type="password"
+                    bind:value={importHash}
+                    autocomplete="new-password"
+                    spellcheck="false"
+                /></label
+            >
+            <button
+                class="p-button"
+                disabled={busy ||
+                    !importDisplayName.trim() ||
+                    !importUsername.trim() ||
+                    !importEmail.trim() ||
+                    !importHash.trim()}
+                onclick={() => void importUser()}>{busy ? 'Importing…' : 'Import user'}</button
+            >
+            <button class="secondary-button" disabled={busy} onclick={closeImport}>Cancel</button>
         </div>
     </div>{/if}
 {#if inviteUser}<div class="admin-mvp-modal-backdrop">
