@@ -36,8 +36,8 @@ final class Security {
             return;
         }
         $origin = $request->header('Origin');
-        $allowed = Config::env('APP_ALLOWED_ORIGIN');
-        if ($origin === '' || $allowed === '' || !hash_equals($allowed, $origin)) {
+        $allowed = array_values(array_filter(array_map('trim', explode(',', Config::env('APP_ALLOWED_ORIGIN')))));
+        if ($origin === '' || !in_array($origin, $allowed, true)) {
             Response::error('csrf_failed', 'Request origin is not allowed.', 419);
         }
         $cookie = $_COOKIE[Config::env('AUTH_COOKIE', 'dnd_session')] ?? '';
