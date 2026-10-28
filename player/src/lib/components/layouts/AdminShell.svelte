@@ -41,7 +41,13 @@
     const breadcrumbs = $derived([
         { label: 'Admin', href: '/admin' },
         ...(page.params.id
-            ? [{ label: labels[active] ?? active, href: `/admin/${active}` }, { label: detail?.title ?? 'Results' }]
+            ? page.url.pathname.endsWith('/results')
+                ? [
+                      { label: labels[active] ?? active, href: `/admin/${active}` },
+                      { label: detail?.title ?? 'Poll' },
+                      { label: 'Results' }
+                  ]
+                : [{ label: labels[active] ?? active, href: `/admin/${active}` }, { label: detail?.title ?? 'Record' }]
             : [{ label: labels[active] ?? active }])
     ]);
 

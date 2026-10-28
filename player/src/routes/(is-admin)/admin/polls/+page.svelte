@@ -2,7 +2,6 @@
     import { onMount } from 'svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
     let polls = $state<any[]>([]);
-    let results = $state<{ options: any[]; total_respondents: number }>({ options: [], total_respondents: 0 });
     let error = $state('');
     let title = $state('');
     let explanation = $state('');
@@ -35,9 +34,6 @@
     async function setStatus(id: number, status: 'open' | 'closed') {
         await api.patch(`/api/v1/admin/global-polls/${id}`, { status });
         await load();
-    }
-    async function showResults(id: number) {
-        results = await api.get(`/api/v1/admin/global-polls/${id}/results`);
     }
     onMount(() => void load());
 </script>
@@ -81,12 +77,9 @@
                     onclick={() => void setStatus(poll.id, poll.status === 'open' ? 'closed' : 'open')}
                     >{poll.status === 'open' ? 'Close' : 'Open'}</button
                 >
-                <button class="p-button p-button--secondary p-button--compact" onclick={() => void showResults(poll.id)}
-                    >Results</button
+                <a class="p-button p-button--secondary p-button--compact" href={`/admin/polls/${poll.id}/results`}
+                    >Results</a
                 >
             </div>
         </div>{/each}
-    {#if results.options.length}<h2>Results</h2>
-        <p>{results.total_respondents} unique respondents</p>
-        {#each results.options as result}<p>{result.label}: {result.responses}</p>{/each}{/if}
 </section>

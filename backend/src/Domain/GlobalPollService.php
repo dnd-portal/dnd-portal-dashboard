@@ -45,7 +45,29 @@ final class GlobalPollService {
     public function listAdmin(int $uid): never { $q=$this->db->query('SELECT * FROM global_polls ORDER BY updated_at DESC');$rows=$q->fetchAll();foreach($rows as &$r)$r['options']=$this->options((int)$r['id']);Response::json(['data'=>$rows]); }
     public function create(int $uid,array $in): never { $title=trim((string)($in['title']??''));$options=array_values(array_filter(array_map(fn($x)=>trim((string)$x),$in['options']??[])));if($title===''||count($options)<2)Response::error('validation_failed','Title and two options are required.',422);$q=$this->db->prepare('INSERT INTO global_polls(title,explanation,choice_type,status,created_by) VALUES(?,?,?,?,?)');$q->execute([$title,trim((string)($in['explanation']??'')),'multiple','open',$uid]);$id=(int)$this->db->lastInsertId();$o=$this->db->prepare('INSERT INTO global_poll_options(poll_id,label,position) VALUES(?,?,?)');foreach($options as $i=>$label)$o->execute([$id,$label,$i+1]);$this->current($uid); }
     public function update(int $uid,int $id,array $in): never { $allowed=['title','explanation','status'];$set=[];$v=[];foreach($allowed as $f)if(array_key_exists($f,$in)){$set[]="$f=?";$v[]=$in[$f];}if(!$set)Response::error('validation_failed','No changes supplied.',422);$v[]=$id;$q=$this->db->prepare('UPDATE global_polls SET '.implode(',',$set).' WHERE id=?');$q->execute($v);$this->listAdmin($uid); }
-    public function results(int $uid,int $id): never { $q=$this->db->prepare('SELECT o.id,o.label,COUNT(DISTINCT r.user_id) responses FROM global_poll_options o LEFT JOIN global_poll_responses r ON r.option_id=o.id AND r.poll_id=o.poll_id WHERE o.poll_id=? GROUP BY o.id,o.label,o.position ORDER BY o.position');$q->execute([$id]);$options=$q->fetchAll();$t=$this->db->prepare('SELECT COUNT(DISTINCT user_id) FROM global_poll_responses WHERE poll_id=?');$t->execute([$id]);Response::json(['data'=>['options'=>$options,'total_respondents'=>(int)$t->fetchColumn()]]); }
+    public function results(int $uid,int $id): never {
+        $pollQuery = $this->db->prepare('SELECT id,title,explanation,status FROM global_polls WHERE id=?');
+        $pollQuery->execute([$id]);
+        $poll = $pollQuery->fetch();
+        if (!$poll) Response::error('not_found', 'Poll not found.', 404);
+        $optionQuery = $this->db->prepare('SELECT o.id,o.label,COUNT(DISTINCT r.user_id) respondent_count FROM global_poll_options o LEFT JOIN global_poll_responses r ON r.option_id=o.id AND r.poll_id=o.poll_id WHERE o.poll_id=? GROUP BY o.id,o.label,o.position ORDER BY o.position');
+        $optionQuery->execute([$id]);
+        $options = array_map(static fn(array $row): array => ['id' => (int)$row['id'], 'label' => $row['label'], 'respondent_count' => (int)$row['respondent_count']], $optionQuery->fetchAll());
+        $respondentQuery = $this->db->prepare('SELECT u.id user_id,u.display_name,u.username,r.option_id,r.answered_at FROM global_poll_responses r JOIN users u ON u.id=r.user_id WHERE r.poll_id=? ORDER BY u.display_name,u.id,r.option_id');
+        $respondentQuery->execute([$id]);
+        $respondents = [];
+        foreach ($respondentQuery->fetchAll() as $row) {
+            $key = (int)$row['user_id'];
+            if (!isset($respondents[$key])) $respondents[$key] = ['user_id' => $key, 'display_name' => $row['display_name'] ?: 'Deleted user', 'username' => $row['username'], 'selected_option_ids' => [], 'updated_at' => $row['answered_at']];
+            $respondents[$key]['selected_option_ids'][] = (int)$row['option_id'];
+            if ((string)$row['answered_at'] > (string)$respondents[$key]['updated_at']) $respondents[$key]['updated_at'] = $row['answered_at'];
+        }
+        $respondents = array_values($respondents);
+        $eligible = $this->db->query("SELECT u.id,u.display_name,u.username FROM users u WHERE u.account_status='active'")->fetchAll();
+        $respondentIds = array_fill_keys(array_map(static fn(array $row): int => (int)$row['user_id'], $respondents), true);
+        $nonRespondents = array_values(array_map(static fn(array $row): array => ['user_id' => (int)$row['id'], 'display_name' => $row['display_name'] ?: 'Deleted user', 'username' => $row['username']], array_filter($eligible, static fn(array $row): bool => !isset($respondentIds[(int)$row['id']]))));
+        Response::json(['data' => ['poll' => ['id' => (int)$poll['id'], 'title' => $poll['title'], 'description' => $poll['explanation'], 'status' => $poll['status']], 'summary' => ['total_respondents' => count($respondents), 'total_eligible_users' => count($eligible)], 'options' => $options, 'respondents' => $respondents, 'non_respondents' => $nonRespondents]]);
+    }
     private function latest(): ?array { $q=$this->db->query("SELECT * FROM global_polls ORDER BY (status='open') DESC, updated_at DESC LIMIT 1");$r=$q->fetch();return $r?:null; }
     private function options(int $id): array { $q=$this->db->prepare('SELECT id,label,position FROM global_poll_options WHERE poll_id=? ORDER BY position');$q->execute([$id]);return $q->fetchAll(); }
 }
