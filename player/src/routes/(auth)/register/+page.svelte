@@ -47,7 +47,13 @@
     }
 
     async function createAccount() {
-        if (!email.trim() || !username.trim() || (!pendingUser && !displayName.trim()) || password.length < 8) return;
+        if (
+            !email.trim() ||
+            (pendingUser ? !pendingUsername.trim() : !username.trim()) ||
+            (!pendingUser && !displayName.trim()) ||
+            password.length < 8
+        )
+            return;
         busy = true;
         inviteError = '';
         try {
@@ -98,71 +104,106 @@
         <div class="success-mark">✓</div>
         <button class="p-button" onclick={() => (window.location.href = '/login')}>Go to sign in <span>→</span></button>
     {:else if !inviteAccepted}
-        <div class="p-field">
-            <label class="p-field__label" for="invite-code">Invite code</label>
-            <Tooltip id="invite-code-help" text="Letters and numbers separated by hyphens">
-                <input
-                    class="p-input"
-                    id="invite-code"
-                    aria-describedby="invite-code-help"
-                    bind:value={inviteCode}
-                    onkeydown={(event) => event.key === 'Enter' && checkInvite()}
-                    placeholder="ABCD-1234-ABCD-1234-AB12"
-                    autocomplete="off"
-                    spellcheck="false"
-                />
-            </Tooltip>
-        </div>
-        {#if inviteError}<p class="error-message">{inviteError}</p>{/if}
-        <button class="p-button" disabled={!inviteCode.trim() || busy} onclick={checkInvite}
-            >Continue <span>→</span></button
+        <form
+            class="p-form auth-register-form"
+            onsubmit={(event) => {
+                event.preventDefault();
+                void checkInvite();
+            }}
         >
-    {:else}
-        <div class="given-code">
-            <span>Given invite code:</span><strong>{inviteCode}</strong><button
-                onclick={() => (inviteAccepted = false)}
-                aria-label="Change invite code">Change</button
+            <div class="p-field">
+                <label class="p-field__label" for="invite-code">Invite code</label>
+                <Tooltip id="invite-code-help" text="Letters and numbers separated by hyphens">
+                    <input
+                        class="p-input"
+                        id="invite-code"
+                        aria-describedby="invite-code-help"
+                        bind:value={inviteCode}
+                        onkeydown={(event) => event.key === 'Enter' && checkInvite()}
+                        placeholder="ABCD-1234-ABCD-1234-AB12"
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                </Tooltip>
+            </div>
+            {#if inviteError}<p class="p-field__error" role="alert">{inviteError}</p>{/if}
+            <button class="p-button p-button--full" type="submit" disabled={!inviteCode.trim() || busy}
+                >{busy ? 'Checking invite…' : 'Continue'} <span aria-hidden="true">→</span></button
             >
+        </form>
+    {:else}
+        <div class="invite-summary">
+            <p class="invite-summary__label">You were invited as</p>
+            <p class="invite-summary__name">{pendingUser ? pendingDisplayName : 'A new portal member'}</p>
+            {#if pendingUser}<p class="invite-summary__username">@{pendingUsername}</p>{/if}
+            <button
+                class="p-button p-button--secondary invite-summary__change"
+                type="button"
+                onclick={() => (inviteAccepted = false)}
+            >
+                Use a different invite
+            </button>
         </div>
-        <div class="field-group">
-            <label for="email">Email</label><input
-                id="email"
-                type="email"
-                bind:value={email}
-                placeholder="you@example.com"
-                autocomplete="email"
-            />
-        </div>
-        {#if !pendingUser}<div class="field-group">
-                <label for="display-name">Display name</label><input
-                    id="display-name"
-                    bind:value={displayName}
-                    placeholder="Your name"
-                    autocomplete="name"
-                />
-            </div>{/if}
-        {#if !pendingUser}<div class="field-group">
-                <label for="username">Username</label><input
-                    id="username"
-                    bind:value={username}
-                    placeholder="Choose a username"
-                    autocomplete="username"
-                />
-            </div>{/if}
-        <div class="field-group">
-            <label for="password">Password</label><input
-                id="password"
-                type="password"
-                bind:value={password}
-                placeholder="At least 8 characters"
-                autocomplete="new-password"
-            />
-        </div>
-        <button
-            class="p-button"
-            disabled={!email.trim() || !username.trim() || password.length < 8}
-            onclick={createAccount}>Create account <span>→</span></button
+        <form
+            class="p-form auth-register-form"
+            onsubmit={(event) => {
+                event.preventDefault();
+                void createAccount();
+            }}
         >
+            <div class="p-field">
+                <label class="p-field__label" for="email">Email</label><input
+                    class="p-input"
+                    id="email"
+                    type="email"
+                    bind:value={email}
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    required
+                />
+            </div>
+            {#if !pendingUser}<div class="p-field">
+                    <label class="p-field__label" for="display-name">Display name</label><input
+                        class="p-input"
+                        id="display-name"
+                        bind:value={displayName}
+                        placeholder="Your name"
+                        autocomplete="name"
+                        required
+                    />
+                </div>{/if}
+            {#if !pendingUser}<div class="p-field">
+                    <label class="p-field__label" for="username">Username</label><input
+                        class="p-input"
+                        id="username"
+                        bind:value={username}
+                        placeholder="Choose a username"
+                        autocomplete="username"
+                        required
+                    />
+                </div>{/if}
+            <div class="p-field">
+                <label class="p-field__label" for="password">Password</label><input
+                    class="p-input"
+                    id="password"
+                    type="password"
+                    bind:value={password}
+                    placeholder="At least 8 characters"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                />
+            </div>
+            {#if inviteError}<p class="p-field__error" role="alert">{inviteError}</p>{/if}
+            <button
+                class="p-button p-button--full"
+                type="submit"
+                disabled={!email.trim() ||
+                    (pendingUser ? !pendingUsername.trim() : !username.trim()) ||
+                    password.length < 8}
+                >{busy ? 'Creating account…' : 'Create account'} <span aria-hidden="true">→</span></button
+            >
+        </form>
     {/if}
     <p class="footer-note">Already have an account? <a href="/login">Sign in</a></p>
 </section>

@@ -134,6 +134,37 @@
 .auth-login-form {
     gap: 20px;
 }
+.auth-register-form {
+    gap: 18px;
+}
+.invite-summary {
+    display: grid;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--p-border);
+    border-radius: var(--p-control-radius);
+    background: var(--p-bg);
+}
+.invite-summary__label,
+.invite-summary__username {
+    margin: 0;
+    color: var(--p-secondary);
+    font-size: 0.875rem;
+}
+.invite-summary__name {
+    margin: 0;
+    color: var(--p-heading);
+    font-size: 1.125rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+.invite-summary__change {
+    justify-self: start;
+    margin-top: 10px;
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+}
 .auth-route-content .field-group {
     display: grid;
     gap: 8px;
