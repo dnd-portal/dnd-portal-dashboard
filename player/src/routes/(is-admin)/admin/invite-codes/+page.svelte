@@ -32,6 +32,8 @@
     }
     const status = (i: Invite) =>
         i.revoked_at ? 'Revoked' : i.consumed_at ? 'Used' : new Date(i.expires_at) < new Date() ? 'Expired' : 'Valid';
+    const formatDate = (value: string) =>
+        new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
     onMount(() => void load());
 </script>
 
@@ -52,8 +54,10 @@
                     ><tbody
                         >{#each invites as invite}<tr
                                 ><td>{invite.display_name ?? invite.invited_email ?? 'Blank Type B invitation'}</td><td
-                                    >{status(invite)}</td
-                                ><td>{invite.expires_at}</td><td
+                                    ><span class={`admin-mvp-badge admin-mvp-badge--${status(invite).toLowerCase()}`}
+                                        >{status(invite)}</span
+                                    ></td
+                                ><td>{formatDate(invite.expires_at)}</td><td
                                     >{#if status(invite) === 'Valid'}<button
                                             class="secondary-button"
                                             onclick={() => void revoke(invite.id)}>Revoke</button

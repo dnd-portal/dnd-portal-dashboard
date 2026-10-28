@@ -16,8 +16,7 @@ export const adminPageMeta: Record<AdminPageKey, { eyebrow: string; title: strin
     overview: {
         eyebrow: 'Overview - Admin - D&D Portal Player Dashboard',
         title: 'Admin overview',
-        description:
-            'Get an overview of your players, campaigns and sessions. Review recent activity and navigate to each administration section.'
+        description: 'Manage users, invitations, global polls and recent portal activity.'
     },
     users: {
         eyebrow: 'Users - Admin - D&D Portal Player Dashboard',
@@ -40,8 +39,7 @@ export const adminPageMeta: Record<AdminPageKey, { eyebrow: string; title: strin
     polls: {
         eyebrow: 'Polls - Admin - D&D Portal Player Dashboard',
         title: 'Polls',
-        description:
-            'Review scheduling polls and the dates proposed for each session. See how players have responded to help find a suitable date.'
+        description: 'Create and manage global one-shot polls for the portal.'
     },
     attendance: {
         eyebrow: 'Attendance - Admin - D&D Portal Player Dashboard',

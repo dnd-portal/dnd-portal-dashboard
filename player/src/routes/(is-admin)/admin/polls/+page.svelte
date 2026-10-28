@@ -38,25 +38,43 @@
     <h1>Global polls</h1>
     <p>Create and review the poll available to every active user.</p>
 </section>
-<section class="p-card">
-    <input class="p-input" placeholder="Title" bind:value={title} /><textarea
-        class="p-input"
-        placeholder="Explanation"
-        bind:value={explanation}></textarea><textarea
-        class="p-input"
-        placeholder="One option per line"
-        bind:value={options}></textarea><button class="p-button" onclick={() => void create()}>Create poll</button>
+<section class="p-card admin-mvp-panel">
+    <h2>Create a global poll</h2>
+    <div class="admin-mvp-form">
+        <label for="poll-title">Title</label><input id="poll-title" class="p-input" bind:value={title} />
+        <label for="poll-explanation">Explanation</label><textarea
+            id="poll-explanation"
+            class="p-input"
+            bind:value={explanation}></textarea>
+        <label for="poll-options">Options</label><textarea id="poll-options" class="p-input" bind:value={options}
+        ></textarea>
+        <small>Enter one date or option per line.</small>
+        <div class="admin-mvp-form__actions">
+            <button class="primary-button" disabled={!title.trim() || !options.trim()} onclick={() => void create()}
+                >Create poll</button
+            >
+        </div>
+    </div>
 </section>
 {#if error}<p class="error-message">{error}</p>{/if}
-<section class="p-card">
+<section class="p-card admin-mvp-panel">
     <h2>Existing polls</h2>
-    {#each polls as poll}<p>
-            <strong>{poll.title}</strong> · {poll.status}
-            <button class="p-button" onclick={() => void setStatus(poll.id, poll.status === 'open' ? 'closed' : 'open')}
-                >{poll.status === 'open' ? 'Close' : 'Open'}</button
-            >
-            <button class="p-button" onclick={() => void showResults(poll.id)}>Results</button>
-        </p>{/each}
+    {#if polls.length === 0}<p class="admin-mvp-empty__text">No global polls yet.</p>{/if}
+    {#each polls as poll}<div class="admin-mvp-list-row">
+            <div>
+                <strong>{poll.title}</strong><span class={`admin-mvp-badge admin-mvp-badge--${poll.status}`}
+                    >{poll.status}</span
+                ><small>{poll.options?.length ?? 0} options</small>
+            </div>
+            <div class="admin-mvp-actions">
+                <button
+                    class="secondary-button"
+                    onclick={() => void setStatus(poll.id, poll.status === 'open' ? 'closed' : 'open')}
+                    >{poll.status === 'open' ? 'Close' : 'Open'}</button
+                >
+                <button class="secondary-button" onclick={() => void showResults(poll.id)}>Results</button>
+            </div>
+        </div>{/each}
     {#if results.options.length}<h2>Results</h2>
         <p>{results.total_respondents} unique respondents</p>
         {#each results.options as result}<p>{result.label}: {result.responses}</p>{/each}{/if}

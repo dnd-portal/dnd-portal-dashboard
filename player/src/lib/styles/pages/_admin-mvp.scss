@@ -8,6 +8,69 @@
     margin: 24px 0;
 }
 
+.admin-mvp-panel {
+    max-width: 900px;
+    margin: 24px 0;
+    padding: clamp(18px, 3vw, 28px);
+    h2 {
+        margin: 0 0 18px;
+    }
+}
+.admin-mvp-form {
+    display: grid;
+    gap: 8px;
+    max-width: 680px;
+}
+.admin-mvp-form label {
+    color: $color-text;
+    font-weight: 700;
+}
+.admin-mvp-form .p-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+.admin-mvp-form textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+.admin-mvp-form small,
+.admin-mvp-list-row small {
+    color: $color-text-muted;
+}
+.admin-mvp-form__actions,
+.admin-mvp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.admin-mvp-list-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    padding: 16px 0;
+    border-top: 1px solid $color-border-muted;
+}
+.admin-mvp-list-row > div:first-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 0;
+}
+.admin-mvp-badge--valid,
+.admin-mvp-badge--open {
+    color: $color-accent;
+    border-color: rgba($color-accent, 0.55);
+}
+.admin-mvp-badge--used,
+.admin-mvp-badge--expired,
+.admin-mvp-badge--closed {
+    color: $color-text-muted;
+    border-color: $color-border;
+}
+
 .admin-mvp-table {
     table {
         table-layout: fixed;
@@ -41,7 +104,8 @@
 }
 
 .admin-mvp-wrap {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
 }
 
 .admin-mvp-badge {
@@ -124,5 +188,9 @@
     .admin-mvp-table {
         table-layout: auto;
         min-width: 720px;
+    }
+    .admin-mvp-list-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

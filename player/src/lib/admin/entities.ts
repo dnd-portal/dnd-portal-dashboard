@@ -15,8 +15,21 @@ const columns = (
     metadata: Record<string, Pick<Column, 'sortType' | 'sortable'>> = {}
 ) => Object.entries(labels).map(([key, label]) => ({ key, label, ...metadata[key] }));
 export function userName(db: Database, id: number | string) {
-    return db.users.find((user) => user.id === Number(id))?.name ?? 'Unknown user';
+    return db.users.find((user) => user.id === Number(id))?.name ?? 'Deleted user';
 }
+const humanEvent = (value: string) =>
+    ({
+        'auth.login': 'Signed in',
+        'auth.register': 'Registered account',
+        'user.imported': 'Imported user',
+        'user.pending_created': 'Created pending user'
+    })[value] ?? value.replaceAll('.', ' ');
+const humanDate = (value: unknown) =>
+    value
+        ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
+              new Date(String(value))
+          )
+        : '—';
 export function campaignName(db: Database, id?: number) {
     return db.campaigns.find((campaign) => campaign.id === id)?.name ?? 'One-shot';
 }
@@ -229,8 +242,8 @@ export const entities: Record<EntityKey, Definition> = {
                 row(item.id, item.message, {
                     id: text(item.id),
                     user: { text: userName(db, item.userId), href: `/admin/users/${item.userId}`, kind: 'user' },
-                    activity: text(item.message),
-                    time: text(item.createdAt)
+                    activity: text(humanEvent(item.message)),
+                    time: text(humanDate(item.createdAt))
                 })
             )
     }

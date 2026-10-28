@@ -24,6 +24,15 @@
     let data = $state<Dashboard | null>(null);
     let error = $state('');
     let loading = $state(true);
+    const humanEvent = (value: string) =>
+        ({
+            'auth.login': 'Signed in',
+            'auth.register': 'Registered account',
+            'user.imported': 'Imported user',
+            'user.pending_created': 'Created pending user'
+        })[value] ?? value.replaceAll('.', ' ');
+    const formatDate = (value: string) =>
+        new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
     async function load() {
         loading = true;
         try {
@@ -51,8 +60,8 @@
         {#if data.admin}<DetailPanel eyebrow="RECENT ACTIVITY" title="Latest changes"
                 >{#if data.admin.activity.length}<div class="admin-overview__list">
                         {#each data.admin.activity as item}<div class="admin-overview__list-row">
-                                <span><b>{item.actor_name ?? 'System'} · {item.event_type}</b></span><time
-                                    >{item.occurred_at}</time
+                                <span><b>{item.actor_name ?? 'System'} · {humanEvent(item.event_type)}</b></span><time
+                                    >{formatDate(item.occurred_at)}</time
                                 >
                             </div>{/each}
                     </div>{:else}<p class="admin-overview__empty">

@@ -28,8 +28,9 @@
     );
     const breadcrumbItems = $derived([
         { label: 'Admin', href: '/admin' },
-        { label: current.label, href: current.href },
-        ...(page.params.id ? [{ label: detail?.title ?? 'Record not found' }] : [])
+        ...(page.params.id
+            ? [{ label: current.label, href: current.href }, { label: detail?.title ?? 'Record not found' }]
+            : [{ label: current.label }])
     ]);
     const adminTitle = $derived(
         page.params.id
