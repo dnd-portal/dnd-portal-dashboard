@@ -12,6 +12,7 @@
     };
     let poll = $state<Poll | null>(null);
     let selected = $state<number[]>([]);
+    let savedSelection = $state<number[]>([]);
     let loading = $state(true);
     let saving = $state(false);
     let message = $state('');
@@ -22,6 +23,7 @@
         try {
             poll = await api.get<Poll | null>('/api/v1/global-polls/current');
             selected = poll?.selected_option_ids ?? [];
+            savedSelection = [...selected];
         } catch (e) {
             error = e instanceof ApiRequestError ? e.message : 'Could not load the poll.';
         } finally {
@@ -29,8 +31,19 @@
         }
     }
     function toggle(id: number) {
-        if (poll?.choice_type === 'single') selected = [id];
-        else selected = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+        selected = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+    }
+    function hasChanges() {
+        return (
+            selected
+                .slice()
+                .sort((a, b) => a - b)
+                .join(',') !==
+            savedSelection
+                .slice()
+                .sort((a, b) => a - b)
+                .join(',')
+        );
     }
     async function save() {
         if (!poll || !selected.length) return;
@@ -40,6 +53,7 @@
         try {
             poll = await api.put<Poll>(`/api/v1/global-polls/${poll.id}/response`, { option_ids: selected });
             selected = poll.selected_option_ids;
+            savedSelection = [...selected];
             message = 'Your answer is saved.';
         } catch (e) {
             error = e instanceof ApiRequestError ? e.message : 'Could not save your answer.';
@@ -68,13 +82,13 @@
     </section>
     <section class="p-card poll-card" class:poll-card--closed={poll.status === 'closed'}>
         <fieldset disabled={poll.status === 'closed' || saving}>
-            <legend>{poll.choice_type === 'multiple' ? 'Choose one or more options' : 'Choose one option'}</legend>
+            <legend>Select all dates that work for you.</legend>
             <div class="poll-options">
                 {#each poll.options as option}<label
                         class="poll-option"
                         class:poll-option--selected={selected.includes(option.id)}
                         ><input
-                            type={poll.choice_type === 'multiple' ? 'checkbox' : 'radio'}
+                            type="checkbox"
                             name="global-poll"
                             checked={selected.includes(option.id)}
                             onchange={() => toggle(option.id)}
@@ -84,7 +98,7 @@
         </fieldset>
         {#if poll.status === 'open'}<button
                 class="p-button poll-save"
-                disabled={!selected.length || saving}
+                disabled={!selected.length || !hasChanges() || saving}
                 onclick={() => void save()}>{saving ? 'Saving…' : 'Save answer'}</button
             >{:else}<p role="status">This poll is closed. Your saved answer is shown above.</p>{/if}{#if message}<p
                 class="success-message"

@@ -2,12 +2,11 @@
     import { onMount } from 'svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
     let polls = $state<any[]>([]);
-    let results = $state<any[]>([]);
+    let results = $state<{ options: any[]; total_respondents: number }>({ options: [], total_respondents: 0 });
     let error = $state('');
     let title = $state('');
     let explanation = $state('');
     let options = $state('Thursday 29 October 2026\nFriday 30 October 2026');
-    let choiceType = $state<'single' | 'multiple'>('single');
     async function load() {
         try {
             polls = await api.get('/api/v1/admin/global-polls');
@@ -19,7 +18,6 @@
         await api.post('/api/v1/admin/global-polls', {
             title,
             explanation,
-            choice_type: choiceType,
             options: options.split('\n').filter(Boolean)
         });
         title = '';
@@ -47,9 +45,7 @@
         bind:value={explanation}></textarea><textarea
         class="p-input"
         placeholder="One option per line"
-        bind:value={options}></textarea><select class="p-input" bind:value={choiceType}
-        ><option value="single">Single choice</option><option value="multiple">Multiple choice</option></select
-    ><button class="p-button" onclick={() => void create()}>Create poll</button>
+        bind:value={options}></textarea><button class="p-button" onclick={() => void create()}>Create poll</button>
 </section>
 {#if error}<p class="error-message">{error}</p>{/if}
 <section class="p-card">
@@ -61,6 +57,7 @@
             >
             <button class="p-button" onclick={() => void showResults(poll.id)}>Results</button>
         </p>{/each}
-    {#if results.length}<h2>Results</h2>
-        {#each results as result}<p>{result.label}: {result.responses}</p>{/each}{/if}
+    {#if results.options.length}<h2>Results</h2>
+        <p>{results.total_respondents} unique respondents</p>
+        {#each results.options as result}<p>{result.label}: {result.responses}</p>{/each}{/if}
 </section>

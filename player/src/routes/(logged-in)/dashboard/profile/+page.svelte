@@ -33,30 +33,19 @@
         <div>
             <h2 id="profile-details">{playerContext.user?.display_name ?? 'Your account'}</h2>
             <p>@{playerContext.user?.username ?? '—'}</p>
-        </div>
-    </div>
-    <dl class="profile-details">
-        <div>
-            <dt>Display name</dt>
-            <dd>{playerContext.user?.display_name ?? '—'}</dd>
-        </div>
-        <div>
-            <dt>Username</dt>
-            <dd>{playerContext.user?.username ?? '—'}</dd>
-        </div>
-        <div>
-            <dt>Email</dt>
-            <dd>{playerContext.user?.email ?? '—'}</dd>
-        </div>
-        <div>
-            <dt>Roles</dt>
-            <dd class="profile-details__roles">
+            <div class="profile-details__roles">
                 {#if playerContext.user?.roles?.length}
                     {#each playerContext.user.roles as role}<span class="profile-role"
                             >{roleLabels[role] ?? 'Player'}</span
                         >{/each}
                 {:else}<span class="profile-role">Player</span>{/if}
-            </dd>
+            </div>
+        </div>
+    </div>
+    <dl class="profile-details">
+        <div>
+            <dt>Email</dt>
+            <dd>{playerContext.user?.email ?? '—'}</dd>
         </div>
     </dl>
 </section>

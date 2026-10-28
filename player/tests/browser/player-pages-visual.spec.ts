@@ -59,9 +59,11 @@ for (const viewport of [
         });
         await state.setup();
         await page.goto('/dashboard/polls/current');
-        await expect(page.getByRole('radio')).toHaveCount(2);
-        await page.getByRole('radio').nth(1).check();
-        await expect(page.getByRole('radio').nth(1)).toBeChecked();
+        await expect(page.getByRole('checkbox')).toHaveCount(2);
+        await page.getByRole('checkbox').nth(0).check();
+        await page.getByRole('checkbox').nth(1).check();
+        await expect(page.getByRole('checkbox').nth(0)).toBeChecked();
+        await expect(page.getByRole('checkbox').nth(1)).toBeChecked();
         await expect(page.getByRole('button', { name: 'Save answer' })).toBeEnabled();
         await page.getByRole('button', { name: 'Save answer' }).click();
         await expect(page.getByRole('status')).toContainText('saved');

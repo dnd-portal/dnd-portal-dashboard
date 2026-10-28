@@ -10,7 +10,8 @@
 <svelte:head><title>Dashboard · D&amp;D Portal</title></svelte:head>
 <section class="p-page-header">
     <p class="p-eyebrow">D&amp;D PORTAL</p>
-    <h1>Welcome{user ? `, ${user.display_name}` : ''}</h1>
+    <h1>Welcome back</h1>
+    {#if user}<p class="p-dashboard__welcome-user">{user.display_name}</p>{/if}
     <p>Your global portal workspace.</p>
 </section>
 <section class="p-card">
