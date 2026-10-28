@@ -449,7 +449,7 @@ final class AuthService {
         $q = $this->db->prepare(
             <<<'SQL'
             SELECT
-                id,
+                registration_invites.id,
                 invited_user_id,
                 u.display_name,
                 u.username
