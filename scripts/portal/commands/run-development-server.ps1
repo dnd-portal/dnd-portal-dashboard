@@ -1,6 +1,7 @@
 . (Join-Path $PSScriptRoot '..\lib\environment.ps1')
 . (Join-Path $PSScriptRoot '..\lib\processes.ps1')
 Assert-PortalFrontendPort
+try {
 $backendEnv=Join-Path $script:Backend '.env'; if (!(Test-Path $backendEnv)) { Copy-Item (Join-Path $script:Backend '.env.example') $backendEnv }
 $envValues=@{}; foreach($line in Get-Content $backendEnv){if($line -match '^\s*([^#=]+)=(.*)$'){$envValues[$matches[1].Trim()]=$matches[2].Trim()}}
 $pmaEnv=Join-Path $script:V4Root 'runtime\phpmyadmin.env'; New-Item -ItemType Directory -Force (Split-Path $pmaEnv)|Out-Null
@@ -17,3 +18,10 @@ Set-Content (Join-Path $script:V4Root 'runtime\active-mode') 'development'
 # Keep this command attached to the caller's terminal. Child processes write to
 # logs, while this loop mirrors new lines with a safe service label.
 try { while($true){Write-PortalProcessOutput;$backend=Get-Content (Join-Path $script:V4Root 'runtime\backend-development.pid') -ErrorAction SilentlyContinue;$frontend=Get-Content (Join-Path $script:V4Root 'runtime\frontend-development.pid') -ErrorAction SilentlyContinue;$frontendPort=Get-PortalPortOwner 5174;$backendAlive=$backend -and (Get-Process -Id ([int]$backend) -ErrorAction SilentlyContinue);$frontendAlive=$frontend -and (Get-Process -Id ([int]$frontend) -ErrorAction SilentlyContinue);if(!$backendAlive -and !$frontendAlive -and !$frontendPort){break};Start-Sleep -Milliseconds 250} } finally {Write-PortalProcessOutput;Stop-PortalProcesses;docker compose -f $script:ComposeFile stop database phpmyadmin | Out-Null;Remove-Item (Join-Path $script:V4Root 'runtime\active-mode') -Force -ErrorAction SilentlyContinue;Write-Portal 'Development processes and V4 containers stopped.'}
+} catch {
+    Write-Error "V4 development startup failed: $($_.Exception.Message)"
+    Stop-PortalProcesses
+    docker compose -f $script:ComposeFile stop database phpmyadmin | Out-Null
+    Remove-Item (Join-Path $script:V4Root 'runtime\active-mode') -Force -ErrorAction SilentlyContinue
+    throw
+}
