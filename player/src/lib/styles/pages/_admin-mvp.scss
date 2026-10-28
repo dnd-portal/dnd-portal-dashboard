@@ -1,11 +1,38 @@
 @use '../variables' as *;
 
 .admin-mvp-toolbar {
-    display: grid;
-    grid-template-columns: auto minmax(220px, 1fr) 180px;
+    display: flex;
     gap: 12px;
     align-items: center;
+    justify-content: space-between;
     margin: 24px 0;
+    min-width: 0;
+    &__actions,
+    &__filters {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+    &__filters {
+        flex: 1 1 420px;
+        justify-content: flex-end;
+    }
+    &__filters label {
+        color: $color-text-subtle;
+        font-size: 13px;
+    }
+    &__filters .p-input:first-of-type {
+        flex: 1 1 260px;
+        min-width: 120px;
+    }
+    &__filters select {
+        flex: 0 1 160px;
+    }
+    .p-button {
+        width: auto;
+        white-space: nowrap;
+    }
 }
 
 .admin-mvp-panel {
@@ -131,6 +158,22 @@
     color: #ffd5ce;
 }
 
+.admin-mvp-table .row-actions__trigger {
+    width: 36px;
+    height: 36px;
+}
+.row-actions__link {
+    border: 0;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+.row-actions__link--danger {
+    color: #ffb5a8;
+}
+
 .admin-mvp-empty {
     margin-top: 24px;
     text-align: center;
@@ -183,7 +226,21 @@
 
 @media (max-width: $breakpoint-mobile) {
     .admin-mvp-toolbar {
-        grid-template-columns: 1fr;
+        align-items: stretch;
+        flex-direction: column;
+        &__actions,
+        &__filters {
+            flex-wrap: wrap;
+        }
+        &__filters {
+            justify-content: stretch;
+        }
+        &__filters .p-input,
+        &__filters .p-input:first-of-type,
+        &__filters select {
+            flex: 1 1 100%;
+            width: 100%;
+        }
     }
     .admin-mvp-table {
         table-layout: auto;

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import AdminHeader from '#lib/components/admin/AdminHeader.svelte';
+    import RowActions from '#lib/components/shared/RowActions.svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
     type Invite = {
         id: number;
@@ -58,10 +59,16 @@
                                         >{status(invite)}</span
                                     ></td
                                 ><td>{formatDate(invite.expires_at)}</td><td
-                                    >{#if status(invite) === 'Valid'}<button
-                                            class="secondary-button"
-                                            onclick={() => void revoke(invite.id)}>Revoke</button
-                                        >{/if}</td
+                                    >{#if status(invite) === 'Valid'}<RowActions
+                                            label={invite.display_name ?? 'invitation'}
+                                            actions={[
+                                                {
+                                                    label: 'Revoke invitation',
+                                                    tone: 'danger',
+                                                    onselect: () => void revoke(invite.id)
+                                                }
+                                            ]}
+                                        />{/if}</td
                                 ></tr
                             >{/each}</tbody
                     >

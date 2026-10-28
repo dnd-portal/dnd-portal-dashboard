@@ -15,13 +15,13 @@
             event.preventDefault();
             if (!panel.matches(':popover-open')) trigger.click();
             await tick();
-            const links = panel.querySelectorAll('a');
+            const links = panel.querySelectorAll<HTMLElement>('[role="menuitem"]');
             (event.key === 'ArrowUp' ? links[links.length - 1] : links[0])?.focus();
         }
     }
     function navigate(event: KeyboardEvent) {
-        const links = [...panel.querySelectorAll('a')];
-        const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+        const links = [...panel.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+        const index = links.indexOf(document.activeElement as HTMLElement);
         if (event.key === 'Escape') {
             event.preventDefault();
             close(true);
@@ -64,19 +64,33 @@
         aria-label={`Actions for ${label}`}
         ontoggle={(event) => {
             open = event.newState === 'open';
-            if (open) panel.querySelector('a')?.focus();
+            if (open) panel.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
         }}
         onkeydown={navigate}
         onfocusout={(event) => {
             if (!event.currentTarget.contains(event.relatedTarget as Node) && event.relatedTarget !== trigger) close();
         }}
     >
-        {#each actions as action (action.href)}<a
-                class="row-actions__link"
-                role="menuitem"
-                tabindex="-1"
-                href={action.href}
-                onclick={() => close()}>{action.label}</a
-            >{/each}
+        {#each actions as action (action.label)}
+            {#if action.href}<a
+                    class:row-actions__link--danger={action.tone === 'danger'}
+                    class="row-actions__link"
+                    role="menuitem"
+                    tabindex="-1"
+                    href={action.href}
+                    onclick={() => close()}>{action.label}</a
+                >
+            {:else}<button
+                    type="button"
+                    class:row-actions__link--danger={action.tone === 'danger'}
+                    class="row-actions__link"
+                    role="menuitem"
+                    tabindex="-1"
+                    onclick={() => {
+                        action.onselect?.();
+                        close();
+                    }}>{action.label}</button
+                >{/if}
+        {/each}
     </div>
 {/if}

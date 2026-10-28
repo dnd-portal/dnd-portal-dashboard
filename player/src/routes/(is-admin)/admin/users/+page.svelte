@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import AdminHeader from '#lib/components/admin/AdminHeader.svelte';
     import CopyButton from '#lib/components/shared/CopyButton.svelte';
+    import RowActions from '#lib/components/shared/RowActions.svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
     type User = {
         id: number;
@@ -44,6 +45,9 @@
     let importHash = $state('');
     let importError = $state('');
     const roles = ['portal_admin', 'campaign_dm', 'campaign_member'];
+    const roleLabel = (value: string) =>
+        ({ portal_admin: 'Portal administrator', campaign_dm: 'Dungeon Master', campaign_member: 'Player' })[value] ??
+        value;
     const validInvite = (id: number) =>
         invites.find(
             (i) => i.invited_user_id === id && !i.consumed_at && !i.revoked_at && new Date(i.expires_at) > new Date()
@@ -163,6 +167,17 @@
                     (filter === 'active' ? u.account_status === 'active' : u.account_status === 'invited')) &&
                 `${u.display_name} ${u.username ?? ''}`.toLowerCase().includes(search.toLowerCase())
         );
+    const userActions = (user: User) => [
+        ...(user.account_status === 'invited'
+            ? [
+                  {
+                      label: validInvite(user.id) ? 'Manage invitation' : 'Generate invitation',
+                      onselect: () => requestInvite(user)
+                  }
+              ]
+            : []),
+        { label: 'Delete user', tone: 'danger' as const, onselect: () => (deleteUserTarget = user) }
+    ];
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -174,16 +189,26 @@
             <p class="p-page-header__context">Accounts and invitations</p>
         </div>
         <div class="admin-mvp-toolbar">
-            <button bind:this={addTrigger} class="primary-button" onclick={() => (showAdd = true)}>Add user</button
-            ><button bind:this={importTrigger} class="secondary-button" onclick={() => (showImport = true)}
-                >Import user</button
-            ><input class="p-input" placeholder="Search name or username" bind:value={search} /><select
-                class="p-input"
-                bind:value={filter}
-                ><option value="all">All statuses</option><option value="active">Active</option><option value="pending"
-                    >Pending</option
-                ></select
-            >
+            <div class="admin-mvp-toolbar__actions">
+                <button bind:this={addTrigger} class="p-button" onclick={() => (showAdd = true)}>Add user</button
+                ><button
+                    bind:this={importTrigger}
+                    class="p-button p-button--secondary"
+                    onclick={() => (showImport = true)}>Import user</button
+                >
+            </div>
+            <div class="admin-mvp-toolbar__filters">
+                <label for="user-search">Search</label><input
+                    id="user-search"
+                    class="p-input"
+                    placeholder="Name or username"
+                    bind:value={search}
+                /><label for="user-status">Status</label><select id="user-status" class="p-input" bind:value={filter}
+                    ><option value="all">All statuses</option><option value="active">Active</option><option
+                        value="pending">Pending</option
+                    ></select
+                >
+            </div>
         </div>
         {#if error}<p class="error-message" role="alert">{error}</p>{/if}{#if message}<p
                 class="success-message"
@@ -207,26 +232,18 @@
                                 ><td class="admin-mvp-wrap">{user.display_name}</td><td class="admin-mvp-wrap"
                                     >{user.username ?? '—'}</td
                                 ><td>{user.email ?? 'Not registered yet'}</td><td
-                                    >{user.roles
-                                        .map((item) =>
-                                            item.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
-                                        )
-                                        .join(', ') || '—'}</td
+                                    >{user.roles.map(roleLabel).join(', ') || '—'}</td
                                 ><td
                                     ><span
                                         class:admin-mvp-badge--pending={user.account_status === 'invited'}
                                         class="admin-mvp-badge"
                                         >{user.account_status === 'invited' ? 'Pending' : 'Active'}</span
                                     ></td
-                                ><td>{validInvite(user.id) ? 'Valid' : '—'}</td><td
-                                    >{#if user.account_status === 'invited'}<button
-                                            class="secondary-button"
-                                            onclick={() => requestInvite(user)}>Invite</button
-                                        >{/if}<button
-                                        class="secondary-button admin-mvp-danger-button"
-                                        onclick={() => (deleteUserTarget = user)}>Delete</button
+                                ><td
+                                    ><span class="admin-mvp-badge admin-mvp-badge--neutral"
+                                        >{validInvite(user.id) ? 'Valid' : '—'}</span
                                     ></td
-                                ></tr
+                                ><td><RowActions label={user.display_name} actions={userActions(user)} /></td></tr
                             >{/each}</tbody
                     >
                 </table>
