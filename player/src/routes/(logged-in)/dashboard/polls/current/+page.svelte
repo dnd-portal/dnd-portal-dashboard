@@ -61,25 +61,29 @@
         <h1>No open poll</h1>
         <p>There is no global poll available right now.</p>
     </section>
-{:else}<section class="p-page-header">
+{:else}<section class="p-page-header poll-page-header">
         <p class="p-eyebrow">GLOBAL POLL</p>
         <h1>{poll.title}</h1>
         <p>{poll.explanation ?? 'Choose the option that works best for you.'}</p>
     </section>
-    <section class="p-card poll-card">
+    <section class="p-card poll-card" class:poll-card--closed={poll.status === 'closed'}>
         <fieldset disabled={poll.status === 'closed' || saving}>
-            <legend>{poll.choice_type === 'multiple' ? 'Choose one or more options' : 'Choose one option'}</legend
-            >{#each poll.options as option}<label class="poll-option"
-                    ><input
-                        type={poll.choice_type === 'multiple' ? 'checkbox' : 'radio'}
-                        name="global-poll"
-                        checked={selected.includes(option.id)}
-                        onchange={() => toggle(option.id)}
-                    /> <span>{option.label}</span></label
-                >{/each}
+            <legend>{poll.choice_type === 'multiple' ? 'Choose one or more options' : 'Choose one option'}</legend>
+            <div class="poll-options">
+                {#each poll.options as option}<label
+                        class="poll-option"
+                        class:poll-option--selected={selected.includes(option.id)}
+                        ><input
+                            type={poll.choice_type === 'multiple' ? 'checkbox' : 'radio'}
+                            name="global-poll"
+                            checked={selected.includes(option.id)}
+                            onchange={() => toggle(option.id)}
+                        /> <span class="poll-option__label">{option.label}</span></label
+                    >{/each}
+            </div>
         </fieldset>
         {#if poll.status === 'open'}<button
-                class="p-button"
+                class="p-button poll-save"
                 disabled={!selected.length || saving}
                 onclick={() => void save()}>{saving ? 'Saving…' : 'Save answer'}</button
             >{:else}<p role="status">This poll is closed. Your saved answer is shown above.</p>{/if}{#if message}<p

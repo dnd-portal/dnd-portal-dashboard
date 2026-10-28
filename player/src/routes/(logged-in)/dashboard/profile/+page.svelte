@@ -1,32 +1,41 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
-    import { api } from '#lib/api/index.js';
     import { getPlayerUser } from '#lib/player/context.js';
 
     const playerContext = getPlayerUser();
-    let signingOut = $state(false);
+    const roleLabels: Record<string, string> = {
+        campaign_member: 'Player',
+        dungeon_master: 'Dungeon Master',
+        portal_admin: 'Portal administrator'
+    };
 
-    async function signOut() {
-        signingOut = true;
-        try {
-            await api.post('/api/v1/auth/logout', {});
-        } finally {
-            await goto('/login');
-        }
-    }
+    const initials = $derived(
+        (playerContext.user?.display_name ?? 'Player')
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((part) => part[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase()
+    );
 </script>
 
 <svelte:head><title>Profile | D&amp;D Portal</title></svelte:head>
 
-<section class="p-page-header">
+<section class="p-page-header profile-page-header">
     <p class="p-eyebrow">ACCOUNT</p>
     <h1>Profile</h1>
-    <p>Review the account details and campaign memberships associated with your portal account.</p>
+    <p>Review the account details connected to your portal account.</p>
 </section>
 
-<section class="p-card" aria-labelledby="profile-details">
-    <h2 id="profile-details">Account details</h2>
-    <dl class="p-definition-list">
+<section class="p-card profile-card" aria-labelledby="profile-details">
+    <div class="profile-card__identity">
+        <div class="p-avatar profile-card__avatar" aria-hidden="true">{initials}</div>
+        <div>
+            <h2 id="profile-details">{playerContext.user?.display_name ?? 'Your account'}</h2>
+            <p>@{playerContext.user?.username ?? '—'}</p>
+        </div>
+    </div>
+    <dl class="profile-details">
         <div>
             <dt>Display name</dt>
             <dd>{playerContext.user?.display_name ?? '—'}</dd>
@@ -41,13 +50,13 @@
         </div>
         <div>
             <dt>Roles</dt>
-            <dd>{playerContext.user?.roles?.join(', ') || 'Player'}</dd>
+            <dd class="profile-details__roles">
+                {#if playerContext.user?.roles?.length}
+                    {#each playerContext.user.roles as role}<span class="profile-role"
+                            >{roleLabels[role] ?? 'Player'}</span
+                        >{/each}
+                {:else}<span class="profile-role">Player</span>{/if}
+            </dd>
         </div>
     </dl>
 </section>
-
-<!-- TODO post-MVP: restore campaign memberships when campaign data is part of the MVP. -->
-
-<button class="p-button p-button--secondary" type="button" disabled={signingOut} onclick={signOut}>
-    {signingOut ? 'Signing out…' : 'Sign out'}
-</button>
