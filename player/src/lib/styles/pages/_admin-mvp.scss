@@ -99,6 +99,8 @@
 }
 
 .admin-mvp-table {
+    width: 100%;
+    min-width: 0;
     table {
         table-layout: fixed;
     }
@@ -250,7 +252,7 @@
     }
     .admin-mvp-table {
         table-layout: auto;
-        min-width: 720px;
+        min-width: 0;
     }
     .admin-mvp-list-row {
         align-items: flex-start;
