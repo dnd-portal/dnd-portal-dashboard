@@ -37,33 +37,30 @@
         >
         <div class="p-shell__header-actions">
             <span class="p-shell__breadcrumb"
-                ><span class="p-shell__breadcrumb-section">Campaign /</span> <strong>{active}</strong></span
+                ><span class="p-shell__breadcrumb-section">Dashboard /</span> <strong>{active}</strong></span
             >
         </div>
     </header>
     <button class="p-shell__backdrop" type="button" aria-label="Close navigation" onclick={closeMenu}></button>
     <aside id="portal-navigation" class="p-shell__sidebar">
-        {#if campaignName}<button class="p-campaign-picker" type="button">
+        <!-- TODO post-MVP: re-enable the campaign picker when campaign data is available. -->
+        {#if false && campaignName}<button class="p-campaign-picker" type="button">
                 <span class="p-campaign-picker__mark">D&amp;D</span>
                 <span class="p-campaign-picker__copy"
                     ><strong>{campaignName}</strong><small>Player campaign</small></span
                 >
                 <span class="p-campaign-picker__chevron" aria-hidden="true">⌄</span>
             </button>{/if}
-        <nav class="p-nav" aria-label="Campaign">
-            <p class="p-nav__label">Campaign</p>
+        <nav class="p-nav" aria-label="Dashboard">
+            <p class="p-nav__label">Dashboard</p>
             {#each playerLinks as link}<a
                     class="p-nav__link"
                     href={link.href}
                     aria-current={active === link.label ? 'page' : undefined}
                     onclick={closeMenu}><AdminIcon name={link.icon} size={20} /> <span>{link.label}</span></a
                 >{/each}
-            <span class="p-nav__link" aria-disabled="true" title="Chronicle is not available in this portal build"
-                ><AdminIcon name="one-shots" size={20} /> <span>Chronicle</span></span
-            >
-            <span class="p-nav__link" aria-disabled="true" title="Map room is not available in this portal build"
-                ><AdminIcon name="campaigns" size={20} /> <span>Map room</span></span
-            >
+            <!-- TODO post-MVP: re-enable Chronicle when story management is implemented. -->
+            <!-- TODO post-MVP: re-enable Map room when map data is implemented. -->
         </nav>
         <div class="p-shell__sidebar-footer">
             {#if user.roles?.includes('portal_admin')}<a class="p-button p-button--secondary" href="/admin">Admin</a

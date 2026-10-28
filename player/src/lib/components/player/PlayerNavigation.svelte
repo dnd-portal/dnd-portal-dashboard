@@ -7,8 +7,8 @@
     const active = $derived(playerLinks.find((link) => page.url.pathname.startsWith(link.href))?.label ?? 'Overview');
 </script>
 
-<nav class="p-nav" aria-label="Campaign">
-    <p class="p-nav__label">Campaign</p>
+<nav class="p-nav" aria-label="Dashboard">
+    <p class="p-nav__label">Dashboard</p>
     {#each playerLinks as link}
         <a
             class="p-nav__link"

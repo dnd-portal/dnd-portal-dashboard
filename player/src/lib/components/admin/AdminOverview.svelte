@@ -42,35 +42,12 @@
 {#if loading}<p role="status">Loading dashboard…</p>{:else if error}<p class="error-message" role="alert">
         {error}
     </p>{:else if data}<section class="admin-overview" aria-label="Admin overview content">
-        <section class="admin-overview__metrics" aria-label="Key metrics">
-            <a class="admin-overview__metric" href="/admin/sessions"
-                ><span>Upcoming sessions</span><strong>{data.admin?.sessions ?? (data.next_session ? 1 : 0)}</strong
-                ><small>Permitted sessions</small></a
-            >
-            <a class="admin-overview__metric" href="/admin/polls"
-                ><span>Open polls</span><strong>{data.admin?.polls ?? data.open_polls}</strong><small
-                    >Visible to this account</small
-                ></a
-            >
-            <a class="admin-overview__metric" href="/admin/payments"
-                ><span>Open contributions</span><strong>{data.open_contributions_cents} cents</strong><small
-                    >Own outstanding balance</small
-                ></a
-            >
-            {#if data.admin}<a class="admin-overview__metric" href="/admin/users"
+        {#if data.admin}<section class="admin-overview__metrics" aria-label="MVP metrics">
+                <a class="admin-overview__metric" href="/admin/users"
                     ><span>Users</span><strong>{data.admin.users}</strong><small>Portal administration</small></a
-                >{/if}
-        </section>
-        <DetailPanel eyebrow="SCHEDULE" title="Next permitted session"
-            >{#if data.next_session}<div class="admin-overview__list-row">
-                    <span
-                        ><b>{data.next_session.title}</b><small
-                            >{data.next_session.campaign_name} · {data.next_session.participants} participants · {data
-                                .next_session.rsvp_accepted} accepted RSVP</small
-                        ></span
-                    ><time datetime={data.next_session.session_date}>{data.next_session.session_date}</time>
-                </div>{:else}<p class="admin-overview__empty">No upcoming session is available.</p>{/if}</DetailPanel
-        >
+                >
+            </section>{/if}
+        <!-- TODO post-MVP: restore session, contribution and balance metrics when those data sources are implemented. -->
         {#if data.admin}<DetailPanel eyebrow="RECENT ACTIVITY" title="Latest changes"
                 >{#if data.admin.activity.length}<div class="admin-overview__list">
                         {#each data.admin.activity as item}<div class="admin-overview__list-row">

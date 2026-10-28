@@ -12,14 +12,12 @@
     let user = $state<PlayerUser | null>(null);
     const playerContext: PlayerContext = { user: null };
     providePlayerUser(playerContext);
-    let campaignName = $state<string | undefined>();
     let checking = $state(true);
 
     onMount(async () => {
         try {
             user = await api.get<PlayerUser>('/api/v1/auth/me');
             playerContext.user = user;
-            campaignName = (await api.get<{ name: string }[]>('/api/v1/campaigns'))[0]?.name;
         } catch (cause) {
             if (cause instanceof ApiRequestError && cause.status === 401) {
                 const returnTo = `${page.url.pathname}${page.url.search}`;
@@ -35,7 +33,7 @@
 {#if checking}
     <ContentState title="Checking access…" />
 {:else if user}
-    <PlayerShell {user} {campaignName}>{@render children()}</PlayerShell>
+    <PlayerShell {user}>{@render children()}</PlayerShell>
 {:else}
     <ContentState title="Unable to verify your session." />
 {/if}
