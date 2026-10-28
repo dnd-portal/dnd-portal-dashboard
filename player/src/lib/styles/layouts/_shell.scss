@@ -37,12 +37,22 @@
     gap: 12px;
 }
 .p-shell__breadcrumb {
+    min-width: 0;
+    overflow-wrap: anywhere;
     color: var(--p-muted);
     font-size: 1rem;
 }
 .p-shell__breadcrumb strong {
     color: var(--p-heading);
     font-weight: 600;
+}
+.p-shell__breadcrumb a {
+    color: var(--p-muted);
+    text-decoration: none;
+}
+.p-shell__breadcrumb a:hover {
+    color: var(--p-heading);
+    text-decoration: underline;
 }
 .p-shell__sidebar {
     grid-area: sidebar;
@@ -153,7 +163,9 @@
         min-width: 0;
     }
     .p-shell__breadcrumb {
-        white-space: nowrap;
+        max-width: 48vw;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
     .p-shell__breadcrumb-section {
         display: none;

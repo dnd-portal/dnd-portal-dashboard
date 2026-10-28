@@ -2,13 +2,13 @@
     import { page } from '$app/state';
     import { api } from '#lib/api/index.js';
     import AdminIcon from '#lib/components/admin/AdminIcon.svelte';
-    import { playerLinks } from '#lib/navigation.js';
+    import { playerBreadcrumbs, playerLinkIsActive, playerLinks } from '#lib/navigation.js';
     import type { Snippet } from 'svelte';
 
     type User = { display_name: string; username: string | null; roles?: string[] };
     let { user, campaignName, children }: { user: User; campaignName?: string; children: Snippet } = $props();
     let menuOpen = $state(false);
-    const active = $derived(playerLinks.find((link) => page.url.pathname.startsWith(link.href))?.label ?? 'Overview');
+    const breadcrumbs = $derived(playerBreadcrumbs(page.url.pathname));
 
     async function logout() {
         await api.post('/api/v1/auth/logout', {});
@@ -36,9 +36,14 @@
             onclick={() => (menuOpen = !menuOpen)}>Menu</button
         >
         <div class="p-shell__header-actions">
-            <span class="p-shell__breadcrumb"
-                ><span class="p-shell__breadcrumb-section">Dashboard /</span> <strong>{active}</strong></span
-            >
+            <nav class="p-shell__breadcrumb" aria-label="Breadcrumb">
+                {#each breadcrumbs as item, index}<span class="p-shell__breadcrumb-item">
+                        {#if item.href}<a href={item.href}>{item.label}</a>{:else}<strong aria-current="page"
+                                >{item.label}</strong
+                            >{/if}
+                        {#if index < breadcrumbs.length - 1}<span aria-hidden="true">{' / '}</span>{/if}
+                    </span>{/each}
+            </nav>
         </div>
     </header>
     <button class="p-shell__backdrop" type="button" aria-label="Close navigation" onclick={closeMenu}></button>
@@ -56,7 +61,7 @@
             {#each playerLinks as link}<a
                     class="p-nav__link"
                     href={link.href}
-                    aria-current={active === link.label ? 'page' : undefined}
+                    aria-current={playerLinkIsActive(link.id, page.url.pathname) ? 'page' : undefined}
                     onclick={closeMenu}><AdminIcon name={link.icon} size={20} /> <span>{link.label}</span></a
                 >{/each}
             <!-- TODO post-MVP: re-enable Chronicle when story management is implemented. -->

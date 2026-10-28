@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { beforeNavigate } from '$app/navigation';
     import { api, ApiRequestError } from '#lib/api/index.js';
     type Poll = {
         id: number;
@@ -15,11 +16,15 @@
     let savedSelection = $state<number[]>([]);
     let loading = $state(true);
     let saving = $state(false);
-    let message = $state('');
+    let saveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    let saveTimer: ReturnType<typeof setTimeout> | undefined;
+    let saveCycle = $state(false);
+    let saveGeneration = 0;
     let error = $state('');
     async function load() {
         loading = true;
         error = '';
+        saveStatus = 'idle';
         try {
             poll = await api.get<Poll | null>('/api/v1/global-polls/current');
             selected = poll?.selected_option_ids ?? [];
@@ -29,9 +34,6 @@
         } finally {
             loading = false;
         }
-    }
-    function toggle(id: number) {
-        selected = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
     }
     function hasChanges() {
         return (
@@ -45,23 +47,63 @@
                 .join(',')
         );
     }
-    async function save() {
-        if (!poll || !selected.length) return;
-        saving = true;
-        message = '';
+    function isUnsaved() {
+        return saveCycle || hasChanges() || saveStatus === 'error';
+    }
+    function scheduleSave() {
+        if (!poll || poll.status === 'closed' || !hasChanges() || !selected.length) return;
+        saveStatus = 'saving';
         error = '';
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => void save(), 220);
+    }
+    async function save() {
+        if (!poll || poll.status === 'closed' || !selected.length || !hasChanges() || saveCycle) return;
+        saveCycle = true;
+        saving = true;
+        const generation = ++saveGeneration;
+        const target = [...selected];
         try {
-            poll = await api.put<Poll>(`/api/v1/global-polls/${poll.id}/response`, { option_ids: selected });
-            selected = poll.selected_option_ids;
-            savedSelection = [...selected];
-            message = 'Your answer is saved.';
+            await api.put<Poll>(`/api/v1/global-polls/${poll.id}/response`, { option_ids: target });
+            if (generation === saveGeneration) {
+                savedSelection = target;
+                saveStatus = 'saved';
+                error = '';
+            }
         } catch (e) {
+            saveStatus = 'error';
             error = e instanceof ApiRequestError ? e.message : 'Could not save your answer.';
         } finally {
+            saveCycle = false;
             saving = false;
+            if (hasChanges() && saveStatus !== 'error') scheduleSave();
         }
     }
-    onMount(() => void load());
+    function toggle(id: number) {
+        if (selected.length === 1 && selected[0] === id) {
+            error = 'Select at least one date.';
+            return;
+        }
+        selected = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+        scheduleSave();
+    }
+    onMount(() => {
+        void load();
+        const beforeUnload = (event: BeforeUnloadEvent) => {
+            if (isUnsaved()) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', beforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', beforeUnload);
+            if (saveTimer) clearTimeout(saveTimer);
+        };
+    });
+    beforeNavigate(({ cancel }) => {
+        if (isUnsaved() && !window.confirm('Your poll changes are not saved yet. Leave this page?')) cancel();
+    });
 </script>
 
 <svelte:head><title>Current poll · D&amp;D Portal</title></svelte:head>
@@ -96,14 +138,17 @@
                     >{/each}
             </div>
         </fieldset>
-        {#if poll.status === 'open'}<button
-                class="p-button poll-save"
-                disabled={!selected.length || !hasChanges() || saving}
-                onclick={() => void save()}>{saving ? 'Saving…' : 'Save answer'}</button
-            >{:else}<p role="status">This poll is closed. Your saved answer is shown above.</p>{/if}{#if message}<p
-                class="success-message"
-                role="status"
+        {#if poll.status === 'open'}<div class="poll-save-status" aria-live="polite">
+                {#if saveStatus === 'saving'}<span>Saving…</span>{:else if saveStatus === 'saved'}<span>Saved</span
+                    >{:else if saveStatus === 'error'}<button
+                        class="p-button p-button--secondary poll-retry"
+                        type="button"
+                        onclick={scheduleSave}>Try again</button
+                    >{/if}
+            </div>{:else}<p role="status">This poll is closed. Your saved answer is shown above.</p>{/if}{#if error}<p
+                class="error-message"
+                role="alert"
             >
-                {message}
-            </p>{/if}{#if error}<p class="error-message" role="alert">{error}</p>{/if}
+                {error}
+            </p>{/if}
     </section>{/if}

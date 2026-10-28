@@ -30,6 +30,7 @@ function mockPlayerApi(page: import('@playwright/test').Page, poll: unknown) {
             await page.route('**/api/v1/global-polls/7/response', async (route) => {
                 saved = true;
                 const request = route.request().postDataJSON() as { option_ids: number[] };
+                await new Promise((resolve) => setTimeout(resolve, 260));
                 route.fulfill({
                     contentType: 'application/json',
                     body: JSON.stringify({ data: { ...(poll as object), selected_option_ids: request.option_ids } })
@@ -49,7 +50,7 @@ for (const viewport of [
             id: 7,
             title: 'Choose a date',
             explanation: 'Select the date that works best.',
-            choice_type: 'single',
+            choice_type: 'multiple',
             status: 'open',
             options: [
                 { id: 1, label: 'Saturday 14 November 2026' },
@@ -64,9 +65,9 @@ for (const viewport of [
         await page.getByRole('checkbox').nth(1).check();
         await expect(page.getByRole('checkbox').nth(0)).toBeChecked();
         await expect(page.getByRole('checkbox').nth(1)).toBeChecked();
-        await expect(page.getByRole('button', { name: 'Save answer' })).toBeEnabled();
-        await page.getByRole('button', { name: 'Save answer' }).click();
-        await expect(page.getByRole('status')).toContainText('saved');
+        await expect(page.getByRole('button', { name: 'Save answer' })).toHaveCount(0);
+        await expect(page.getByText('Saving…')).toBeVisible();
+        await expect(page.getByText('Saved')).toBeVisible();
         expect(state.saved).toBe(true);
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
     });
@@ -93,6 +94,24 @@ test('poll closed and empty states stay readable', async ({ page }) => {
     );
     await page.reload();
     await expect(page.getByRole('heading', { name: 'No open poll' })).toBeVisible();
+});
+
+test('player navigation and breadcrumbs follow the current route', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const state = mockPlayerApi(page, null);
+    await state.setup();
+    await page.goto('/dashboard');
+    const dashboardNav = page.getByRole('navigation', { name: 'Dashboard' });
+    await expect(dashboardNav.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
+    await expect(dashboardNav.getByRole('link', { name: 'Polls' })).not.toHaveAttribute('aria-current', 'page');
+    await page.goto('/dashboard/polls/current');
+    await expect(dashboardNav.getByRole('link', { name: 'Polls' })).toHaveAttribute('aria-current', 'page');
+    await expect(dashboardNav.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.p-shell__breadcrumb')).toContainText('Dashboard / Polls / Current poll');
+    await page.goto('/dashboard/profile');
+    await expect(dashboardNav.getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.p-shell__breadcrumb')).toContainText('Dashboard / Profile');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
 });
 
 test('profile uses friendly role labels without duplicate sign out content', async ({ page }) => {
