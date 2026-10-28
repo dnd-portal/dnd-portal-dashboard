@@ -1,26 +1,17 @@
 . (Join-Path $PSScriptRoot '..\lib\environment.ps1')
 . (Join-Path $PSScriptRoot '..\lib\processes.ps1')
 Assert-PortalFrontendPort
+$completed=$false
 try {
-Set-Content (Join-Path $script:V4Root 'runtime\active-mode') 'development'
-$backendEnv=Join-Path $script:Backend '.env'; if (!(Test-Path $backendEnv)) { Copy-Item (Join-Path $script:Backend '.env.example') $backendEnv }
-$envValues=@{}; foreach($line in Get-Content $backendEnv){if($line -match '^\s*([^#=]+)=(.*)$'){$envValues[$matches[1].Trim()]=$matches[2].Trim()}}
-$pmaEnv=Join-Path $script:V4Root 'runtime\phpmyadmin.env'; New-Item -ItemType Directory -Force (Split-Path $pmaEnv)|Out-Null
-@("PMA_USER=$($envValues.DB_USER)","PMA_PASSWORD=$($envValues.DB_PASSWORD)") | Set-Content -LiteralPath $pmaEnv
-docker compose -f $script:ComposeFile up -d database phpmyadmin
-Push-Location $script:Backend; $localEnv=Get-Content .env|Where-Object {$_ -match '=' -and $_ -notmatch '^#'};foreach($line in $localEnv){$key,$value=$line.Split('=',2);[Environment]::SetEnvironmentVariable($key.Trim(),$value.Trim())};$env:APP_ENV='local';$env:DB_HOST='127.0.0.1';$env:DB_PORT='3310';$env:DB_NAME='dnd_portal_v4_development';$env:DB_USER='dnd_v4';$env:DB_PASSWORD='local-v4-only';$env:APP_ALLOWED_ORIGIN='http://127.0.0.1:5174,http://localhost:5174';php scripts/migrate.php; php scripts/seed-v4.php; Pop-Location
-Write-Portal 'MariaDB 11.4 is at 127.0.0.1:3310; phpMyAdmin is http://127.0.0.1:8096 (login with the local dnd_v4 user)'
-$phpCommand=(Get-Command php -ErrorAction Stop).Source;$phpBinary=if($phpCommand -match '\.bat$'){Join-Path (Split-Path $phpCommand) 'php84\php.exe'}else{$phpCommand};if(!(Test-Path $phpBinary)){throw 'PHP executable not found.'};Start-PortalProcess 'backend-development' $phpBinary @('-S','127.0.0.1:8110','-t','public','router.php') $script:Backend
-$nodeCandidates=@(Get-Command node.exe -All -ErrorAction SilentlyContinue | ForEach-Object Source);$nodeBinary=$nodeCandidates|Where-Object {$_ -and $_ -notmatch '\\Volta\\'}|Select-Object -First 1;if(!$nodeBinary){$nodeBinary=$nodeCandidates|Select-Object -First 1};if(!$nodeBinary -or !(Test-Path $nodeBinary)){throw 'Node executable not found.'};$viteEntry=Join-Path $script:Player 'node_modules\vite\bin\vite.js';if(!(Test-Path $viteEntry)){throw 'Vite entrypoint not found.'};Start-PortalProcess 'frontend-development' $nodeBinary @($viteEntry,'dev','--host','127.0.0.1','--port','5174','--strictPort') $script:Player
-$healthy=$false;for($i=0;$i-lt 30;$i++){$backendPid=Get-Content (Join-Path $script:V4Root 'runtime\backend-development.pid') -ErrorAction SilentlyContinue;$frontendPid=Get-Content (Join-Path $script:V4Root 'runtime\frontend-development.pid') -ErrorAction SilentlyContinue;if(!$backendPid -or !(Get-Process -Id ([int]$backendPid) -ErrorAction SilentlyContinue)){throw 'Backend process exited before becoming healthy.'};if(!$frontendPid -or !(Get-Process -Id ([int]$frontendPid) -ErrorAction SilentlyContinue)){throw 'Frontend process exited before becoming healthy.'};try{if((Invoke-WebRequest http://127.0.0.1:8110/api/v1/health -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200 -and (Invoke-WebRequest http://127.0.0.1:5174/ -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200){$healthy=$true;break}}catch{};Start-Sleep 1};if(!$healthy){throw 'V4 development services did not become healthy within 30 seconds.'}
-Write-Portal 'Portal: http://127.0.0.1:5174/';Write-Portal 'Login: http://127.0.0.1:5174/login';Write-Portal 'Register: http://127.0.0.1:5174/register';Write-Portal 'Dashboard: http://127.0.0.1:5174/dashboard';Write-Portal 'Admin: http://127.0.0.1:5174/admin';Write-Portal 'Backend API: http://127.0.0.1:8110/api/v1/health'
-# Keep this command attached to the caller's terminal. Child processes write to
-# logs, while this loop mirrors new lines with a safe service label.
-try { while($true){Write-PortalProcessOutput;$backend=Get-Content (Join-Path $script:V4Root 'runtime\backend-development.pid') -ErrorAction SilentlyContinue;$frontend=Get-Content (Join-Path $script:V4Root 'runtime\frontend-development.pid') -ErrorAction SilentlyContinue;$backendAlive=$backend -and (Get-Process -Id ([int]$backend) -ErrorAction SilentlyContinue);$frontendAlive=$frontend -and (Get-Process -Id ([int]$frontend) -ErrorAction SilentlyContinue);if(!$backendAlive){throw 'Backend process exited unexpectedly.'};if(!$frontendAlive){throw 'Frontend process exited unexpectedly.'};Start-Sleep -Milliseconds 250} } finally {Write-PortalProcessOutput;Stop-PortalProcesses;docker compose -f $script:ComposeFile stop database phpmyadmin | Out-Null;Remove-Item (Join-Path $script:V4Root 'runtime\active-mode') -Force -ErrorAction SilentlyContinue;Write-Portal 'Development processes and V4 containers stopped.'}
-} catch {
-    Write-Error "V4 development startup failed: $($_.Exception.Message)"
-    Stop-PortalProcesses
-    docker compose -f $script:ComposeFile stop database phpmyadmin | Out-Null
-    Remove-Item (Join-Path $script:V4Root 'runtime\active-mode') -Force -ErrorAction SilentlyContinue
-    throw
-}
+    Set-Content (Join-Path $script:V4Root 'runtime\active-mode') 'development'
+    $backendEnv=Join-Path $script:Backend '.env';if(!(Test-Path $backendEnv)){Copy-Item (Join-Path $script:Backend '.env.example') $backendEnv}
+    $envValues=@{};foreach($line in Get-Content $backendEnv){if($line -match '^\s*([^#=]+)=(.*)$'){$envValues[$matches[1].Trim()]=$matches[2].Trim()}}
+    $pmaEnv=Join-Path $script:V4Root 'runtime\phpmyadmin.env';New-Item -ItemType Directory -Force (Split-Path $pmaEnv)|Out-Null;@("PMA_USER=$($envValues.DB_USER)","PMA_PASSWORD=$($envValues.DB_PASSWORD)")|Set-Content $pmaEnv
+    docker compose -f $script:ComposeFile up -d database phpmyadmin
+    Push-Location $script:Backend;try{$localEnv=Get-Content .env|Where-Object {$_ -match '=' -and $_ -notmatch '^#'};foreach($line in $localEnv){$key,$value=$line.Split('=',2);[Environment]::SetEnvironmentVariable($key.Trim(),$value.Trim())};$env:APP_ENV='local';$env:DB_HOST='127.0.0.1';$env:DB_PORT='3310';$env:DB_NAME='dnd_portal_v4_development';$env:DB_USER='dnd_v4';$env:DB_PASSWORD='local-v4-only';$env:APP_ALLOWED_ORIGIN='http://127.0.0.1:5174,http://localhost:5174';php scripts/migrate.php;php scripts/seed-v4.php}finally{Pop-Location}
+    Write-Portal 'MariaDB 11.4 is at 127.0.0.1:3310; phpMyAdmin is http://127.0.0.1:8096 (login with the local dnd_v4 user)'
+    $phpCommand=(Get-Command php -ErrorAction Stop).Source;$phpBinary=if($phpCommand -match '\.bat$'){Join-Path (Split-Path $phpCommand) 'php84\php.exe'}else{$phpCommand};if(!(Test-Path $phpBinary)){throw 'PHP executable not found.'}
+    $nodes=@(Get-Command node.exe -All -ErrorAction SilentlyContinue|ForEach-Object Source);$nodeBinary=$nodes|Where-Object {$_ -notmatch '\\Volta\\'}|Select-Object -First 1;if(!$nodeBinary){$nodeBinary=$nodes|Select-Object -First 1};if(!$nodeBinary){throw 'Node executable not found.'}
+    $viteEntry=Join-Path $script:Player 'node_modules\vite\bin\vite.js';$supervisor=Join-Path $script:V4Root 'scripts\portal\development-supervisor.mjs';if(!(Test-Path $viteEntry)){throw 'Vite entrypoint not found.'}
+    & $nodeBinary $supervisor $script:V4Root $script:Backend $phpBinary $viteEntry (Join-Path $script:V4Root 'runtime') (Join-Path $script:V4Root 'logs');if($LASTEXITCODE -ne 0){throw "Development supervisor exited with code $LASTEXITCODE."};$completed=$true
+}catch{Write-Error "V4 development startup failed: $($_.Exception.Message)";throw}finally{if(!$completed){Stop-PortalProcesses};docker compose -f $script:ComposeFile stop database phpmyadmin|Out-Null;Remove-Item (Join-Path $script:V4Root 'runtime\active-mode') -Force -ErrorAction SilentlyContinue;Write-Portal 'Development processes and V4 containers stopped.'}
