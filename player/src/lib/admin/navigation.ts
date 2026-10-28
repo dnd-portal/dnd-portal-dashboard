@@ -1,10 +1,10 @@
 import { adminPageMeta, type AdminPageKey } from '#lib/adminPageMeta.js';
 export const adminLinks: { id: AdminPageKey; group: string; href: string; label: string }[] = [
     ['overview', 'Overview'],
-    ['users', 'Users'],
-    ['invite-codes', 'Users'],
-    ['polls', 'Polls'],
-    ['activity', 'Activity']
+    ['users', 'Database'],
+    ['invite-codes', 'Database'],
+    ['polls', 'Campaign'],
+    ['activity', 'System']
     // TODO post-MVP: re-enable campaign administration when campaign workflows are implemented.
     // ['campaigns', 'Database'],
     // TODO post-MVP: re-enable memberships when campaign membership workflows are implemented.

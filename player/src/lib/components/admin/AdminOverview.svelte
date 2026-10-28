@@ -51,20 +51,29 @@
 {#if loading}<p role="status">Loading dashboard…</p>{:else if error}<p class="error-message" role="alert">
         {error}
     </p>{:else if data}<section class="admin-overview" aria-label="Admin overview content">
-        {#if data.admin}<section class="admin-overview__metrics" aria-label="MVP metrics">
+        {#if data.admin}<section class="admin-overview__metrics" aria-label="MVP administration links">
                 <a class="admin-overview__metric" href="/admin/users"
-                    ><span>Users</span><strong>{data.admin.users}</strong><small>Portal administration</small></a
+                    ><span>Users</span><strong>{data.admin.users}</strong><small>Manage accounts</small></a
+                >
+                <a class="admin-overview__metric" href="/admin/invite-codes"
+                    ><span>Invite codes</span><small>Review invitations</small></a
+                >
+                <a class="admin-overview__metric" href="/admin/polls"
+                    ><span>Polls</span><strong>{data.admin.polls}</strong><small>Manage global polls</small></a
+                >
+                <a class="admin-overview__metric" href="/admin/activity"
+                    ><span>Activity</span><small>Review recent changes</small></a
                 >
             </section>{/if}
         <!-- TODO post-MVP: restore session, contribution and balance metrics when those data sources are implemented. -->
         {#if data.admin}<DetailPanel eyebrow="RECENT ACTIVITY" title="Latest changes"
-                >{#if data.admin.activity.length}<div class="admin-overview__list">
-                        {#each data.admin.activity as item}<div class="admin-overview__list-row">
-                                <span><b>{item.actor_name ?? 'System'} · {humanEvent(item.event_type)}</b></span><time
-                                    >{formatDate(item.occurred_at)}</time
-                                >
-                            </div>{/each}
-                    </div>{:else}<p class="admin-overview__empty">
+                >{#if data.admin.activity.length}<ul class="admin-overview__list">
+                        {#each data.admin.activity as item}<li class="admin-overview__list-row">
+                                <span class="admin-overview__actor">{item.actor_name ?? 'Deleted user'}</span><span
+                                    class="admin-overview__event">{humanEvent(item.event_type)}</span
+                                ><time>{formatDate(item.occurred_at)}</time>
+                            </li>{/each}
+                    </ul>{:else}<p class="admin-overview__empty">
                         No activity has been recorded yet.
                     </p>{/if}</DetailPanel
             >{/if}

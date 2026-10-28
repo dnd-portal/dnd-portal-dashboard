@@ -24,10 +24,19 @@
     &__action {
         margin-left: auto;
         flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 7px 12px;
+        border: 1px solid $color-border;
+        border-radius: $radius-control;
+        background: $color-surface;
         color: $color-link;
         font-size: 1rem;
         text-decoration: none;
         &:hover {
+            border-color: $color-link;
+            background: $color-hover;
             color: $color-link-hover;
         }
     }

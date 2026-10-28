@@ -9,7 +9,7 @@
     }: { active: string; counts?: Record<string, number>; close?: () => void } = $props();
 </script>
 
-{#each ['Overview', 'Users', 'Polls', 'Activity'] as group}
+{#each ['Overview', 'Database', 'Campaign', 'System'] as group}
     {@const links = adminLinks.filter((link) => link.group === group)}
     {#if links.length}
         <section class="admin-sidebar__group">
