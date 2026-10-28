@@ -7,6 +7,12 @@
 3. Start `php -S 127.0.0.1:8099 -t public router.php` vanuit `backend/` en Vite vanuit `player/`.
 4. Controleer eerst `/api/v1/health`, daarna CSRF, login, me en logout.
 
+Voor uitsluitend de V4-developmentdatabase kan het bestaande lokale adminwachtwoord
+worden vervangen met `portal reset-local-admin-password`. Het commando accepteert
+geen accountkeuze, maakt geen gebruiker aan en vraagt het nieuwe wachtwoord tweemaal
+verborgen via PowerShell. Het werkt alleen `v4admin` bij wanneer `APP_ENV=local` en
+`DB_NAME=dnd_portal_v4_development` zijn ingesteld.
+
 ## InfinityFree
 
 Controleer eerst PHP-versie, `pdo_mysql`, `password_hash`-algoritme, cookie Secure-gedrag, HTTPS, webroot en MySQL-variant. Upload geen `.env`, `src/`, migrations of tests als publiek leesbare bestanden. Zet `APP_ENV=production`, de echte HTTPS-origin en sterke databasegegevens server-side. De backend maakt geen publieke installatie- of migratieroute.
