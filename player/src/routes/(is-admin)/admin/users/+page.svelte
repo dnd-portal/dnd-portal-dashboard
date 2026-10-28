@@ -261,13 +261,16 @@
                 >Username<input class="p-input" bind:value={username} /></label
             ><label
                 >Role<select class="p-input" bind:value={role}
-                    >{#each roles as item}<option value={item}>{item}</option>{/each}</select
+                    >{#each roles as item}<option value={item}>{roleLabel(item)}</option>{/each}</select
                 ></label
-            ><button
-                class="p-button"
-                disabled={busy || !displayName.trim() || !username.trim()}
-                onclick={() => void addUser()}>Create pending user</button
-            ><button class="secondary-button" onclick={closeAdd}>Cancel</button>
+            >
+            <div class="admin-mvp-modal__actions">
+                <button
+                    class="p-button"
+                    disabled={busy || !displayName.trim() || !username.trim()}
+                    onclick={() => void addUser()}>Create pending user</button
+                ><button class="p-button p-button--secondary" type="button" onclick={closeAdd}>Cancel</button>
+            </div>
         </div>
     </div>{/if}
 {#if showImport}<div class="admin-mvp-modal-backdrop">
@@ -280,7 +283,7 @@
             <label>Email<input class="p-input" type="email" bind:value={importEmail} autocomplete="off" /></label>
             <label
                 >Role<select class="p-input" bind:value={importRole}
-                    >{#each roles as item}<option value={item}>{item}</option>{/each}</select
+                    >{#each roles as item}<option value={item}>{roleLabel(item)}</option>{/each}</select
                 ></label
             >
             <label
@@ -292,16 +295,20 @@
                     spellcheck="false"
                 /></label
             >
-            <button
-                class="p-button"
-                disabled={busy ||
-                    !importDisplayName.trim() ||
-                    !importUsername.trim() ||
-                    !importEmail.trim() ||
-                    !importHash.trim()}
-                onclick={() => void importUser()}>{busy ? 'Importing…' : 'Import user'}</button
-            >
-            <button class="secondary-button" disabled={busy} onclick={closeImport}>Cancel</button>
+            <div class="admin-mvp-modal__actions">
+                <button
+                    class="p-button"
+                    disabled={busy ||
+                        !importDisplayName.trim() ||
+                        !importUsername.trim() ||
+                        !importEmail.trim() ||
+                        !importHash.trim()}
+                    onclick={() => void importUser()}>{busy ? 'Importing…' : 'Import user'}</button
+                >
+                <button class="p-button p-button--secondary" type="button" disabled={busy} onclick={closeImport}
+                    >Cancel</button
+                >
+            </div>
         </div>
     </div>{/if}
 {#if deleteUserTarget}<div class="admin-mvp-modal-backdrop">
@@ -311,22 +318,37 @@
                 This permanently removes {deleteUserTarget.display_name} and account-owned authentication data. Historical
                 records owned by the user are protected and will refuse deletion.
             </p>
-            <button class="p-button admin-mvp-danger-button" disabled={busy} onclick={() => void deleteUser()}
-                >{busy ? 'Deleting…' : 'Delete user'}</button
-            >
-            <button class="secondary-button" disabled={busy} onclick={() => (deleteUserTarget = null)}>Cancel</button>
+            <div class="admin-mvp-modal__actions">
+                <button class="p-button p-button--danger" disabled={busy} onclick={() => void deleteUser()}
+                    >{busy ? 'Deleting…' : 'Delete user'}</button
+                >
+                <button
+                    class="p-button p-button--secondary"
+                    type="button"
+                    disabled={busy}
+                    onclick={() => (deleteUserTarget = null)}>Cancel</button
+                >
+            </div>
         </div>
     </div>{/if}
 {#if inviteUser}<div class="admin-mvp-modal-backdrop">
         <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true">
             <h2>Generate an invitation</h2>
             <p>Generate an invitation so {inviteUser!.display_name} can register their account.</p>
-            {#if validInvite(inviteUser!.id)}<p>This pending user already has a valid invitation.</p>
-                <button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!, true)}
-                    >Revoke and generate new invitation</button
-                >{:else}<button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!)}
-                    >Generate invitation</button
-                >{/if}<button class="secondary-button" onclick={() => (inviteUser = null)}>Cancel</button>
+            <div class="admin-mvp-modal__actions">
+                {#if validInvite(inviteUser!.id)}<p>This pending user already has a valid invitation.</p>
+                    <button
+                        class="p-button p-button--danger"
+                        disabled={busy}
+                        onclick={() => void invite(inviteUser!, true)}>Revoke and generate new invitation</button
+                    >
+                {:else}<button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!)}
+                        >Generate invitation</button
+                    >{/if}
+                <button class="p-button p-button--secondary" type="button" onclick={() => (inviteUser = null)}
+                    >Cancel</button
+                >
+            </div>
         </div>
     </div>{/if}
 {#if generated}<div class="admin-mvp-modal-backdrop">
@@ -338,6 +360,10 @@
                 label="Copy link"
             />
             <p>This invitation can only be used once.</p>
-            <button class="secondary-button" onclick={() => (generated = null)}>Close</button>
+            <div class="admin-mvp-modal__actions">
+                <button class="p-button p-button--secondary" type="button" onclick={() => (generated = null)}
+                    >Close</button
+                >
+            </div>
         </div>
     </div>{/if}

@@ -27,6 +27,19 @@
     background: var(--p-accent-soft);
     color: var(--p-heading);
 }
+.p-button--danger {
+    border-color: color-mix(in srgb, var(--p-danger) 65%, var(--p-border));
+    background: transparent;
+    color: var(--p-danger);
+}
+.p-button--danger:hover {
+    background: color-mix(in srgb, var(--p-danger) 14%, transparent);
+}
+.p-button--compact {
+    min-height: 36px;
+    padding: 7px 12px;
+    font-size: 0.875rem;
+}
 .p-button:disabled {
     border-color: var(--p-border);
     background: var(--p-surface-raised);

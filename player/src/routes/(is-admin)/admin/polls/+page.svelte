@@ -7,6 +7,7 @@
     let title = $state('');
     let explanation = $state('');
     let options = $state('Thursday 29 October 2026\nFriday 30 October 2026');
+    let busy = $state(false);
     async function load() {
         try {
             polls = await api.get('/api/v1/admin/global-polls');
@@ -15,13 +16,21 @@
         }
     }
     async function create() {
-        await api.post('/api/v1/admin/global-polls', {
-            title,
-            explanation,
-            options: options.split('\n').filter(Boolean)
-        });
-        title = '';
-        await load();
+        busy = true;
+        error = '';
+        try {
+            await api.post('/api/v1/admin/global-polls', {
+                title,
+                explanation,
+                options: options.split('\n').filter(Boolean)
+            });
+            title = '';
+            await load();
+        } catch (e) {
+            error = e instanceof ApiRequestError ? e.message : 'Could not create poll.';
+        } finally {
+            busy = false;
+        }
     }
     async function setStatus(id: number, status: 'open' | 'closed') {
         await api.patch(`/api/v1/admin/global-polls/${id}`, { status });
@@ -50,8 +59,8 @@
         ></textarea>
         <small>Enter one date or option per line.</small>
         <div class="admin-mvp-form__actions">
-            <button class="primary-button" disabled={!title.trim() || !options.trim()} onclick={() => void create()}
-                >Create poll</button
+            <button class="p-button" disabled={busy || !title.trim() || !options.trim()} onclick={() => void create()}
+                >{busy ? 'Creating…' : 'Create poll'}</button
             >
         </div>
     </div>
@@ -68,11 +77,13 @@
             </div>
             <div class="admin-mvp-actions">
                 <button
-                    class="secondary-button"
+                    class={`p-button p-button--compact ${poll.status === 'open' ? 'p-button--danger' : ''}`}
                     onclick={() => void setStatus(poll.id, poll.status === 'open' ? 'closed' : 'open')}
                     >{poll.status === 'open' ? 'Close' : 'Open'}</button
                 >
-                <button class="secondary-button" onclick={() => void showResults(poll.id)}>Results</button>
+                <button class="p-button p-button--secondary p-button--compact" onclick={() => void showResults(poll.id)}
+                    >Results</button
+                >
             </div>
         </div>{/each}
     {#if results.options.length}<h2>Results</h2>

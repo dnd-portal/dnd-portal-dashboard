@@ -223,6 +223,12 @@
         margin: 6px 8px 0 0;
     }
 }
+.admin-mvp-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
 
 @media (max-width: $breakpoint-mobile) {
     .admin-mvp-toolbar {
