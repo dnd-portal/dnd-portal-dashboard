@@ -1,0 +1,123 @@
+@use '../variables' as *;
+
+.admin-mvp-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(220px, 1fr) 180px;
+    gap: 12px;
+    align-items: center;
+    margin: 24px 0;
+}
+
+.admin-mvp-table {
+    table {
+        table-layout: fixed;
+    }
+    th,
+    td {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+    th:nth-child(1) {
+        width: 17%;
+    }
+    th:nth-child(2) {
+        width: 15%;
+    }
+    th:nth-child(3) {
+        width: 22%;
+    }
+    th:nth-child(4) {
+        width: 17%;
+    }
+    th:nth-child(5) {
+        width: 12%;
+    }
+    th:nth-child(6) {
+        width: 10%;
+    }
+    th:nth-child(7) {
+        width: 120px;
+    }
+}
+
+.admin-mvp-wrap {
+    overflow-wrap: anywhere;
+}
+
+.admin-mvp-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 3px 9px;
+    border: 1px solid rgba($color-accent, 0.55);
+    border-radius: 999px;
+    color: $color-accent;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.admin-mvp-badge--pending {
+    border-color: rgba($color-link, 0.55);
+    color: $color-link;
+}
+
+.admin-mvp-empty {
+    margin-top: 24px;
+    text-align: center;
+    h2 {
+        margin-bottom: 8px;
+    }
+    p {
+        color: $color-text-muted;
+    }
+}
+
+.admin-mvp-link-button {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 12px;
+    color: #102015;
+    text-decoration: none;
+}
+
+.admin-mvp-modal-backdrop {
+    position: fixed;
+    z-index: 50;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.68);
+}
+
+.admin-mvp-modal {
+    width: min(100%, 560px);
+    max-height: min(720px, calc(100svh - 40px));
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    label {
+        display: grid;
+        gap: 6px;
+        margin: 14px 0;
+        color: $color-text;
+        font-weight: 700;
+    }
+    .p-input {
+        width: 100%;
+    }
+    .p-button,
+    .secondary-button {
+        margin: 6px 8px 0 0;
+    }
+}
+
+@media (max-width: $breakpoint-mobile) {
+    .admin-mvp-toolbar {
+        grid-template-columns: 1fr;
+    }
+    .admin-mvp-table {
+        table-layout: auto;
+        min-width: 720px;
+    }
+}

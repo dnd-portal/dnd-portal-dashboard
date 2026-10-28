@@ -12,6 +12,7 @@
 @use 'components/state';
 @use 'pages/dashboard';
 @use 'pages/auth';
+@use 'pages/admin-mvp';
 
 // These existing styles cover functional controls that have no v1 package equivalent.
 @use 'components/shared/dropdown-select';

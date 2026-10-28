@@ -33,6 +33,7 @@
     let displayName = $state('');
     let username = $state('');
     let role = $state('campaign_member');
+    let addTrigger = $state<HTMLButtonElement | null>(null);
     const roles = ['portal_admin', 'campaign_dm', 'campaign_member'];
     const validInvite = (id: number) =>
         invites.find(
@@ -70,6 +71,13 @@
             busy = false;
         }
     }
+    function closeAdd() {
+        showAdd = false;
+        addTrigger?.focus();
+    }
+    function handleKeydown(event: KeyboardEvent) {
+        if (event.key === 'Escape' && showAdd) closeAdd();
+    }
     async function invite(user: User, replace = false) {
         busy = true;
         error = '';
@@ -102,19 +110,19 @@
         );
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <div class="admin-shell">
-    <AdminHeader pageKey="users" />
+    <AdminHeader pageKey="users" subtitle="Manage active accounts and pending people who still need to register." />
     <section class="admin-detail">
         <div class="p-page-header">
-            <h1>Users</h1>
-            <p>Manage active accounts and pending people who still need to register.</p>
+            <p class="p-page-header__context">Accounts and invitations</p>
         </div>
-        <div class="admin-detail__actions">
-            <button class="primary-button" onclick={() => (showAdd = true)}>Add user</button><input
+        <div class="admin-mvp-toolbar">
+            <button bind:this={addTrigger} class="primary-button" onclick={() => (showAdd = true)}>Add user</button
+            ><input class="p-input" placeholder="Search name or username" bind:value={search} /><select
                 class="p-input"
-                placeholder="Search name or username"
-                bind:value={search}
-            /><select class="p-input" bind:value={filter}
+                bind:value={filter}
                 ><option value="all">All statuses</option><option value="active">Active</option><option value="pending"
                     >Pending</option
                 ></select
@@ -126,60 +134,86 @@
             >
                 {message}
             </p>{/if}
-        <div class="p-table-wrap">
-            <table>
-                <caption>Users</caption><thead
-                    ><tr
-                        ><th>Display name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th
-                            >Invitation</th
-                        ><th>Actions</th></tr
-                    ></thead
-                ><tbody
-                    >{#each visible() as user}<tr
-                            ><td>{user.display_name}</td><td>{user.username ?? '—'}</td><td
-                                >{user.email ?? 'Not registered yet'}</td
-                            ><td>{user.roles.join(', ') || '—'}</td><td
-                                >{user.account_status === 'invited' ? 'Pending' : 'Active'}</td
-                            ><td>{validInvite(user.id) ? 'Valid' : '—'}</td><td
-                                >{#if user.account_status === 'invited'}<button
-                                        class="secondary-button"
-                                        onclick={() => requestInvite(user)}>Invite</button
-                                    >{/if}</td
-                            ></tr
-                        >{/each}</tbody
-                >
-            </table>
-        </div>
+        {#if visible().length === 0}<div class="p-card admin-mvp-empty">
+                <h2>No users found</h2>
+                <p>Try another search or status filter.</p>
+            </div>{:else}<div class="p-table-wrap admin-mvp-table">
+                <table class="p-table">
+                    <caption>Users</caption><thead
+                        ><tr
+                            ><th>Display name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th
+                                >Invitation</th
+                            ><th>Actions</th></tr
+                        ></thead
+                    ><tbody
+                        >{#each visible() as user}<tr
+                                ><td class="admin-mvp-wrap">{user.display_name}</td><td class="admin-mvp-wrap"
+                                    >{user.username ?? '—'}</td
+                                ><td>{user.email ?? 'Not registered yet'}</td><td
+                                    >{user.roles
+                                        .map((item) =>
+                                            item.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+                                        )
+                                        .join(', ') || '—'}</td
+                                ><td
+                                    ><span
+                                        class:admin-mvp-badge--pending={user.account_status === 'invited'}
+                                        class="admin-mvp-badge"
+                                        >{user.account_status === 'invited' ? 'Pending' : 'Active'}</span
+                                    ></td
+                                ><td>{validInvite(user.id) ? 'Valid' : '—'}</td><td
+                                    >{#if user.account_status === 'invited'}<button
+                                            class="secondary-button"
+                                            onclick={() => requestInvite(user)}>Invite</button
+                                        >{/if}</td
+                                ></tr
+                            >{/each}</tbody
+                    >
+                </table>
+            </div>{/if}
     </section>
 </div>
-{#if showAdd}<div class="p-card" role="dialog" aria-modal="true" aria-labelledby="add-user-title">
-        <h2 id="add-user-title">Add user</h2>
-        <label>Display name<input class="p-input" bind:value={displayName} /></label><label
-            >Username<input class="p-input" bind:value={username} /></label
-        ><label
-            >Role<select class="p-input" bind:value={role}
-                >{#each roles as item}<option value={item}>{item}</option>{/each}</select
-            ></label
-        ><button
-            class="p-button"
-            disabled={busy || !displayName.trim() || !username.trim()}
-            onclick={() => void addUser()}>Create pending user</button
-        ><button class="secondary-button" onclick={() => (showAdd = false)}>Cancel</button>
+{#if showAdd}<div
+        class="admin-mvp-modal-backdrop"
+        role="presentation"
+        onclick={(event) => event.target === event.currentTarget && closeAdd()}
+    >
+        <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true" aria-labelledby="add-user-title">
+            <h2 id="add-user-title">Add user</h2>
+            <label>Display name<input class="p-input" bind:value={displayName} /></label><label
+                >Username<input class="p-input" bind:value={username} /></label
+            ><label
+                >Role<select class="p-input" bind:value={role}
+                    >{#each roles as item}<option value={item}>{item}</option>{/each}</select
+                ></label
+            ><button
+                class="p-button"
+                disabled={busy || !displayName.trim() || !username.trim()}
+                onclick={() => void addUser()}>Create pending user</button
+            ><button class="secondary-button" onclick={closeAdd}>Cancel</button>
+        </div>
     </div>{/if}
-{#if inviteUser}<div class="p-card" role="dialog" aria-modal="true">
-        <h2>Generate an invitation</h2>
-        <p>Generate an invitation so {inviteUser!.display_name} can register their account.</p>
-        {#if validInvite(inviteUser!.id)}<p>This pending user already has a valid invitation.</p>
-            <button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!, true)}
-                >Revoke and generate new invitation</button
-            >{:else}<button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!)}
-                >Generate invitation</button
-            >{/if}<button class="secondary-button" onclick={() => (inviteUser = null)}>Cancel</button>
+{#if inviteUser}<div class="admin-mvp-modal-backdrop">
+        <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true">
+            <h2>Generate an invitation</h2>
+            <p>Generate an invitation so {inviteUser!.display_name} can register their account.</p>
+            {#if validInvite(inviteUser!.id)}<p>This pending user already has a valid invitation.</p>
+                <button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!, true)}
+                    >Revoke and generate new invitation</button
+                >{:else}<button class="p-button" disabled={busy} onclick={() => void invite(inviteUser!)}
+                    >Generate invitation</button
+                >{/if}<button class="secondary-button" onclick={() => (inviteUser = null)}>Cancel</button>
+        </div>
     </div>{/if}
-{#if generated}<div class="p-card" role="dialog" aria-modal="true">
-        <h2>Invitation created</h2>
-        <p>{generated.name} ({generated.username}) can register once using this link.</p>
-        <input class="p-input" readonly value={generated.url} /><CopyButton value={generated.url} label="Copy link" />
-        <p>This invitation can only be used once.</p>
-        <button class="secondary-button" onclick={() => (generated = null)}>Close</button>
+{#if generated}<div class="admin-mvp-modal-backdrop">
+        <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true">
+            <h2>Invitation created</h2>
+            <p>{generated.name} ({generated.username}) can register once using this link.</p>
+            <input class="p-input" readonly value={generated.url} /><CopyButton
+                value={generated.url}
+                label="Copy link"
+            />
+            <p>This invitation can only be used once.</p>
+            <button class="secondary-button" onclick={() => (generated = null)}>Close</button>
+        </div>
     </div>{/if}
