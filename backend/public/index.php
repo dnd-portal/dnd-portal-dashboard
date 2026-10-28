@@ -185,6 +185,12 @@ $router->post('/api/v1/admin/rate-limits/reset-all', static function ($r) {
 $router->get('/api/v1/global-polls/current', static function () {
     $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); new GlobalPollService($db)->current($a->currentId());
 });
+$router->get('/api/v1/global-polls', static function () {
+    $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); new GlobalPollService($db)->listAvailable($a->currentId());
+});
+$router->get('/api/v1/global-polls/{id}', static function ($r) {
+    $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->detail($a->currentId(),(int)($parts[3]??0));
+});
 $router->put('/api/v1/global-polls/{id}/response', static function ($r) {
     Security::csrf($r,true); $db=Connection::make(); $a=new AuthService($db,new SessionStore($db)); $parts=explode('/',trim($r->path(),'/')); new GlobalPollService($db)->answer($a->currentId(),(int)($parts[3]??0),$r->json());
 });

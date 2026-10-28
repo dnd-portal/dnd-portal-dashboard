@@ -1,6 +1,10 @@
+import { writable } from 'svelte/store';
+
+export const playerPollTitle = writable('');
+
 export const playerLinks = [
     { id: 'overview', label: 'Overview', href: '/dashboard', icon: 'dashboard' },
-    { id: 'polls', label: 'Polls', href: '/dashboard/polls/current', icon: 'polls' },
+    { id: 'polls', label: 'Polls', href: '/dashboard/polls', icon: 'polls' },
     // TODO post-MVP: re-enable sessions when campaign session management is implemented.
     // { id: 'sessions', label: 'Sessions', href: '/dashboard/sessions', icon: 'sessions' },
     // TODO post-MVP: re-enable party when campaign membership data is available.
@@ -18,13 +22,16 @@ export function playerLinkIsActive(id: (typeof playerLinks)[number]['id'], pathn
     );
 }
 
-export function playerBreadcrumbs(pathname: string): { label: string; href?: string }[] {
-    if (pathname.startsWith('/dashboard/polls')) {
+export function playerBreadcrumbs(pathname: string, title?: string): { label: string; href?: string }[] {
+    if (pathname.match(/^\/dashboard\/polls\/[^/]+$/)) {
         return [
             { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Polls', href: '/dashboard/polls/current' },
-            { label: 'Current poll' }
+            { label: 'Polls', href: '/dashboard/polls' },
+            { label: title || 'Poll' }
         ];
+    }
+    if (pathname.startsWith('/dashboard/polls')) {
+        return [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Polls' }];
     }
     if (pathname.startsWith('/dashboard/profile')) {
         return [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Profile' }];

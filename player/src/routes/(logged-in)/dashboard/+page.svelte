@@ -14,8 +14,12 @@
     {#if user}<p class="p-dashboard__welcome-user">{user.display_name}</p>{/if}
     <p>Your global portal workspace.</p>
 </section>
-<section class="p-card">
-    <h2>Current global poll</h2>
-    <p>Share your availability or preference with the group.</p>
-    <a class="p-button" href="/dashboard/polls/current">Open current poll <span aria-hidden="true">→</span></a>
+<section class="p-card dashboard-poll-card">
+    <div>
+        <h2>Current global poll</h2>
+        <p>Share your availability or preference with the group.</p>
+    </div>
+    <footer class="dashboard-poll-card__footer">
+        <a class="p-button" href="/dashboard/polls">View open polls <span aria-hidden="true">→</span></a>
+    </footer>
 </section>

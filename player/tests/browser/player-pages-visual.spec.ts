@@ -24,7 +24,7 @@ function mockPlayerApi(page: import('@playwright/test').Page, poll: unknown) {
                     body: JSON.stringify({ data: { token: 'test-token' } })
                 })
             );
-            await page.route('**/api/v1/global-polls/current', (route) =>
+            await page.route('**/api/v1/global-polls/7', (route) =>
                 route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: poll }) })
             );
             await page.route('**/api/v1/global-polls/7/response', async (route) => {
@@ -59,7 +59,7 @@ for (const viewport of [
             selected_option_ids: []
         });
         await state.setup();
-        await page.goto('/dashboard/polls/current');
+        await page.goto('/dashboard/polls/7');
         await expect(page.getByRole('checkbox')).toHaveCount(2);
         await page.getByRole('checkbox').nth(0).check();
         await page.getByRole('checkbox').nth(1).check();
@@ -85,15 +85,19 @@ test('poll closed and empty states stay readable', async ({ page }) => {
         selected_option_ids: [1]
     });
     await closed.setup();
-    await page.goto('/dashboard/polls/current');
+    await page.goto('/dashboard/polls/7');
     await expect(page.getByText('This poll is closed')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Save answer' })).toHaveCount(0);
-    await page.unroute('**/api/v1/global-polls/current');
-    await page.route('**/api/v1/global-polls/current', (route) =>
-        route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: null }) })
+    await page.unroute('**/api/v1/global-polls/7');
+    await page.route('**/api/v1/global-polls/7', (route) =>
+        route.fulfill({
+            status: 404,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: { code: 'not_found', message: 'Poll not found.' } })
+        })
     );
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'No open poll' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Poll unavailable' })).toBeVisible();
 });
 
 test('player navigation and breadcrumbs follow the current route', async ({ page }) => {
@@ -104,10 +108,10 @@ test('player navigation and breadcrumbs follow the current route', async ({ page
     const dashboardNav = page.getByRole('navigation', { name: 'Dashboard' });
     await expect(dashboardNav.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
     await expect(dashboardNav.getByRole('link', { name: 'Polls' })).not.toHaveAttribute('aria-current', 'page');
-    await page.goto('/dashboard/polls/current');
+    await page.goto('/dashboard/polls/7');
     await expect(dashboardNav.getByRole('link', { name: 'Polls' })).toHaveAttribute('aria-current', 'page');
     await expect(dashboardNav.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current', 'page');
-    await expect(page.locator('.p-shell__breadcrumb')).toContainText('Dashboard / Polls / Current poll');
+    await expect(page.locator('.p-shell__breadcrumb')).toContainText('Dashboard / Polls / Poll');
     await page.goto('/dashboard/profile');
     await expect(dashboardNav.getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('.p-shell__breadcrumb')).toContainText('Dashboard / Profile');
@@ -126,4 +130,44 @@ test('profile uses friendly role labels without duplicate sign out content', asy
     await expect(page.getByText('campaign memberships')).toHaveCount(0);
     await expect(page.getByRole('main').getByRole('button', { name: /sign out/i })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+test('poll overview lists multiple open polls and opens the selected detail', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.route('**/api/v1/auth/me', (route) =>
+        route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: user }) })
+    );
+    await page.route('**/api/v1/global-polls', (route) =>
+        route.fulfill({
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [
+                    { id: 7, title: 'First poll', explanation: 'First description', status: 'open', selected_count: 0 },
+                    { id: 8, title: 'Second poll', explanation: null, status: 'open', selected_count: 2 }
+                ]
+            })
+        })
+    );
+    await page.route('**/api/v1/global-polls/8', (route) =>
+        route.fulfill({
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: {
+                    id: 8,
+                    title: 'Second poll',
+                    explanation: null,
+                    choice_type: 'multiple',
+                    status: 'open',
+                    options: [{ id: 3, label: 'Friday' }],
+                    selected_option_ids: [3]
+                }
+            })
+        })
+    );
+    await page.goto('/dashboard/polls');
+    await expect(page.getByRole('link', { name: /First poll/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Second poll/ })).toContainText('Answered');
+    await expect(page.getByRole('link', { name: /Second poll/ })).toContainText('2 dates selected');
+    await page.getByRole('link', { name: /Second poll/ }).click();
+    await expect(page.getByRole('heading', { name: 'Second poll' })).toBeVisible();
 });

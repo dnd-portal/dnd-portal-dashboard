@@ -15,6 +15,20 @@ final class GlobalPollService {
         $poll['selected_option_ids']=array_map('intval',array_column($q->fetchAll(),'option_id'));
         Response::json(['data'=>$poll]);
     }
+    public function listAvailable(int $uid): never {
+        $q=$this->db->prepare('SELECT p.id,p.title,p.explanation,p.choice_type,p.status,p.created_at,p.updated_at,COUNT(r.option_id) selected_count FROM global_polls p LEFT JOIN global_poll_responses r ON r.poll_id=p.id AND r.user_id=? WHERE p.status="open" GROUP BY p.id,p.title,p.explanation,p.choice_type,p.status,p.created_at,p.updated_at ORDER BY p.updated_at DESC,p.id DESC');
+        $q->execute([$uid]);
+        Response::json(['data'=>$q->fetchAll()]);
+    }
+    public function detail(int $uid,int $id): never {
+        $q=$this->db->prepare('SELECT * FROM global_polls WHERE id=? AND status IN ("open","closed")');
+        $q->execute([$id]); $poll=$q->fetch();
+        if (!$poll) Response::error('not_found','Poll not found or unavailable.',404);
+        $poll['options']=$this->options($id);
+        $s=$this->db->prepare('SELECT option_id FROM global_poll_responses WHERE poll_id=? AND user_id=? ORDER BY option_id');
+        $s->execute([$id,$uid]); $poll['selected_option_ids']=array_map('intval',array_column($s->fetchAll(),'option_id'));
+        Response::json(['data'=>$poll]);
+    }
     public function answer(int $uid,int $id,array $in): never {
         $q=$this->db->prepare('SELECT choice_type,status FROM global_polls WHERE id=?'); $q->execute([$id]); $poll=$q->fetch();
         if (!$poll) Response::error('not_found','Poll not found.',404);

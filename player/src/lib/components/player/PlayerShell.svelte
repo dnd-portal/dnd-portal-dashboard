@@ -2,13 +2,13 @@
     import { page } from '$app/state';
     import { api } from '#lib/api/index.js';
     import AdminIcon from '#lib/components/admin/AdminIcon.svelte';
-    import { playerBreadcrumbs, playerLinkIsActive, playerLinks } from '#lib/navigation.js';
+    import { playerBreadcrumbs, playerLinkIsActive, playerLinks, playerPollTitle } from '#lib/navigation.js';
     import type { Snippet } from 'svelte';
 
     type User = { display_name: string; username: string | null; roles?: string[] };
     let { user, campaignName, children }: { user: User; campaignName?: string; children: Snippet } = $props();
     let menuOpen = $state(false);
-    const breadcrumbs = $derived(playerBreadcrumbs(page.url.pathname));
+    const breadcrumbs = $derived(playerBreadcrumbs(page.url.pathname, $playerPollTitle));
 
     async function logout() {
         await api.post('/api/v1/auth/logout', {});

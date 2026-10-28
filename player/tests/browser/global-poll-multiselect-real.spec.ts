@@ -54,6 +54,12 @@ test('global poll supports isolated multi-select persistence and result counts',
     expect(pollResponse.status()).toBe(200);
     const poll = (await pollResponse.json()).data;
     expect(poll.choice_type).toBe('multiple');
+    const available = await call(admin, 'GET', '/api/v1/global-polls');
+    expect(available.status()).toBe(200);
+    expect((await available.json()).data.some((item: { id: number }) => item.id === poll.id)).toBe(true);
+    const detail = await call(player, 'GET', `/api/v1/global-polls/${poll.id}`);
+    expect(detail.status()).toBe(200);
+    expect((await detail.json()).data.id).toBe(poll.id);
     const [first, second, third] = poll.options.map((option: { id: number }) => option.id);
     expect(
         (
