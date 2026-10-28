@@ -98,11 +98,7 @@
                     .then((dashboard) => {
                         if (!dashboard.admin) return;
                         navCounts = {
-                            users: dashboard.admin.users,
-                            campaigns: dashboard.admin.campaigns,
-                            sessions: dashboard.admin.sessions,
-                            polls: dashboard.admin.polls,
-                            payments: dashboard.admin.payments
+                            users: dashboard.admin.users
                         };
                     })
                     .catch(() => {

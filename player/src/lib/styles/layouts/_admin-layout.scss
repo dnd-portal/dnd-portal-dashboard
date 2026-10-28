@@ -139,7 +139,9 @@
 .admin-content {
     min-width: 0;
     min-height: 100svh;
-    margin-left: $admin-sidebar-width;
+    // The surrounding p-shell grid already reserves the sidebar column.
+    // Adding another sidebar margin here shifts content one full column too far right.
+    margin-left: 0;
     padding: 96px clamp(20px, 4vw, 56px) 64px;
     > .admin-shell {
         width: 100%;
