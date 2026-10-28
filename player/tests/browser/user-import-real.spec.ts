@@ -4,7 +4,13 @@ test('admin can import an existing hash without creating an invitation', async (
     const password = process.env.TEST_IMPORT_PASSWORD;
     const hash = process.env.TEST_IMPORT_HASH;
     const adminPassword = process.env.INITIAL_ADMIN_PASSWORD ?? process.env.TEST_ADMIN_PASSWORD;
-    if (!password || !hash || !adminPassword) throw new Error('Dedicated import-test credentials are required.');
+    const database = process.env.TEST_DB_NAME ?? '';
+    if (!/^dnd_portal_test_run_[0-9]+$/.test(database) || database === 'dnd_portal_v4_development') {
+        throw new Error('Refusing import test outside a dedicated dnd_portal_test_run_* database.');
+    }
+    if (!password || !hash || !adminPassword || !process.env.TEST_IMPORT_USERNAME || !process.env.TEST_IMPORT_EMAIL) {
+        throw new Error('Dedicated import-test credentials are required.');
+    }
     const origin = 'http://127.0.0.1:5174';
     const api = await playwright.request.newContext({
         baseURL: process.env.TEST_BACKEND_URL ?? 'http://127.0.0.1:8099',
@@ -28,12 +34,13 @@ test('admin can import an existing hash without creating an invitation', async (
     const suffix = Date.now();
     const imported = await post('/api/v1/admin/users/import', {
         display_name: 'Imported User',
-        username: `imported-${suffix}`,
-        email: `imported-${suffix}@example.test`,
+        username: process.env.TEST_IMPORT_USERNAME,
+        email: process.env.TEST_IMPORT_EMAIL,
         role: 'campaign_member',
         password_hash: hash
     });
     expect(imported.status()).toBe(201);
+    expect(await imported.text()).not.toContain(hash);
     const importedData = (await imported.json()).data;
     expect(importedData.account_status).toBe('active');
     expect(importedData.roles).toContain('campaign_member');
@@ -73,6 +80,18 @@ test('admin can import an existing hash without creating an invitation', async (
         }
     });
     expect(missingCsrf.status()).toBe(419);
+    const invalidCsrf = await api.fetch('/api/v1/admin/users/import', {
+        method: 'POST',
+        headers: { Origin: origin, 'X-CSRF-Token': 'invalid-test-token', 'Content-Type': 'application/json' },
+        data: {
+            display_name: 'Invalid CSRF',
+            username: `badcsrf-${suffix}`,
+            email: `badcsrf-${suffix}@example.test`,
+            role: 'campaign_member',
+            password_hash: hash
+        }
+    });
+    expect(invalidCsrf.status()).toBe(419);
     const userApi = await playwright.request.newContext({
         baseURL: process.env.TEST_BACKEND_URL ?? 'http://127.0.0.1:8099',
         extraHTTPHeaders: { Origin: origin }
