@@ -4,6 +4,17 @@ async function ready(page: Page) {
     await expect(page.locator('.admin-app')).toHaveAttribute('data-hydrated', 'true');
 }
 
+test.beforeEach(async ({ page }) => {
+    const identifier = process.env.REAL_BACKEND_EMAIL;
+    const password = process.env.REAL_BACKEND_PASSWORD;
+    if (!identifier || !password) throw new Error('REAL_BACKEND_EMAIL and REAL_BACKEND_PASSWORD are required.');
+    await page.goto('/login');
+    await page.getByLabel('Email or username').fill(identifier);
+    await page.getByLabel('Password').fill(password);
+    await page.getByRole('button', { name: /Continue with email/ }).click();
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
+});
+
 const routes = [
     '/admin',
     '/admin/users',
