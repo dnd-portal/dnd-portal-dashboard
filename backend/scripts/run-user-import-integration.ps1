@@ -51,7 +51,7 @@ try {
     do { try { Invoke-WebRequest 'http://127.0.0.1:8099/api/v1/health' -UseBasicParsing -TimeoutSec 2 | Out-Null; break } catch { Start-Sleep -Milliseconds 250 } } while ((Get-Date) -lt $deadline)
     if (-not (Get-NetTCPConnection -LocalPort 8099 -State Listen -ErrorAction SilentlyContinue)) { throw 'Test PHP server did not listen.' }
     Push-Location $player
-    pnpm exec playwright test tests/browser/user-import-real.spec.ts tests/browser/invitation-register-real.spec.ts --reporter=line
+    pnpm exec playwright test tests/browser/user-import-real.spec.ts tests/browser/invitation-register-real.spec.ts tests/browser/global-poll-multiselect-real.spec.ts --reporter=line
     if ($LASTEXITCODE -ne 0) { throw "Import HTTP integration test failed with exit code $LASTEXITCODE." }
     Pop-Location
     $stored = php -r "require 'backend/src/Config.php'; \DndPortal\Config::loadDotEnv('backend/.env'); require 'backend/src/Database/Connection.php'; `$db=\DndPortal\Database\Connection::make(); `$q=`$db->prepare('SELECT password_hash FROM user_credentials JOIN users ON users.id=user_credentials.user_id WHERE users.username=?'); `$q->execute([getenv('TEST_IMPORT_USERNAME')]); echo hash_equals(getenv('TEST_IMPORT_HASH'), (string) `$q->fetchColumn()) ? 'HASH_BYTE_MATCH=1' : 'HASH_BYTE_MATCH=0'; `$q=`$db->prepare('SELECT COUNT(*) FROM registration_invites WHERE invited_user_id=(SELECT id FROM users WHERE username=?)'); `$q->execute([getenv('TEST_IMPORT_USERNAME')]); echo ((int) `$q->fetchColumn() === 0) ? ' NO_INVITE=1' : ' NO_INVITE=0'; `$q=`$db->query('SELECT COUNT(*) FROM audit_events WHERE event_type=\'user.imported\''); echo ((int) `$q->fetchColumn() > 0) ? ' AUDIT=1' : ' AUDIT=0';"
