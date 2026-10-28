@@ -222,6 +222,12 @@ $router->post('/api/v1/users/{id}/disable', static function ($r) {
     $parts = explode('/', trim($r->path(), '/'));
     $a->disable($a->requireRole('portal_admin'), (int) ($parts[3] ?? 0));
 });
+$router->delete('/api/v1/users/{id}', static function ($r) {
+    Security::csrf($r, true);
+    $db = Connection::make();
+    $a = new AuthService($db, new SessionStore($db));
+    $a->deleteUser($a->requireRole('portal_admin'), (int) basename($r->path()));
+});
 $router->get('/api/v1/campaigns', static function () {
     $db = Connection::make();
     $a = new AuthService($db, new SessionStore($db));

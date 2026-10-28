@@ -30,6 +30,7 @@
     let showAdd = $state(false);
     let showImport = $state(false);
     let inviteUser = $state<User | null>(null);
+    let deleteUserTarget = $state<User | null>(null);
     let generated = $state<{ name: string; username: string; url: string } | null>(null);
     let displayName = $state('');
     let username = $state('');
@@ -90,6 +91,7 @@
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === 'Escape' && showAdd) closeAdd();
         if (event.key === 'Escape' && showImport) closeImport();
+        if (event.key === 'Escape' && deleteUserTarget) deleteUserTarget = null;
     }
     async function importUser() {
         busy = true;
@@ -112,6 +114,21 @@
             importHash = '';
         } catch (e) {
             importError = e instanceof ApiRequestError ? e.message : 'Unable to import user.';
+        } finally {
+            busy = false;
+        }
+    }
+    async function deleteUser() {
+        if (!deleteUserTarget) return;
+        busy = true;
+        error = '';
+        try {
+            await api.delete(`/api/v1/users/${deleteUserTarget.id}`);
+            users = users.filter((user) => user.id !== deleteUserTarget!.id);
+            message = `${deleteUserTarget.display_name} was deleted.`;
+            deleteUserTarget = null;
+        } catch (e) {
+            error = e instanceof ApiRequestError ? e.message : 'Unable to delete user.';
         } finally {
             busy = false;
         }
@@ -205,7 +222,10 @@
                                     >{#if user.account_status === 'invited'}<button
                                             class="secondary-button"
                                             onclick={() => requestInvite(user)}>Invite</button
-                                        >{/if}</td
+                                        >{/if}<button
+                                        class="secondary-button admin-mvp-danger-button"
+                                        onclick={() => (deleteUserTarget = user)}>Delete</button
+                                    ></td
                                 ></tr
                             >{/each}</tbody
                     >
@@ -265,6 +285,19 @@
                 onclick={() => void importUser()}>{busy ? 'Importing…' : 'Import user'}</button
             >
             <button class="secondary-button" disabled={busy} onclick={closeImport}>Cancel</button>
+        </div>
+    </div>{/if}
+{#if deleteUserTarget}<div class="admin-mvp-modal-backdrop">
+        <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true" aria-labelledby="delete-user-title">
+            <h2 id="delete-user-title">Delete user?</h2>
+            <p>
+                This permanently removes {deleteUserTarget.display_name} and account-owned authentication data. Historical
+                records owned by the user are protected and will refuse deletion.
+            </p>
+            <button class="p-button admin-mvp-danger-button" disabled={busy} onclick={() => void deleteUser()}
+                >{busy ? 'Deleting…' : 'Delete user'}</button
+            >
+            <button class="secondary-button" disabled={busy} onclick={() => (deleteUserTarget = null)}>Cancel</button>
         </div>
     </div>{/if}
 {#if inviteUser}<div class="admin-mvp-modal-backdrop">

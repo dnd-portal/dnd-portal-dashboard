@@ -842,6 +842,47 @@ final class AuthService {
         Response::json(['data' => $this->profile($id)]);
     }
 
+    public function deleteUser(int $admin, int $id): never {
+        if ($id === $admin) Response::error('forbidden', 'You cannot delete your own account.', 403);
+        $this->db->beginTransaction();
+        try {
+            $q = $this->db->prepare('SELECT id, account_status FROM users WHERE id=? FOR UPDATE');
+            $q->execute([$id]);
+            $target = $q->fetch();
+            if (!$target) Response::error('not_found', 'User not found.', 404);
+            $q = $this->db->prepare("SELECT COUNT(*) FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.role_key='portal_admin'");
+            $q->execute([$id]);
+            if ((int) $q->fetchColumn() > 0) {
+                $q = $this->db->query("SELECT COUNT(*) FROM users u JOIN user_roles ur ON ur.user_id=u.id JOIN roles r ON r.id=ur.role_id WHERE u.account_status='active' AND r.role_key='portal_admin'");
+                if ((int) $q->fetchColumn() <= 1) Response::error('last_admin', 'The last active administrator cannot be deleted.', 409);
+            }
+            foreach (['campaigns' => 'created_by', 'game_sessions' => 'created_by', 'polls' => 'created_by', 'payment_requests' => 'created_by', 'global_polls' => 'created_by', 'registration_invites' => 'created_by'] as $table => $column) {
+                $q = $this->db->prepare("SELECT COUNT(*) FROM {$table} WHERE {$column}=?");
+                $q->execute([$id]);
+                if ((int) $q->fetchColumn() > 0) Response::error('protected_user', 'This user owns historical records and cannot be deleted.', 409);
+            }
+            foreach (['poll_votes', 'registration_invites', 'password_reset_tokens', 'auth_sessions', 'user_credentials', 'user_roles', 'campaign_memberships', 'session_participants', 'user_availability', 'poll_participants', 'global_poll_responses'] as $table) {
+                $column = $table === 'registration_invites' ? null : ($table === 'poll_votes' || $table === 'poll_participants' ? 'user_id' : 'user_id');
+                if ($table === 'registration_invites') {
+                    $q = $this->db->prepare('DELETE FROM registration_invites WHERE invited_user_id=? OR consumed_by_user_id=?');
+                    $q->execute([$id, $id]);
+                } else {
+                    $q = $this->db->prepare("DELETE FROM {$table} WHERE {$column}=?");
+                    $q->execute([$id]);
+                }
+            }
+            $q = $this->db->prepare('DELETE FROM users WHERE id=?');
+            $q->execute([$id]);
+            if ($q->rowCount() !== 1) throw new \RuntimeException('User deletion failed.');
+            $this->audit($admin, 'user.deleted');
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            Response::error($e->getMessage() === 'last_admin' ? 'last_admin' : 'conflict', 'User could not be deleted.', 409);
+        }
+        Response::json(['data' => ['deleted' => true, 'user_id' => $id]]);
+    }
+
     private function norm(mixed $v): ?string {
         $v = trim((string) $v);
         return $v === '' ? null : strtolower($v);
