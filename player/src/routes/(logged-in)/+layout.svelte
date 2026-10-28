@@ -4,7 +4,7 @@
     import { page } from '$app/state';
     import { api, ApiRequestError } from '#lib/api/index.js';
     import ContentState from '#lib/components/shared/ContentState.svelte';
-    import PlayerShell from '#lib/components/player/PlayerShell.svelte';
+    import PlayerShell from '#lib/components/layouts/PlayerShell.svelte';
     import { providePlayerUser, type PlayerContext, type PlayerUser } from '#lib/player/context.js';
     import type { LayoutProps } from './$types';
 

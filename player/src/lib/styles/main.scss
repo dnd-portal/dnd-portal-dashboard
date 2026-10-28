@@ -14,8 +14,6 @@
 @use 'pages/auth';
 @use 'pages/admin-mvp';
 @use 'pages/admin/overview';
-@use 'layouts/admin-layout';
-@use 'components/admin/header';
 @use 'components/admin/table' as admin-table;
 
 // These existing styles cover functional controls that have no v1 package equivalent.
