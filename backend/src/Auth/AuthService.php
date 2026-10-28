@@ -158,6 +158,19 @@ final class AuthService {
         $h = hash('sha256', $code, true);
         $this->db->beginTransaction();
         try {
+            if ($target !== null) {
+                $q = $this->db->prepare('SELECT id, account_status FROM users WHERE id=? FOR UPDATE');
+                $q->execute([$target]);
+                $user = $q->fetch();
+                if (!$user || $user['account_status'] !== 'invited') {
+                    Response::error('validation_failed', 'Only a pending user can be invited.', 422);
+                }
+                $q = $this->db->prepare('SELECT id, expires_at FROM registration_invites WHERE invited_user_id=? AND consumed_at IS NULL AND revoked_at IS NULL AND expires_at>? LIMIT 1');
+                $q->execute([$target, gmdate('Y-m-d H:i:s.u')]);
+                if ($existing = $q->fetch()) {
+                    Response::error('existing_invite', 'A valid invitation already exists for this user.', 409, ['id' => (int) $existing['id'], 'expires_at' => $existing['expires_at']]);
+                }
+            }
             if ($target === null && $email !== null) {
                 $q = $this->db->prepare(
                     <<<'SQL'
@@ -238,6 +251,27 @@ final class AuthService {
             ],
             201,
         );
+    }
+
+    public function createPending(int $admin, array $in): never {
+        $name = trim((string) ($in['display_name'] ?? ''));
+        $username = $this->norm($in['username'] ?? null);
+        $role = (string) ($in['role'] ?? '');
+        if ($name === '' || $username === null || !in_array($role, ['portal_admin', 'campaign_dm', 'campaign_member'], true)) Response::error('validation_failed', 'Display name, username and a valid role are required.', 422);
+        $this->db->beginTransaction();
+        try {
+            $q=$this->db->prepare('SELECT id FROM users WHERE username=?');$q->execute([$username]);if($q->fetchColumn()!==false)Response::error('validation_failed','Username is already in use.',422);
+            $q=$this->db->prepare('INSERT INTO users(display_name,username,account_status) VALUES(?,?,"invited")');
+            $q->execute([$name,$username]);$id=(int)$this->db->lastInsertId();
+            $q=$this->db->prepare('INSERT INTO user_roles(user_id,role_id) SELECT ?,id FROM roles WHERE role_key=?');$q->execute([$id,$role]);
+            if($q->rowCount()!==1)throw new \RuntimeException('Role not found.');$this->audit($admin,'user.pending_created');$this->db->commit();
+        }catch(\Throwable $e){if($this->db->inTransaction())$this->db->rollBack();if($e instanceof \DndPortal\Http\Response)throw $e;Response::error('validation_failed','Pending user could not be created.',422);}
+        Response::json(['data'=>$this->profile($id)],201);
+    }
+
+    public function listInvites(int $admin): never {
+        $q=$this->db->query('SELECT i.id,i.invited_user_id,i.invited_email,i.created_at,i.expires_at,i.consumed_at,i.revoked_at,u.display_name,u.username FROM registration_invites i LEFT JOIN users u ON u.id=i.invited_user_id ORDER BY i.id DESC LIMIT 100');
+        Response::json(['data'=>$q->fetchAll()]);
     }
 
     public function resetIssue(int $admin, array $in): never {
@@ -329,10 +363,14 @@ final class AuthService {
                 $q->execute([$displayName, $email, $username]);
                 $uid = (int) $this->db->lastInsertId();
             } else {
+                $q = $this->db->prepare('SELECT display_name, username FROM users WHERE id=? AND account_status="invited" FOR UPDATE');
+                $q->execute([$uid]);
+                $pending = $q->fetch();
+                if (!$pending) Response::error('invalid_invite', 'Invite is no longer available.', 422);
                 $q = $this->db->prepare(
-                    'UPDATE users SET email = ?, username = ?, display_name = ?, account_status = "active", updated_at = ? WHERE id = ? AND account_status = "invited"'
+                    'UPDATE users SET email = ?, account_status = "active", updated_at = ? WHERE id = ? AND account_status = "invited"'
                 );
-                $q->execute([$email, $username, $displayName, gmdate('Y-m-d H:i:s.u'), $uid]);
+                $q->execute([$email, gmdate('Y-m-d H:i:s.u'), $uid]);
                 if ($q->rowCount() !== 1) {
                     Response::error('invalid_invite', 'Invite is no longer available.', 422);
                 }
@@ -377,8 +415,11 @@ final class AuthService {
             <<<'SQL'
             SELECT
                 id,
-                invited_user_id
+                invited_user_id,
+                u.display_name,
+                u.username
             FROM registration_invites
+            LEFT JOIN users u ON u.id=registration_invites.invited_user_id
             WHERE
                 code_hash = ?
                 AND consumed_at IS NULL
@@ -392,7 +433,7 @@ final class AuthService {
         if (!$invite) {
             Response::error('invalid_invite', 'Invite is invalid or expired.', 422);
         }
-        Response::json(['data' => ['valid' => true, 'has_pending_user' => $invite['invited_user_id'] !== null]]);
+        Response::json(['data' => ['valid' => true, 'has_pending_user' => $invite['invited_user_id'] !== null, 'display_name' => $invite['display_name'], 'username' => $invite['username']]]);
     }
 
     public function validateReset(array $in): never {

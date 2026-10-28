@@ -107,6 +107,12 @@ $router->post('/api/v1/admin/invites', static function ($r) {
     $a = new AuthService($db, new SessionStore($db));
     $a->invite($a->requireRole('portal_admin'), $r->json());
 });
+$router->post('/api/v1/admin/users/pending', static function ($r) {
+    Security::csrf($r, true); $db=Connection::make();$a=new AuthService($db,new SessionStore($db));$a->createPending($a->requireRole('portal_admin'),$r->json());
+});
+$router->get('/api/v1/admin/invites', static function () {
+    $db=Connection::make();$a=new AuthService($db,new SessionStore($db));$a->listInvites($a->requireRole('portal_admin'));
+});
 $router->post('/api/v1/admin/password-reset-codes', static function ($r) {
     Security::csrf($r, true);
     $db = Connection::make();
@@ -122,10 +128,11 @@ $router->post('/api/v1/admin/invites/revoke', static function ($r) {
         <<<'SQL'
         UPDATE registration_invites
         SET
-            consumed_at = ?
+            revoked_at = ?
         WHERE
             id = ?
             AND consumed_at IS NULL
+            AND revoked_at IS NULL
         SQL
         ,
     );

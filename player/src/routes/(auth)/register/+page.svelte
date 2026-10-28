@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
+    import { page } from '$app/state';
     import { api, ApiRequestError } from '#lib/api/index.js';
     import Tooltip from '#lib/components/shared/Tooltip.svelte';
 
@@ -7,7 +8,11 @@
     let inviteCode = $state('');
     let inviteError = $state('');
     let inviteAccepted = $state(false);
+    let pendingUser = $state(false);
+    let pendingDisplayName = $state('');
+    let pendingUsername = $state('');
     let email = $state('');
+    let displayName = $state('');
     let username = $state('');
     let password = $state('');
     let accountCreated = $state(false);
@@ -25,7 +30,14 @@
 
         busy = true;
         try {
-            await api.post('/api/v1/auth/invite/validate', { invite_code: normalizedCode });
+            const result = await api.post<{
+                has_pending_user: boolean;
+                display_name: string | null;
+                username: string | null;
+            }>('/api/v1/auth/invite/validate', { invite_code: normalizedCode });
+            pendingUser = result.has_pending_user;
+            pendingDisplayName = result.display_name ?? '';
+            pendingUsername = result.username ?? '';
             inviteAccepted = true;
         } catch (error) {
             inviteError = error instanceof ApiRequestError ? error.message : 'Invite validation failed.';
@@ -35,15 +47,15 @@
     }
 
     async function createAccount() {
-        if (!email.trim() || !username.trim() || password.length < 8) return;
+        if (!email.trim() || !username.trim() || (!pendingUser && !displayName.trim()) || password.length < 8) return;
         busy = true;
         inviteError = '';
         try {
             await api.post('/api/v1/auth/register', {
                 invite_code: inviteCode,
                 email,
-                username,
-                display_name: username,
+                username: pendingUser ? pendingUsername : username,
+                display_name: pendingUser ? pendingDisplayName : username,
                 password,
                 password_confirmation: password
             });
@@ -55,6 +67,12 @@
         } finally {
             busy = false;
         }
+    }
+
+    const initialCode = page.url.searchParams.get('code');
+    if (initialCode) {
+        inviteCode = initialCode;
+        void checkInvite();
     }
 </script>
 
@@ -115,14 +133,22 @@
                 autocomplete="email"
             />
         </div>
-        <div class="field-group">
-            <label for="username">Username</label><input
-                id="username"
-                bind:value={username}
-                placeholder="Choose a username"
-                autocomplete="username"
-            />
-        </div>
+        {#if !pendingUser}<div class="field-group">
+                <label for="display-name">Display name</label><input
+                    id="display-name"
+                    bind:value={displayName}
+                    placeholder="Your name"
+                    autocomplete="name"
+                />
+            </div>{/if}
+        {#if !pendingUser}<div class="field-group">
+                <label for="username">Username</label><input
+                    id="username"
+                    bind:value={username}
+                    placeholder="Choose a username"
+                    autocomplete="username"
+                />
+            </div>{/if}
         <div class="field-group">
             <label for="password">Password</label><input
                 id="password"
