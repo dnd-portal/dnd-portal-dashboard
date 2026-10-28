@@ -47,17 +47,23 @@ $zip=Join-Path $release 'dnd-portal-v4-htdocs.zip'; Compress-Archive -Path (Join
 @"
 # D&D Portal V4 deployment
 
-1. Back up htdocs and the database.
-2. Create the production database and confirm MariaDB 11.4.x.
-3. Import `dnd-portal-v4-database.sql` through phpMyAdmin.
-4. Extract the htdocs zip directly into htdocs.
-5. Over HTTPS, call the one-time `/api/v1/bootstrap/first-admin` action with the private BOOTSTRAP_TOKEN and first-admin details.
-6. Log in normally, create an invitation, and verify `/api/v1/health`.
-7. Bootstrap is permanently disabled after the first admin and cannot create another admin.
-8. Keep this zip private: it contains generated server-side database credentials and the bootstrap token. Roll back by restoring the backups if any check fails.
+1. Back up the existing InfinityFree database and `htdocs`.
+2. Confirm that the intended V4 production database is selected; do not use a preview or development database.
+3. Import `dnd-portal-v4-database.sql` into the empty production database.
+4. Extract `dnd-portal-v4-htdocs.zip` directly into `htdocs`.
+5. Confirm Apache rewrite support is active and that `/server/.env`, `/server/src/` and `/server/public/index.php` are not downloadable.
+6. If no admin exists, perform the one-time admin bootstrap over HTTPS with the private bootstrap token; never place credentials in this document.
+7. Perform a normal admin login.
+8. Confirm bootstrap is then rejected and cannot create another admin.
+9. Verify the healthcheck.
+10. Create and consume an invitation registration test.
+11. Create and open a global poll with multiple options.
+12. Verify player registration, login and multi-select poll persistence.
+13. Verify admin aggregate and per-user poll results.
 
-The server directory is denied by Apache rules; verify `/server/.env`, `/server/src/`, and `/server/public/index.php` are not downloadable.
+Rollback: take the site offline, restore the backed-up `htdocs`, restore the database backup, and verify the healthcheck before reopening traffic.
 "@ | Set-Content (Join-Path $release 'DEPLOYMENT.md')
-$zipInfo=Get-Item $zip;$sqlInfo=Get-Item $sql;$zipHash=(Get-FileHash $zip -Algorithm SHA256).Hash;$sqlHash=(Get-FileHash $sql -Algorithm SHA256).Hash
+$sha256 = { param([string]$Path) $stream=[IO.File]::OpenRead($Path); try { $hash=[Security.Cryptography.SHA256]::Create().ComputeHash($stream); ([BitConverter]::ToString($hash)).Replace('-','') } finally { $stream.Dispose() } }
+$zipInfo=Get-Item $zip;$sqlInfo=Get-Item $sql;$zipHash=& $sha256 $zip;$sqlHash=& $sha256 $sql
 Write-Portal "Production package created: $zip ($($files.Count) staged files, $($zipInfo.Length) bytes, SHA256 $zipHash)"
 Write-Portal "Database SQL: $sql ($($sqlInfo.Length) bytes, SHA256 $sqlHash)"
