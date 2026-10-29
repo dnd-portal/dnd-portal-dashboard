@@ -9,16 +9,8 @@ Copy-Item (Join-Path $script:Player 'build\*') $stage -Recurse -Force
 New-Item -ItemType Directory -Force (Join-Path $stage 'server\public'),(Join-Path $stage 'server\src') | Out-Null
 Copy-Item (Join-Path $script:Backend 'public\index.php') (Join-Path $stage 'server\public\index.php')
 Copy-Item (Join-Path $script:Backend 'src\*') (Join-Path $stage 'server\src') -Recurse -Force
-@"
-APP_ENV=production
-APP_ALLOWED_ORIGIN=$(if($Preview){'preview-injected'}else{$prod.APP_ALLOWED_ORIGIN})
-DB_HOST=$(if($Preview){'preview-injected'}else{$prod.DB_HOST})
-DB_PORT=$(if($Preview){'3306'}else{$prod.DB_PORT})
-DB_NAME=$(if($Preview){'preview-injected'}else{$prod.DB_NAME})
-DB_USER=$(if($Preview){'preview-injected'}else{$prod.DB_USER})
-DB_PASSWORD=$(if($Preview){'preview-injected'}else{$prod.DB_PASSWORD})
-BOOTSTRAP_TOKEN=$(if($Preview){'preview-injected'}else{$prod.BOOTSTRAP_TOKEN})
-"@ | Set-Content (Join-Path $stage 'server\.env') -NoNewline
+# Runtime secrets are supplied privately on the host after extraction. Never package or overwrite server/.env.
+if(Test-Path -LiteralPath (Join-Path $stage 'server\.env')){Remove-Item -LiteralPath (Join-Path $stage 'server\.env') -Force}
 @'
 Options -Indexes
 RewriteEngine On
@@ -41,6 +33,7 @@ Require all granted
 $forbidden='localhost','127.0.0.1','dnd.toonvb.com','dnd.lovestoblog.com','dnd_portal_v4_development','dnd_portal_v4_preview','node_modules','V4-TYPE-A-INVITE','V4-TYPE-B-INVITE','v4-player','v4-admin','TESTUSER_','TESTADMIN_','TESTDM_','C:\\Users\\','C:/Users/'
 $files=Get-ChildItem $stage -Recurse -File; $textFiles=$files|Where-Object Extension -in '.js','.css','.html','.php','.env','.htaccess','.json','.txt','.svg'; $hits=@(); foreach($file in $textFiles){$text=Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue;foreach($needle in $forbidden){if($text -match [regex]::Escape($needle)){$hits+="$($file.FullName): $needle"}}}
 if($hits){$hits|Write-Error;throw 'Deployment package audit failed.'}
+if(Test-Path -LiteralPath (Join-Path $stage 'server\.env')){throw 'Deployment package audit failed: server/.env must not be packaged.'}
 $sql=Join-Path $release 'dnd-portal-v4-database.sql'; Get-ChildItem (Join-Path $script:Backend 'database\migrations\*.sql')|Sort-Object Name|Get-Content|Set-Content $sql
 if((Get-Content $sql -Raw)-match 'DROP DATABASE|CREATE USER|GRANT '){throw 'SQL audit failed.'}
 $zip=Join-Path $release 'dnd-portal-v4-htdocs.zip'; Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force
@@ -51,7 +44,7 @@ $zip=Join-Path $release 'dnd-portal-v4-htdocs.zip'; Compress-Archive -Path (Join
 2. Confirm that the intended V4 production database is selected; do not use a preview or development database.
 3. Import `dnd-portal-v4-database.sql` into the empty production database.
 4. Extract `dnd-portal-v4-htdocs.zip` directly into `htdocs`.
-5. Confirm Apache rewrite support is active and that `/server/.env`, `/server/src/` and `/server/public/index.php` are not downloadable.
+5. Create the private runtime `server/.env` on the host using the hosting configuration; never put it in the ZIP or commit it. Confirm Apache rewrite support is active and that `/server/.env`, `/server/src/` and `/server/public/index.php` are not downloadable.
 6. If no admin exists, perform the one-time admin bootstrap over HTTPS with the private bootstrap token; never place credentials in this document.
 7. Perform a normal admin login.
 8. Confirm bootstrap is then rejected and cannot create another admin.

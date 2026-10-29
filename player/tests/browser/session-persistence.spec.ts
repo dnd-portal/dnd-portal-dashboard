@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('production-like session survives login, reload, reopen and supports poll creation', async ({ page }) => {
     const database = process.env.TEST_DB_NAME ?? '';
     test.skip(
-        !/^dnd_portal_test_run_[0-9]+$/.test(database) || database === 'dnd_portal_v4_development',
+        !/^dnd_portal_test_run_[a-z0-9_]+$/.test(database) || database === 'dnd_portal_v4_development',
         'Session persistence tests require a dedicated test database.'
     );
 
@@ -45,7 +45,13 @@ test('production-like session survives login, reload, reopen and supports poll c
     await page.getByRole('button', { name: 'Create poll' }).click();
     await expect(page.getByText(title)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Sign out' }).click();
+    await Promise.all([
+        page.waitForResponse(
+            (response) => response.url().endsWith('/api/v1/auth/logout') && response.request().method() === 'POST'
+        ),
+        page.getByRole('button', { name: 'Sign out' }).click()
+    ]);
+    await page.waitForLoadState('networkidle');
     const unauthenticated = await page.evaluate(async () => {
         const response = await fetch('/api/v1/auth/me', { credentials: 'include' });
         return response.status;

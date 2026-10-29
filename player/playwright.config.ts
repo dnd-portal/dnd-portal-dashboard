@@ -6,6 +6,7 @@ export default defineConfig({
     workers: 1,
     use: {
         baseURL: process.env.TEST_FRONTEND_URL ?? 'http://127.0.0.1:5173',
+        ignoreHTTPSErrors: (process.env.TEST_FRONTEND_URL ?? '').startsWith('https://'),
         viewport: { width: 1440, height: 1000 },
         launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
             ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE }
