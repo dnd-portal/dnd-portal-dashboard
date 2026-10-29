@@ -5,7 +5,7 @@ export default defineConfig({
     fullyParallel: false,
     workers: 1,
     use: {
-        baseURL: 'http://127.0.0.1:5173',
+        baseURL: process.env.TEST_FRONTEND_URL ?? 'http://127.0.0.1:5173',
         viewport: { width: 1440, height: 1000 },
         launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
             ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE }
