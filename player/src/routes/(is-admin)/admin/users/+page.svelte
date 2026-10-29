@@ -31,6 +31,9 @@
     let showImport = $state(false);
     let inviteUser = $state<User | null>(null);
     let deleteUserTarget = $state<User | null>(null);
+    let resetUser = $state<User | null>(null);
+    let resetResult = $state<{ id: number; code: string; expires_at: string; url: string } | null>(null);
+    let resetError = $state('');
     let generated = $state<{ name: string; username: string; url: string } | null>(null);
     let displayName = $state('');
     let username = $state('');
@@ -52,6 +55,10 @@
             (i) => i.invited_user_id === id && !i.consumed_at && !i.revoked_at && new Date(i.expires_at) > new Date()
         );
     const link = (code: string) => `${window.location.origin}/register?code=${encodeURIComponent(code)}`;
+    const resetLink = (user: User, code: string) => {
+        const identifier = user.email ?? user.username ?? '';
+        return `${window.location.origin}/reset-password?code=${encodeURIComponent(code)}&identifier=${encodeURIComponent(identifier)}`;
+    };
     async function load() {
         try {
             [users, invites] = await Promise.all([
@@ -154,6 +161,37 @@
             busy = false;
         }
     }
+    async function generateReset() {
+        if (!resetUser) return;
+        busy = true;
+        resetError = '';
+        try {
+            const result = await api.post<{ code: string; id: number; expires_at: string }>(
+                '/api/v1/admin/password-reset-codes',
+                { user_id: resetUser.id }
+            );
+            resetResult = { ...result, url: resetLink(resetUser, result.code) };
+        } catch (e) {
+            resetError = e instanceof ApiRequestError ? e.message : 'Unable to issue reset code.';
+        } finally {
+            busy = false;
+        }
+    }
+    async function revokeReset() {
+        if (!resetResult) return;
+        busy = true;
+        resetError = '';
+        try {
+            await api.post('/api/v1/admin/password-reset-codes/revoke', { id: resetResult.id });
+            resetResult = null;
+            resetUser = null;
+            message = 'Password reset code revoked.';
+        } catch (e) {
+            resetError = e instanceof ApiRequestError ? e.message : 'Unable to revoke reset code.';
+        } finally {
+            busy = false;
+        }
+    }
     function requestInvite(user: User) {
         inviteUser = user;
         if (validInvite(user.id)) message = 'A valid invitation already exists for this pending user.';
@@ -175,6 +213,14 @@
                   }
               ]
             : []),
+        {
+            label: 'Reset password',
+            onselect: () => {
+                resetUser = user;
+                resetResult = null;
+                resetError = '';
+            }
+        },
         { label: 'Delete user', tone: 'danger' as const, onselect: () => (deleteUserTarget = user) }
     ];
 </script>
@@ -272,6 +318,58 @@
             </div>
         </div>
     </div>{/if}
+{#if resetUser}<div
+        class="admin-mvp-modal-backdrop"
+        role="presentation"
+        onclick={(event) => event.target === event.currentTarget && (resetUser = null)}
+    >
+        <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true" aria-labelledby="reset-password-title">
+            <h2 id="reset-password-title">Reset password</h2>
+            <p>
+                Generate a one-time password reset for <strong>{resetUser.display_name}</strong>
+                ({resetUser.email ?? `@${resetUser.username ?? 'user'}`}).
+            </p>
+            {#if resetError}<p class="error-message" role="alert">{resetError}</p>{/if}
+            {#if resetResult}
+                <div class="admin-mvp-reset-result">
+                    <p>
+                        <strong>Keep this private.</strong> The code can be used only once and expires {new Date(
+                            resetResult.expires_at
+                        ).toLocaleString()}.
+                    </p>
+                    <label>Reset link<input class="p-input" readonly value={resetResult.url} /></label>
+                    <CopyButton value={resetResult.url} label="Copy reset link" />
+                    <label>Reset code<input class="p-input" readonly value={resetResult.code} /></label>
+                    <CopyButton value={resetResult.code} label="Copy reset code" />
+                    <div class="admin-mvp-modal__actions">
+                        <button
+                            class="p-button p-button--danger"
+                            type="button"
+                            disabled={busy}
+                            onclick={() => void revokeReset()}>Revoke reset code</button
+                        >
+                        <button class="p-button p-button--secondary" type="button" onclick={() => (resetUser = null)}
+                            >Close</button
+                        >
+                    </div>
+                </div>
+            {:else}
+                <p>This creates a private reset link and code. Do not share them publicly.</p>
+                <div class="admin-mvp-modal__actions">
+                    <button class="p-button" type="button" disabled={busy} onclick={() => void generateReset()}
+                        >{busy ? 'Generating…' : 'Generate reset code'}</button
+                    >
+                    <button
+                        class="p-button p-button--secondary"
+                        type="button"
+                        disabled={busy}
+                        onclick={() => (resetUser = null)}>Cancel</button
+                    >
+                </div>
+            {/if}
+        </div>
+    </div>
+{/if}
 {#if showImport}<div class="admin-mvp-modal-backdrop">
         <div class="p-card admin-mvp-modal" role="dialog" aria-modal="true" aria-labelledby="import-user-title">
             <h2 id="import-user-title">Import user</h2>

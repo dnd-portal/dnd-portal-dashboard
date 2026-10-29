@@ -57,5 +57,8 @@
             >{busy ? 'Signing in…' : 'Continue with email'} <span aria-hidden="true">→</span></button
         >
     </form>
+    <p class="footer-note">
+        <a href="/reset-password">Forgot your password?</a> Ask your organizer for a personal reset code.
+    </p>
     <p class="footer-note"><a href="/register">New here?</a> Ask your organizer for an invitation.</p>
 </section>
