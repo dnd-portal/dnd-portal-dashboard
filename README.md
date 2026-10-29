@@ -18,6 +18,8 @@
     <a href="https://github.com/dnd-portal/dnd-portal-dashboard/issues">Report an issue</a>
     ·
     <a href="https://github.com/dnd-portal/dnd-portal-dashboard/releases">Releases</a>
+    ·
+    <a href="CHANGELOG.md">Changelog</a>
   </p>
 
   <p>
@@ -61,14 +63,14 @@ The production application is available at [player.dnd-portal.com](https://playe
 
 ## Technology
 
-| Layer | Technology |
-| --- | --- |
-| Frontend | SvelteKit 3, Svelte 5, TypeScript 6, SCSS, Vite 8 |
-| Backend | PHP 8.4, custom HTTP router and service layer |
-| Database | MariaDB 11.4 with versioned SQL migrations |
-| Testing | Node test runner and Playwright |
-| Local environment | Docker Compose, PowerShell tooling and phpMyAdmin |
-| Production | Static SvelteKit build with a PHP API on InfinityFree |
+| Layer             | Technology                                            |
+| ----------------- | ----------------------------------------------------- |
+| Frontend          | SvelteKit 3, Svelte 5, TypeScript 6, SCSS, Vite 8     |
+| Backend           | PHP 8.4, custom HTTP router and service layer         |
+| Database          | MariaDB 11.4 with versioned SQL migrations            |
+| Testing           | Node test runner and Playwright                       |
+| Local environment | Docker Compose, PowerShell tooling and phpMyAdmin     |
+| Production        | Static SvelteKit build with a PHP API on InfinityFree |
 
 ## Repository structure
 
@@ -178,11 +180,13 @@ Deployment is intentionally manual. The production database and the private runt
 - Never commit `.env`, `.env.infinityfree`, database exports, access tokens or real user data.
 - Use the provided `.env.example` files only as local configuration templates.
 - Keep production `server/.env` private on the hosting environment.
-- Report suspected vulnerabilities privately to the repository owner instead of opening a public issue.
+- Report suspected vulnerabilities privately by following [`SECURITY.md`](SECURITY.md) instead of opening a public issue.
 
 ## Contributing
 
-Issues and focused pull requests are welcome. Before submitting a change:
+Issues and focused pull requests are welcome. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting a change.
+
+At minimum:
 
 1. Keep production data and credentials out of commits, fixtures and screenshots.
 2. Follow the existing four-space formatting and project structure.
@@ -192,6 +196,12 @@ Issues and focused pull requests are welcome. Before submitting a change:
 ## Project status
 
 D&amp;D Portal Dashboard is actively developed and used in production. Features and APIs may continue to evolve while the portal is expanded for additional campaigns and organizer workflows.
+
+Release history is maintained in [`CHANGELOG.md`](CHANGELOG.md) and on the [GitHub Releases page](https://github.com/dnd-portal/dnd-portal-dashboard/releases).
+
+## License
+
+This is proprietary software. Copyright © 2026 D&amp;D Portal. All rights reserved. See [`LICENSE`](LICENSE) for the complete terms.
 
 ---
 
