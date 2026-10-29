@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+// Never expose filesystem paths, SQL details, or credentials through production responses.
+if (($_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: '') === 'production') {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+}
+
 // Single public front controller. Keep configuration and src/ outside the public web directory when hosting permits.
 require dirname(__DIR__) . '/src/Config.php';
 \DndPortal\Config::loadDotEnv(dirname(__DIR__) . '/.env');
