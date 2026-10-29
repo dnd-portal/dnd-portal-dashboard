@@ -10,13 +10,15 @@
         navigation,
         breadcrumbs,
         children,
-        backToDashboard = false
+        backToDashboard = false,
+        homeHref = '/dashboard'
     }: {
         user: User;
         navigation: NavigationGroup[];
         breadcrumbs: Breadcrumb[];
         children: Snippet;
         backToDashboard?: boolean;
+        homeHref?: string;
     } = $props();
     let menuOpen = $state(false);
 
@@ -33,7 +35,11 @@
 
 <div class="p-shell" data-menu-open={menuOpen}>
     <header class="p-shell__header">
-        <a class="p-shell__brand" href="/" aria-label="D&D Portal dashboard">
+        <a
+            class="p-shell__brand"
+            href={homeHref}
+            aria-label={homeHref === '/admin' ? 'D&D Portal admin' : 'D&D Portal dashboard'}
+        >
             <img src="/dashboard-dnd-portal-logo-wide.svg" alt="D&D Portal" width="110" height="48" />
         </a>
         <button

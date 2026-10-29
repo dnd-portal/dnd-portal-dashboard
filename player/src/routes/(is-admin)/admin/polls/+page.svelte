@@ -39,7 +39,7 @@
 </script>
 
 <svelte:head><title>Global polls · D&amp;D Portal</title></svelte:head>
-<section class="p-page-header">
+<section class="p-page-header admin-page-content">
     <h1>Global polls</h1>
     <p>Create and review the poll available to every active user.</p>
 </section>

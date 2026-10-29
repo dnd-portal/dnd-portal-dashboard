@@ -251,8 +251,12 @@
         }
     }
     .admin-mvp-table {
+        overflow-x: auto;
         table-layout: auto;
         min-width: 0;
+        .p-table {
+            min-width: 680px;
+        }
     }
     .admin-mvp-list-row {
         align-items: flex-start;

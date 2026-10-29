@@ -71,5 +71,7 @@
         <a href="/login">Return to sign in</a>
     </section>
 {:else}
-    <DashboardShell {user} {navigation} {breadcrumbs} backToDashboard>{@render children()}</DashboardShell>
+    <DashboardShell {user} {navigation} {breadcrumbs} backToDashboard homeHref="/admin"
+        >{@render children()}</DashboardShell
+    >
 {/if}

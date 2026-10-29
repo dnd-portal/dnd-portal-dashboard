@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import AdminHeader from '#lib/components/admin/AdminHeader.svelte';
     import CopyButton from '#lib/components/shared/CopyButton.svelte';
     import RowActions from '#lib/components/shared/RowActions.svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
@@ -182,11 +181,11 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="admin-shell">
-    <AdminHeader pageKey="users" subtitle="Manage active accounts and pending people who still need to register." />
+<div class="admin-page-content">
     <section class="admin-detail">
         <div class="p-page-header">
-            <p class="p-page-header__context">Accounts and invitations</p>
+            <h1>Users</h1>
+            <p class="p-page-header__context">Manage accounts and invitations.</p>
         </div>
         <div class="admin-mvp-toolbar">
             <div class="admin-mvp-toolbar__actions">

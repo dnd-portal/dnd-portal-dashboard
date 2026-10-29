@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import AdminHeader from '#lib/components/admin/AdminHeader.svelte';
     import RowActions from '#lib/components/shared/RowActions.svelte';
     import { api, ApiRequestError } from '#lib/api/index.js';
     type Invite = {
@@ -38,10 +37,12 @@
     onMount(() => void load());
 </script>
 
-<div class="admin-shell">
-    <AdminHeader pageKey="invite-codes" subtitle="Review and revoke registration invitations created from Users." />
+<div class="admin-page-content">
     <section class="admin-detail">
-        <p class="p-page-header__context">Invitation history</p>
+        <div class="p-page-header">
+            <h1>Invite codes</h1>
+            <p class="p-page-header__context">Invitation history</p>
+        </div>
         <p>Invitation codes are generated from the Users page. Raw codes are only shown once at creation.</p>
         {#if error}<p class="error-message" role="alert">{error}</p>{/if}
         {#if invites.length === 0}<div class="p-card admin-mvp-empty">
