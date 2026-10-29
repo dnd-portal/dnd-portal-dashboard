@@ -7,6 +7,8 @@ namespace DndPortal;
 final class Config {
     /** @var array<string, bool> */
     private static array $loaded = [];
+    /** @var array<string, string> */
+    private static array $fileValues = [];
 
     public static function loadDotEnv(string $path): void {
         if (isset(self::$loaded[$path]) || !is_readable($path)) {
@@ -28,19 +30,32 @@ final class Config {
             }
             [$name, $value] = explode('=', $line, 2);
             $name = trim($name);
-            $value = trim($value);
-            if ($value !== '' && (($value[0] ?? '') === '"' || ($value[0] ?? '') === "'")) {
-                $value = trim($value, "\"'");
-            }
-            if ($name !== '' && getenv($name) === false) {
-                putenv($name . '=' . $value);
+            $value = self::parseValue($value);
+            if ($name !== '' && !array_key_exists($name, self::$fileValues)) {
+                self::$fileValues[$name] = $value;
             }
         }
     }
 
     public static function env(string $name, string $default = ''): string {
         $value = getenv($name);
-        return $value === false ? $default : trim($value);
+        if ($value !== false) {
+            return trim($value);
+        }
+        return array_key_exists($name, self::$fileValues) ? self::$fileValues[$name] : $default;
+    }
+
+    private static function parseValue(string $raw): string {
+        $value = trim($raw);
+        $quote = $value[0] ?? '';
+        if ($quote === '"' || $quote === "'") {
+            $end = strrpos($value, $quote);
+            if ($end > 0) {
+                return substr($value, 1, $end - 1);
+            }
+        }
+        $comment = strpos($value, ' #');
+        return trim($comment === false ? $value : substr($value, 0, $comment));
     }
 
     public static function isProduction(): bool {
