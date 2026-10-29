@@ -1,13 +1,15 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs';
 
-const password = 'LocalReset-2026!';
+const adminEmail = process.env.TEST_ADMIN_EMAIL ?? 'admin@example.test';
+const password = process.env.TEST_ADMIN_PASSWORD ?? '';
 const artifactDir = 'test-artifacts/password-reset-admin';
 fs.mkdirSync(artifactDir, { recursive: true });
 
 test('admin can generate and review a password reset code', async ({ page }) => {
+    test.skip(!password, 'Set TEST_ADMIN_PASSWORD for the local authenticated admin flow.');
     await page.goto('/login');
-    await page.getByLabel('Email or username').fill('admin@example.test');
+    await page.getByLabel('Email or username').fill(adminEmail);
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: /Continue with email/ }).click();
     await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();

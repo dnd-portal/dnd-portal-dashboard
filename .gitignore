@@ -10,3 +10,4 @@ node_modules/
 player/.svelte-kit/
 player/build/
 *.log
+test-artifacts/
