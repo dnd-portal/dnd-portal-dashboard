@@ -1,5 +1,9 @@
 # Dependencies at the repository root and in project subdirectories
-node_modules/
+/frontend/node_modules
+/frontend/.svelte-kit
+/frontend/.vscode
+/frontend/.env
+node_modules
 vendor/
 
 # Runtime and local diagnostic logs

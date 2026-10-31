@@ -1,0 +1,99 @@
+:root {
+    // Brand palette
+    --blue-100:             #8ab8f2;
+    --blue-200:             #8ab8f2;
+    --blue-300:             #5279aa;
+    --blue-400:             #417bc5;
+    --blue-500:             #3569ad;
+    --blue-600:             #00396b;
+
+    // Backgrounds
+    --color-background:     #0b111b;
+    --color-surface:        #101a29;
+    --color-surface-hover:  #162840;
+
+    // Brand usage
+    --color-primary:        #3569ad;
+    --color-primary-hover:  #417bc5;
+    --color-accent:         #8ab8f2;
+
+    // Text and borders
+    --color-text:            #bcc9dc;
+    --color-text-muted:     #9aacc5;
+    --color-heading:        #eef3fc;
+    --color-border:         #293d59;
+
+    // Status backgrounds
+    --color-success:         #6fdca3;
+    --color-error:           #ff8a8a;
+    --color-warning:         #ffb86b;
+    --color-info:            var(--blue-200);
+
+    // Text on status backgrounds
+    --color-on-success:      #0b0f16;
+    --color-on-error:        #0b0f16;
+    --color-on-warning:      #0b0f16;
+    --color-on-info:         #0b0f16;
+
+    // Links
+    --color-link: var(--blue-200);
+    --color-link-hover: var(--blue-100);
+
+    // Typography
+    --font-body:
+        'Segoe UI',
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+    --font-heading: var(--font-body);
+
+    // Content widths
+    --max-width:                1140px;
+    --max-width-wide:           1440px;
+    --max-width-form:           560px;
+    --max-width-reading:        65ch;
+    --page-gutter:              clamp(1rem, 4vw, 3rem);
+
+    // Spacing
+    --space-1:                  0.25rem;  // 4px
+    --space-2:                  0.5rem;   // 8px
+    --space-3:                  0.75rem;  // 12px
+    --space-4:                  1rem;     // 16px
+    --space-5:                  1.5rem;   // 24px
+    --space-6:                  2rem;     // 32px
+    --space-7:                  3rem;     // 48px
+    --space-8:                  4rem;     // 64px
+    --section-spacing:          clamp(3rem, 6vw, 6rem);
+
+    // Font sizes
+    --font-size-small:          0.875rem;
+    --font-size-body:           1rem;
+    --font-size-lead:           1.125rem;
+    --font-size-h3:             clamp(1.25rem, 1rem + 1vw, 1.5rem);
+    --font-size-h2:             clamp(2rem, 1.5rem + 2vw, 3rem);
+    --font-size-h1:             clamp(2.25rem, 1.5rem + 3vw, 4rem);
+
+    // Line heights
+    --line-height-heading:      1;
+    --line-height-body:         1.6;
+
+    // Borders and corners
+    --border-width:             1px;
+    --radius-small:             4px;
+    --radius-medium:            8px;
+    --radius-large:             12px;
+    --radius-pill:              9999px;
+
+    // Controls — minimums, so content can grow
+    --control-min-height:       44px;
+    --control-padding-inline:   1rem;
+    --focus-outline-width:      2px;
+    --focus-outline-offset:     4px;
+
+    // Layout
+    --header-min-height:        80px;
+    --sidebar-width:            260px;
+    --sidebar-collapsed-width:  72px;
+}

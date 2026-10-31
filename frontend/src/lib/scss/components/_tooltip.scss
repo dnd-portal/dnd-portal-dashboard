@@ -1,0 +1,40 @@
+.tooltip {
+	position: relative;
+	min-width: 0;
+
+	&:hover,
+	&:focus-within {
+		z-index: 20;
+	}
+
+	> .tooltip__content {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 1000;
+
+		box-sizing: border-box;
+		width: 240px;
+		max-width: calc(100vw - 24px);
+		padding: 12px 16px;
+
+		border: 1px solid var(--blue-300);
+		border-radius: var(--radius-medium, 8px);
+
+		background: var(--color-surface-hover);
+		color: var(--color-text);
+
+		box-shadow: 0 12px 32px rgb(0 0 0 / 40%);
+
+		font-family: var(--font-body);
+		font-size: var(--font-size-small, 0.875rem);
+		font-weight: 400;
+		line-height: 1.6;
+		text-align: left;
+
+		white-space: normal;
+		overflow-wrap: anywhere;
+		overflow: auto;
+		overscroll-behavior: contain;
+	}
+}

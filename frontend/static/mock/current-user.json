@@ -1,0 +1,11 @@
+{
+    "id": "toon",
+    "name": "Toon van Berkel",
+    "permissions": {
+        "canVisitAdmin": true,
+        "canVisitAdminPage": true,
+        "canVisitAdminUsersPage": true,
+        "canEditUsers": false,
+        "canDeleteUsers": false
+    }
+}

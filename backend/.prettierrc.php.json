@@ -1,8 +1,0 @@
-{
-    "tabWidth": 4,
-    "printWidth": 100,
-    "braceStyle": "1tbs",
-    "singleQuote": true,
-    "phpVersion": "composer",
-    "plugins": ["@prettier/plugin-php"]
-}

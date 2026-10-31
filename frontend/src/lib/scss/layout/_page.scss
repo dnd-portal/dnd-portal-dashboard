@@ -1,0 +1,343 @@
+.page-content, .page-banner {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+.page-banner {
+    width: 100%;
+    max-width: none;
+    min-height: clamp(19rem, 42vh, 28rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+    padding: 
+        var(--space-8)
+        max(var(--page-gutter), calc((100vw - var(--max-width)) / 2 + var(--page-gutter)))
+        var(--space-8)
+        max(var(--page-gutter), calc((100vw - var(--max-width)) / 2 + var(--page-gutter)));
+    background:
+        linear-gradient(180deg, transparent 58%, var(--color-background) 100%),
+        linear-gradient(90deg, rgb(11 17 27 / 94%) 0%, rgb(11 17 27 / 78%) 52%, rgb(11 17 27 / 48%) 100%),
+        url('/backgrounds/Moonlit-Gothic-City-in-the-Mist.webp') top center / cover fixed;
+
+    > * {
+        width: 100%;
+        max-width: var(--max-width);
+    }
+}
+.page-content {
+    padding: var(--space-6) var(--page-gutter);
+}
+
+.page-banner__text {
+    width: 50%;
+}
+
+.page-banner__layout {
+    display: flex;
+    align-items: center;
+    gap: var(--space-7);
+}
+
+.page-banner__art {
+    display: flex;
+    flex: 1 1 50%;
+    align-items: center;
+    justify-content: center;
+    transition: transform 180ms ease;
+
+    &:hover {
+        transform: scale(1.06);
+
+        img {
+            filter: drop-shadow(0 16px 32px rgb(138 184 242 / 34%));
+        }
+    }
+
+    img {
+        display: block;
+        width: auto;
+        height: 200px;
+        max-width: 100%;
+        animation: hero-icon-float 5s ease-in-out infinite;
+        filter: drop-shadow(0 12px 24px rgb(138 184 242 / 18%));
+        transition: filter 180ms ease;
+    }
+}
+
+.reveal-hero-art-ready {
+    display: flex;
+    opacity: 0;
+    transform: scale(1.025);
+}
+
+.reveal-hero-art-visible {
+    display: flex;
+    opacity: 1;
+    transform: none;
+    transition: opacity 450ms ease var(--reveal-delay, 0ms), transform 450ms ease var(--reveal-delay, 0ms);
+}
+
+@keyframes hero-icon-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.page-banner__text > p:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+.hero-description {
+    max-width: none !important;
+    margin-top: var(--space-3);
+    text-align: left;
+    line-height: var(--line-height-body);
+}
+
+.page-content .intro-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+    align-items: stretch;
+}
+
+.features-details {
+    max-width: none;
+    margin-top: var(--space-4);
+    color: var(--color-text);
+    line-height: var(--line-height-body);
+}
+
+.how-it-works-section {
+    .eyebrow {
+        margin-bottom: var(--space-2);
+    }
+
+    h2 {
+        margin-bottom: var(--space-6);
+    }
+
+    > .text-link {
+        display: inline-block;
+        margin-top: var(--space-5);
+    }
+}
+
+.page-content .feature-cards {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+}
+
+.feature-cards + .text-link {
+    display: inline-block;
+    margin-top: var(--space-5);
+}
+
+@media (min-width: 640px) {
+    .page-content .feature-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1200px) {
+    .page-content .feature-cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.final-cta {
+    margin-bottom: calc(-1 * var(--section-spacing));
+    padding: var(--space-7) var(--page-gutter);
+    background: var(--color-surface-hover);
+
+    &__inner {
+        width: 100%;
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding-inline: var(--page-gutter);
+    }
+
+    &__description {
+        max-width: var(--max-width-reading);
+        margin: var(--space-3) 0 0;
+        color: var(--color-text);
+        line-height: var(--line-height-body);
+
+        a {
+            color: var(--color-accent);
+        }
+    }
+
+    .section-heading {
+        margin-bottom: 0;
+    }
+
+    .cta-row {
+        margin-top: var(--space-5);
+    }
+}
+
+.privacy-section {
+    position: relative;
+    width: 100%;
+    max-width: var(--max-width);
+    box-sizing: border-box;
+    isolation: isolate;
+    overflow: hidden;
+    padding: var(--space-8) var(--page-gutter);
+    margin: 0 auto;
+    background: var(--color-background);
+
+    &::before,
+    &::after {
+        position: absolute;
+        inset: 0;
+        content: '';
+        pointer-events: none;
+        mask-image:
+            linear-gradient(to right, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%),
+            linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+        mask-repeat: no-repeat;
+        mask-size: 100% 100%;
+        mask-composite: intersect;
+        -webkit-mask-image:
+            linear-gradient(to right, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%),
+            linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 100% 100%;
+        -webkit-mask-composite: source-in;
+    }
+
+    &::before {
+        z-index: -2;
+        background: url('/backgrounds/Sealed_arcane_door_to_your_party.webp') right center / cover no-repeat;
+    }
+
+    &.reveal-privacy-bg-visible::before {
+        animation: privacy-background-in 1000ms ease-out both;
+    }
+
+    &::after {
+        z-index: -1;
+        background: linear-gradient(90deg, rgb(11 17 27 / 96%) 0%, rgb(11 17 27 / 88%) 42%, rgb(11 17 27 / 45%) 100%);
+    }
+
+    &__inner {
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .section-heading {
+        max-width: 42rem;
+        margin-bottom: 0;
+    }
+
+    .cta-row {
+        max-width: 42rem;
+    }
+}
+
+@keyframes privacy-background-in {
+    from { transform: scale(1.025); }
+    to { transform: scale(1); }
+}
+
+@media (max-width: 800px) {
+    .page-banner {
+        background-attachment: scroll;
+    }
+
+    .page-banner__text {
+        width: 100%;
+    }
+
+    .page-banner__layout {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-banner__art {
+        justify-content: flex-start;
+    }
+
+    .privacy-section {
+        padding-top: var(--space-6);
+        padding-bottom: var(--space-6);
+        background-position: right center;
+
+        &::before,
+        &::after {
+            mask-image:
+                linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%),
+                linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+            -webkit-mask-image:
+                linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%),
+                linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+        }
+
+        &::after {
+            background: linear-gradient(90deg, rgb(11 17 27 / 98%) 0%, rgb(11 17 27 / 91%) 68%, rgb(11 17 27 / 72%) 100%);
+        }
+    }
+
+}
+
+@media (max-width: 639px) {
+    .page-content .intro-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-banner__art img {
+        animation: none;
+    }
+
+    .page-banner__art {
+        transition: none;
+    }
+
+    .reveal-hero-art-ready,
+    .reveal-hero-art-visible {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .privacy-section.reveal-privacy-bg-visible::before {
+        animation: none;
+        transform: none;
+    }
+}
+
+h1 {
+    font-size: var(--font-size-h1);
+    line-height: var(--line-height-heading);
+    margin-bottom: var(--space-2);
+}
+
+h2 {
+    font-size: var(--font-size-h2);
+    line-height: var(--line-height-heading);
+}
+
+button {
+    min-height: var(--control-min-height);
+    padding: var(--space-2) var(--control-padding-inline);
+    border-radius: var(--radius-medium);
+}

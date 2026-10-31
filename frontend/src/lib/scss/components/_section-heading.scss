@@ -1,0 +1,24 @@
+.section-heading {
+    margin-bottom: var(--space-6);
+
+    &__eyebrow {
+        margin-bottom: 0;
+    }
+
+    h2 {
+        margin: 0;
+    }
+
+    &__description {
+        max-width: var(--max-width-reading);
+        margin: var(--space-3) 0 0;
+        color: var(--color-text);
+        line-height: var(--line-height-body);
+    }
+
+    & + .steps,
+    & + .faq-list,
+    & + .info-grid {
+        margin-top: 0;
+    }
+}
