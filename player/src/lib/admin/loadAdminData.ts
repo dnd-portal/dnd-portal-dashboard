@@ -28,16 +28,34 @@ type ApiPayment = {
     external_url?: string | null;
 };
 
+export class AdminDataRequestError extends Error {
+    readonly path: string;
+    readonly status: number;
+
+    constructor(path: string, status: number) {
+        super(`API request failed: ${path}`);
+        this.name = 'AdminDataRequestError';
+        this.path = path;
+        this.status = status;
+    }
+}
+
 async function get<T>(fetcher: ApiFetch, path: string): Promise<T> {
     const response = await fetcher(path, { headers: { Accept: 'application/json' }, credentials: 'include' });
-    const payload = (await response.json()) as ApiEnvelope<T> | { error?: { message?: string } };
-    if (!response.ok || !('data' in payload)) throw new Error('API request failed: ' + path);
+    if (!response.ok) throw new AdminDataRequestError(path, response.status);
+    const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
+    if (!payload || typeof payload !== 'object' || !('data' in payload)) {
+        throw new AdminDataRequestError(path, response.status);
+    }
     return payload.data;
 }
 
 export async function getAdminData(fetcher: ApiFetch = globalThis.fetch) {
-    const [current, users, campaigns] = await Promise.all([
-        get<ApiUser>(fetcher, '/api/v1/auth/me'),
+    // Establish the session before starting the admin fan-out. If it has expired,
+    // do not also start protected requests that can each fail and retrigger the
+    // layout load during the error/redirect transition.
+    const current = await get<ApiUser>(fetcher, '/api/v1/auth/me');
+    const [users, campaigns] = await Promise.all([
         get<ApiUser[]>(fetcher, '/api/v1/users'),
         get<ApiCampaign[]>(fetcher, '/api/v1/campaigns')
     ]);
